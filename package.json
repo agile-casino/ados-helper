@@ -1,0 +1,24 @@
+{
+  "name": "ados-helper",
+  "version": "0.0.1",
+  "description": "ados-helper",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/archerax/ados-helper.git"
+  },
+  "author": "archerax",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/archerax/ados-helper/issues"
+  },
+  "homepage": "https://github.com/archerax/ados-helper#readme",
+  "devDependencies": {
+    "typescript": "^4.6.3"
+  }
+}
