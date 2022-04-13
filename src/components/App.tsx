@@ -6,7 +6,7 @@ export const App = () => {
     return (
         <>
             <button onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", margin: "auto 8px" }}>Generate Reports</button>
-            <ReportDialog open={dialogOpen} />
+            <ReportDialog open={dialogOpen} onCloseClicked={() => setDialogOpen(!dialogOpen)} />
         </>
     );
 };
