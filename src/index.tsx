@@ -7,6 +7,7 @@ async function init() {
 
     const container = document.createElement("div");
     container.className = "flex";
+    
     render(<App />, container);
 
     searchHeader.parentElement?.insertBefore(container, searchHeader);
