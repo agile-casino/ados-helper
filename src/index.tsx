@@ -1,3 +1,5 @@
+import { render } from "preact";
+import { ReportDialog } from "./components/ReportDialog";
 import { waitForElement } from "./utils";
 
 async function init() {
@@ -12,6 +14,11 @@ async function init() {
     reportButton.style.margin = "auto 8px";
     reportButton.onclick = showModal;
     reportButtonContainer.appendChild(reportButton);
+
+    const container = document.createElement("div");
+    reportButtonContainer.appendChild(container);
+
+    render(<ReportDialog />, container);
 
     searchHeader.parentElement?.insertBefore(reportButtonContainer, searchHeader);
 };
