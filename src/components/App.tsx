@@ -14,13 +14,11 @@ export const App = () => {
         return () => window.removeEventListener('urlChange', onUrlChange);
     }, []);
 
-    const matches = url.match(/.+_sprints\/taskboard\/(.+?)\/(.+?)\/(.+?)\/(.+)/);
+    const matches = url.match(/.+_sprints\/taskboard\/(.+?)\/(.+?)\/(?<team>.+?)\/(?<sprint>.+)/);
 
-    console.log(matches);
-
-    if (matches) {
-        const team = decodeURI(matches[3]);
-        const sprint = decodeURI(matches[4]);
+    if (matches && matches.groups && matches.groups.team && matches.groups.sprint) {
+        const team = decodeURI(matches.groups.team);
+        const sprint = decodeURI(matches.groups.sprint);
         return (
             <>
                 <button onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", margin: "auto 8px" }}>Generate Reports</button>
