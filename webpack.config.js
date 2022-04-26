@@ -9,7 +9,7 @@ const banner = `
 // @version      ${pkg.version}
 // @description  ADOS Helper
 // @author       archerax
-// @match        https://ados/WirelineRnD_Collection/WirelineRnD/_sprints/taskboard/*/WirelineRnD/*/Sprint*
+// @match        https://ados/WirelineRnD_Collection/WirelineRnD*
 // @icon         https://ados/favicon.ico
 // @grant        none
 // ==/UserScript==

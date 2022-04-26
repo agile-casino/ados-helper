@@ -1,16 +1,19 @@
 import { render } from "preact";
 import { App } from "./components/App";
-import { waitForElement } from "./utils";
+import { isInDocument } from "./utils";
 
-async function init() {
-    const searchHeader = await waitForElement(".expandable-search-header");
+const container = document.createElement("div");
+container.className = "flex";
 
-    const container = document.createElement("div");
-    container.className = "flex";
-    
-    render(<App />, container);
+render(<App />, container);
 
-    searchHeader.parentElement?.insertBefore(container, searchHeader);
-};
+const observer = new MutationObserver((mutations: MutationRecord[]) => {
+    if (!isInDocument(container)) {
+        const searchHeader = document.querySelector(".expandable-search-header");
+        if (searchHeader) {
+            searchHeader.parentElement?.insertBefore(container, searchHeader);
+        }
+    }
+});
 
-init();
+observer.observe(document.body, { subtree: true, characterData: true, childList: true });
