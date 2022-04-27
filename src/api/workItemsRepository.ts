@@ -16,7 +16,7 @@ export interface WorkItemReferenceDto {
 }
 
 export async function getWorkItems(collection: string, project: string, team: string, iterationId: string): Promise<WorkItemsDto> {
-    const url = encodeUrl(`${window.location.origin}/{0}/{1}/{2}/_apis/work/teamsettings/iterations/{3}/workItems?api-version6.0`, [collection, project, team, iterationId]);
+    const url = encodeUrl(`${window.location.origin}/{0}/{1}/{2}/_apis/work/teamsettings/iterations/{3}/workItems?api-version5.1`, [collection, project, team, iterationId]);
     const response = await fetch(url);
     return await response.json();
 }

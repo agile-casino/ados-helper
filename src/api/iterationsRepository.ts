@@ -17,7 +17,7 @@ export interface IterationAttributesDto {
 }
 
 export async function getIterations(collection: string, project: string, team: string): Promise<IterationsDto> {
-    const url = encodeUrl(`${window.location.origin}/{0}/{1}/{2}/_apis/work/teamsettings/iterations?api-version6.0`, [collection, project, team]);
+    const url = encodeUrl(`${window.location.origin}/{0}/{1}/{2}/_apis/work/teamsettings/iterations?api-version5.1`, [collection, project, team]);
     const response = await fetch(url);
     return await response.json();
 }
