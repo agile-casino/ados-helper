@@ -14,15 +14,17 @@ export const App = () => {
         return () => window.removeEventListener('urlChange', onUrlChange);
     }, []);
 
-    const matches = url.match(/.+_sprints\/taskboard\/(.+?)\/(.+?)\/(?<team>.+?)\/(?<sprint>.+)/);
+    const matches = url.match(/(?<collection>[\w\d_%]+)\/(?<project>[\w\d_%]+)\/_sprints\/taskboard\/[\w\d_%]+\/[\w\d_%]+\/(?<team>[\w\d_%]+)\/(?<sprint>[\w\d_%]+)/);
 
-    if (matches && matches.groups && matches.groups.team && matches.groups.sprint) {
+    if (matches && matches.groups) {
+        const collection = decodeURI(matches.groups.collection);
+        const project = decodeURI(matches.groups.project);
         const team = decodeURI(matches.groups.team);
         const sprint = decodeURI(matches.groups.sprint);
         return (
             <>
                 <button onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", margin: "auto 8px" }}>Generate Reports</button>
-                <ReportDialog team={team} sprint={sprint} open={dialogOpen} onCloseClicked={() => setDialogOpen(!dialogOpen)} />
+                <ReportDialog collection={collection} project={project} team={team} sprint={sprint} open={dialogOpen} onCloseClicked={() => setDialogOpen(!dialogOpen)} />
             </>
         );
     }
