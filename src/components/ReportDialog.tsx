@@ -1,10 +1,28 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "react";
 import uniq from "lodash/uniq";
 import sum from "lodash/sum";
 import { Pie } from "react-chartjs-2";
+import { ChartData, ChartOptions } from "chart.js";
 import { getIteration } from "../api/iterationsRepository";
 import { getWorkItemDetails, getWorkItems, WorkItemDetailsDto } from "../api/workItemsRepository";
+import { css } from "@emotion/react";
 import "chart.js/auto";
+
+const tableStyle = css(`
+    border: 1px solid silver;
+    margin: 1em;
+
+    th {
+        padding: 0.1em 0.5em;
+        border-left: 1px solid silver;
+        border-bottom: 1px solid silver;
+    }
+
+    td {
+        padding: 0.1em 0.5em;
+        border-left: 1px solid silver;
+    }
+`);
 
 export interface ReportDialogProps {
     collection: string;
@@ -36,7 +54,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
     const people = uniq(workItems?.map(x => x.fields["System.AssignedTo"]?.displayName));
     const points = people.map(x => sum(workItems?.filter(y => y.fields["System.AssignedTo"]?.displayName === x).map(z => z.fields["Microsoft.VSTS.Scheduling.Effort"])));
 
-    const data = {
+    const chartData: ChartData<"pie", number[], string> = {
         labels: people,
         datasets: [{
           data: points,
@@ -49,43 +67,59 @@ export const ReportDialog = (props: ReportDialogProps) => {
         }]
       };
 
+    const chartOptions: ChartOptions<"pie"> = { 
+        animation: { 
+            duration: 0
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: "right"
+            }
+        }
+    };
+
     if (props.open) {
         return (
-            <div class="ui-dialog workitem-dialog ui-dialog-legacy full-screen" style={{ zIndex: 10002 }}>
-                <div class="ui-dialog-titlebar">
-                    <button type="button" class="ui-button ui-button-icon-only ui-dialog-titlebar-close" onClick={props.onCloseClicked}>
-                        <span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span>
+            <div className="ui-dialog workitem-dialog ui-dialog-legacy full-screen" style={{ zIndex: 10002 }}>
+                <div className="ui-dialog-titlebar">
+                    <button type="button" className="ui-button ui-button-icon-only ui-dialog-titlebar-close" onClick={props.onCloseClicked}>
+                        <span className="ui-button-icon-primary ui-icon ui-icon-closethick"></span>
                     </button>
                 </div>
-                <div class="work-item-form-main-header" style={{ borderLeftColor: "rgb(0, 156, 204)" }}>
-                    <div class="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
+                <div className="work-item-form-main-header" style={{ borderLeftColor: "rgb(0, 156, 204)" }}>
+                    <div className="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>PBI</th>
-                            <th>WQ/SDR</th>
-                            <th>Description</th>
-                            <th>Assignee</th>
-                            <th>Size</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            workItems && workItems.map(x => (
-                                <tr>
-                                    <td>{x.id}</td>
-                                    <td></td>
-                                    <td>{x.fields["System.Title"]}</td>
-                                    <td>{x.fields["System.AssignedTo"]?.displayName}</td>
-                                    <td>{x.fields["Microsoft.VSTS.Scheduling.Effort"]}</td>
-                                </tr>
-                            ))
-                        }
-                    </tbody>
-                </table>
-                <div style={{ width: "300px", height: "300px" }}>
-                    <Pie data={data} options={{ animation: { duration: 0 } }} />
+                <div style={{ display: "inline-block" }}>
+                    <h2>Done</h2>
+                    <table css={tableStyle}>
+                        <thead>
+                            <tr>
+                                <th>PBI</th>
+                                <th>WQ/SDR</th>
+                                <th>Description</th>
+                                <th>Assignee</th>
+                                <th>Size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                workItems && workItems.filter(x => x.fields["System.State"] === "Done").map(x => (
+                                    <tr>
+                                        <td>{x.id}</td>
+                                        <td></td>
+                                        <td>{x.fields["System.Title"]}</td>
+                                        <td>{x.fields["System.AssignedTo"]?.displayName}</td>
+                                        <td>{x.fields["Microsoft.VSTS.Scheduling.Effort"]}</td>
+                                    </tr>
+                                ))
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
+                    <Pie data={chartData} options={chartOptions} />
                 </div>
             </div>
         );

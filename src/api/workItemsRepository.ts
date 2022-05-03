@@ -27,7 +27,8 @@ export interface WorkItemDetailsDto {
     fields: {
         "Microsoft.VSTS.Scheduling.Effort": number,
         "System.AssignedTo": UserDetailsDto,
-        "System.Title": string
+        "System.Title": string,
+        "System.State": string
     }
 }
 
@@ -47,5 +48,6 @@ export async function getWorkItemDetails(collection: string, project: string, wo
         body: JSON.stringify({ ids: workItemIds })
     });
     var result = await response.json();
+    console.log(result);
     return result.value;
 }
