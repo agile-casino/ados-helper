@@ -1,4 +1,4 @@
-import { render } from "preact";
+import { render } from "react-dom";
 import { App } from "./components/App";
 import { isInDocument } from "./utils";
 
