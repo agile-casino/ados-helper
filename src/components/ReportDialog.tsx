@@ -9,18 +9,27 @@ import { css } from "@emotion/react";
 import "chart.js/auto";
 
 const tableStyle = css(`
-    border: 1px solid silver;
     margin: 1em;
+    display: inline-block;
 
-    th {
-        padding: 0.1em 0.5em;
-        border-left: 1px solid silver;
-        border-bottom: 1px solid silver;
+    h2 {
+        margin-bottom: 0.25m;
     }
 
-    td {
-        padding: 0.1em 0.5em;
-        border-left: 1px solid silver;
+    table {
+        border: 1px solid silver;
+        
+
+        th {
+            padding: 0.1em 0.5em;
+            border-left: 1px solid silver;
+            border-bottom: 1px solid silver;
+        }
+    
+        td {
+            padding: 0.1em 0.5em;
+            border-left: 1px solid silver;
+        }
     }
 `);
 
@@ -91,9 +100,9 @@ export const ReportDialog = (props: ReportDialogProps) => {
                 <div className="work-item-form-main-header" style={{ borderLeftColor: "rgb(0, 156, 204)" }}>
                     <div className="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
                 </div>
-                <div style={{ display: "inline-block" }}>
+                <div css={tableStyle}>
                     <h2>Done</h2>
-                    <table css={tableStyle}>
+                    <table>
                         <thead>
                             <tr>
                                 <th>PBI</th>
