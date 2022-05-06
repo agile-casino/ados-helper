@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
-import uniq from "lodash/uniq";
-import sum from "lodash/sum";
-import { Pie } from "react-chartjs-2";
-import { ChartData, ChartOptions } from "chart.js";
 import { getIteration } from "../api/iterationsRepository";
 import { getWorkItemDetails, getWorkItems, WorkItemDetailsDto } from "../api/workItemsRepository";
-import "chart.js/auto";
 import { WorkItemTable } from "./WorkItemTable";
+import { WorkItemChart } from "./WorkItemChart";
 
 export interface ReportDialogProps {
     collection: string;
@@ -19,7 +15,7 @@ export interface ReportDialogProps {
 
 export const ReportDialog = (props: ReportDialogProps) => {
 
-    const [workItems, setWorkItems] = useState<WorkItemDetailsDto[]>();
+    const [workItems, setWorkItems] = useState<WorkItemDetailsDto[]>([]);
 
     async function updateIteration() {
         const iteration = await getIteration(props.collection, props.project, props.team, props.sprint);
@@ -34,35 +30,6 @@ export const ReportDialog = (props: ReportDialogProps) => {
     useEffect(() => {
         updateIteration().catch(console.error);
     }, [props.collection, props.project, props.team, props.sprint]);
-
-    const people = uniq(workItems?.map(x => x.fields["System.AssignedTo"]?.displayName));
-    const points = people.map(x => sum(workItems?.filter(y => y.fields["System.AssignedTo"]?.displayName === x).map(z => z.fields["Microsoft.VSTS.Scheduling.Effort"])));
-
-    const chartData: ChartData<"pie", number[], string> = {
-        labels: people,
-        datasets: [{
-          data: points,
-          backgroundColor: [
-            'rgb(255,  99, 132)',
-            'rgb(54,  162, 235)',
-            'rgb(255, 205, 86)',
-            'rgb(128, 128, 128)'
-          ]
-        }]
-      };
-
-    const chartOptions: ChartOptions<"pie"> = { 
-        animation: { 
-            duration: 0
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: "right"
-            }
-        }
-    };
 
     if (props.open) {
         return (
@@ -80,7 +47,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
                     <WorkItemTable title="Not Done" workItems={workItems?.filter(x => x.fields["System.State"] !== "Done")} />
                 </div>
                 <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
-                    <Pie data={chartData} options={chartOptions} />
+                    <WorkItemChart workItems={workItems} />
                 </div>
             </div>
         );
