@@ -12,14 +12,14 @@ interface WorkItemChartProps {
 
 export function WorkItemChart({ workItems }: WorkItemChartProps) {
 
-    const people = uniq(workItems?.map(x => x.fields["System.AssignedTo"]?.displayName));
+    const people = uniq(workItems?.map(x => x.fields["System.AssignedTo"]?.displayName)).sort();
     const points = people.map(x => sum(workItems?.filter(y => y.fields["System.AssignedTo"]?.displayName === x).map(z => z.fields["Microsoft.VSTS.Scheduling.Effort"])));
 
     const chartData: ChartData<"pie", number[], string> = {
         labels: people,
         datasets: [{
           data: points,
-          backgroundColor: getColourScheme(people.length)
+          backgroundColor: getColourScheme(people.length - 1).concat("hsl(0, 0%, 50%)")
         }]
       };
 
