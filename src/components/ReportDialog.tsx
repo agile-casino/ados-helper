@@ -5,33 +5,8 @@ import { Pie } from "react-chartjs-2";
 import { ChartData, ChartOptions } from "chart.js";
 import { getIteration } from "../api/iterationsRepository";
 import { getWorkItemDetails, getWorkItems, WorkItemDetailsDto } from "../api/workItemsRepository";
-import { css } from "@emotion/react";
 import "chart.js/auto";
-
-const tableStyle = css(`
-    margin: 1em;
-    display: inline-block;
-
-    h2 {
-        margin-bottom: 0.25m;
-    }
-
-    table {
-        border: 1px solid silver;
-        
-
-        th {
-            padding: 0.1em 0.5em;
-            border-left: 1px solid silver;
-            border-bottom: 1px solid silver;
-        }
-    
-        td {
-            padding: 0.1em 0.5em;
-            border-left: 1px solid silver;
-        }
-    }
-`);
+import { WorkItemTable } from "./WorkItemTable";
 
 export interface ReportDialogProps {
     collection: string;
@@ -100,32 +75,9 @@ export const ReportDialog = (props: ReportDialogProps) => {
                 <div className="work-item-form-main-header" style={{ borderLeftColor: "rgb(0, 156, 204)" }}>
                     <div className="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
                 </div>
-                <div css={tableStyle}>
-                    <h2>Done</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>PBI</th>
-                                <th>WQ/SDR</th>
-                                <th>Description</th>
-                                <th>Assignee</th>
-                                <th>Size</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {
-                                workItems && workItems.filter(x => x.fields["System.State"] === "Done").map(x => (
-                                    <tr>
-                                        <td>{x.id}</td>
-                                        <td></td>
-                                        <td>{x.fields["System.Title"]}</td>
-                                        <td>{x.fields["System.AssignedTo"]?.displayName}</td>
-                                        <td>{x.fields["Microsoft.VSTS.Scheduling.Effort"]}</td>
-                                    </tr>
-                                ))
-                            }
-                        </tbody>
-                    </table>
+                <div style={{ float: "left" }}>
+                    <WorkItemTable title="Done" workItems={workItems?.filter(x => x.fields["System.State"] === "Done")} />
+                    <WorkItemTable title="Not Done" workItems={workItems?.filter(x => x.fields["System.State"] !== "Done")} />
                 </div>
                 <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
                     <Pie data={chartData} options={chartOptions} />
