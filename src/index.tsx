@@ -1,11 +1,12 @@
-import { render } from "react-dom";
+import * as ReactDOM from "react-dom/client";
 import { App } from "./components/App";
 import { isInDocument } from "./utils";
 
 const container = document.createElement("div");
 container.className = "flex";
 
-render(<App />, container);
+const root = ReactDOM.createRoot(container);
+root.render(<App />);
 
 let url = window.location.href;
 const urlChangeEvent = new Event("urlChange");
