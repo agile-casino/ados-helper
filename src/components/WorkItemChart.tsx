@@ -4,6 +4,7 @@ import { Pie } from "react-chartjs-2";
 import { ChartData, ChartOptions } from "chart.js";
 import "chart.js/auto";
 import { WorkItemDetailsDto } from "../api/workItemsRepository";
+import { getColourScheme } from "../utils/colourScheme";
 
 interface WorkItemChartProps {
     workItems: WorkItemDetailsDto[];
@@ -18,12 +19,7 @@ export function WorkItemChart({ workItems }: WorkItemChartProps) {
         labels: people,
         datasets: [{
           data: points,
-          backgroundColor: [
-            'rgb(255,  99, 132)',
-            'rgb(54,  162, 235)',
-            'rgb(255, 205, 86)',
-            'rgb(128, 128, 128)'
-          ]
+          backgroundColor: getColourScheme(people.length)
         }]
       };
 
