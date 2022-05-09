@@ -43,8 +43,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
                     <div className="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
                 </div>
                 <div style={{ float: "left" }}>
-                    <WorkItemTable title="Done" workItems={workItems?.filter(x => x.fields["System.State"] === "Done")} />
-                    <WorkItemTable title="Not Done" workItems={workItems?.filter(x => x.fields["System.State"] !== "Done")} />
+                    <WorkItemTable title="Work" workItems={workItems} />
                 </div>
                 <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
                     <WorkItemChart workItems={workItems} />
