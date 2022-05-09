@@ -5,6 +5,7 @@ import { ChartData, ChartOptions } from "chart.js";
 import "chart.js/auto";
 import { WorkItemDetailsDto } from "../api/workItemsRepository";
 import { getColourScheme } from "../utils/colourScheme";
+import { formatName } from "../utils/formatName";
 
 interface WorkItemChartProps {
     workItems: WorkItemDetailsDto[];
@@ -16,7 +17,7 @@ export function WorkItemChart({ workItems }: WorkItemChartProps) {
     const points = people.map(x => sum(workItems?.filter(y => y.fields["System.AssignedTo"]?.displayName === x).map(z => z.fields["Microsoft.VSTS.Scheduling.Effort"])));
 
     const chartData: ChartData<"pie", number[], string> = {
-        labels: people,
+        labels: people.map(x => formatName(x) ?? "Unassigned"),
         datasets: [{
           data: points,
           backgroundColor: getColourScheme(people.length - 1).concat("hsl(0, 0%, 50%)")
