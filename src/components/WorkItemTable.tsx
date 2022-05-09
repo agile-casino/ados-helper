@@ -1,5 +1,6 @@
 import { css } from "@emotion/react";
 import { WorkItemDetailsDto } from "../api/workItemsRepository";
+import { formatName } from "../utils/formatName";
 
 const tableStyle = css(`
     margin: 1em;
@@ -37,7 +38,6 @@ export function WorkItemTable({ title, workItems }: WorkItemTableProps) {
                 <thead>
                     <tr>
                         <th>PBI</th>
-                        <th>WQ/SDR</th>
                         <th>Description</th>
                         <th>Assignee</th>
                         <th>Size</th>
@@ -48,9 +48,8 @@ export function WorkItemTable({ title, workItems }: WorkItemTableProps) {
                         workItems && workItems.map(x => (
                             <tr key={x.id}>
                                 <td>{x.id}</td>
-                                <td></td>
                                 <td>{x.fields["System.Title"]}</td>
-                                <td>{x.fields["System.AssignedTo"]?.displayName}</td>
+                                <td>{formatName(x.fields["System.AssignedTo"]?.displayName)}</td>
                                 <td>{x.fields["Microsoft.VSTS.Scheduling.Effort"]}</td>
                             </tr>
                         ))
