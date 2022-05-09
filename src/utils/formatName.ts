@@ -1,6 +1,6 @@
 export function formatName(name: string): string {
     if (name) {
-        const match = name.match(/^(\w+), (\w+).+$/)
+        const match = name.match(/^(\w+), (\w+).*$/)
 
         if (match) {
             return `${match[2]} ${match[1]}`;
