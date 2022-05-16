@@ -48,7 +48,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
                     <div className="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
                 </div>
                 <div style={{ float: "left" }}>
-                    <WorkItemTable title="Work" workItems={workItems} />
+                    <WorkItemTable workItems={workItems} />
                 </div>
                 <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
                     <WorkItemChart workItems={workItems} />
