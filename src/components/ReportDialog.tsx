@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { getIteration } from "../api/iterationsRepository";
-import { getWorkItemDetails, getWorkItems, WorkItemDetailsDto } from "../api/workItemsRepository";
 import { WorkItemTable } from "./WorkItemTable";
 import { WorkItemChart } from "./WorkItemChart";
 import { RunQuery, WorkItemDto } from "../api/queryRepository";
