@@ -3,6 +3,7 @@ import { getIteration } from "../api/iterationsRepository";
 import { getWorkItemDetails, getWorkItems, WorkItemDetailsDto } from "../api/workItemsRepository";
 import { WorkItemTable } from "./WorkItemTable";
 import { WorkItemChart } from "./WorkItemChart";
+import { RunQuery, WorkItemDto } from "../api/queryRepository";
 
 export interface ReportDialogProps {
     collection: string;
@@ -15,15 +16,21 @@ export interface ReportDialogProps {
 
 export const ReportDialog = (props: ReportDialogProps) => {
 
-    const [workItems, setWorkItems] = useState<WorkItemDetailsDto[]>([]);
+    const [workItems, setWorkItems] = useState<WorkItemDto[]>([]);
 
     async function updateIteration() {
-        const iteration = await getIteration(props.collection, props.project, props.team, props.sprint);
-        if (iteration) {
-            const workItems = await getWorkItems(props.collection, props.project, props.team, iteration.id);
-            const workItemIds = workItems.workItemRelations.filter(x => !x.source).map(w => w.target.id);
-            const workItemDetails = await getWorkItemDetails(props.collection, props.project, workItemIds);
-            setWorkItems(workItemDetails);
+        if (props.collection && props.project && props.team && props.sprint) {
+            const query = "SELECT [System.Id],[System.WorkItemType],[System.Title],[System.AssignedTo],[System.State],[System.Tags],[Microsoft.VSTS.Scheduling.Effort] "
+                        + "FROM WorkItemLinks "
+                        + "WHERE ([Source].[System.TeamProject] = @project "
+                        + "  AND [Source].[System.WorkItemType] = 'Product Backlog Item' "
+                        + `  AND [Source].[System.IterationPath] = '${props.project}\\${props.team}\\${props.sprint}') `
+                        + "  AND ([System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward') "
+                        + "  AND ([Target].[System.TeamProject] = @project AND [Target].[System.WorkItemType] <> '') "
+                        + "  mode(Recursive)";
+
+            const queryResult = await RunQuery(props.collection, props.project, props.team, query);
+            setWorkItems(queryResult);
         }
     }
 
@@ -35,11 +42,11 @@ export const ReportDialog = (props: ReportDialogProps) => {
         return (
             <div className="ui-dialog workitem-dialog ui-dialog-legacy full-screen" style={{ zIndex: 10002 }}>
                 <div className="ui-dialog-titlebar">
-                    <button type="button" className="ui-button ui-button-icon-only ui-dialog-titlebar-close" onClick={props.onCloseClicked}>
+                    <button type="button" className="ui-button ui-button-icon-only ui-dialog-titlebar-close" style={{ margin: "0.5em" }} onClick={props.onCloseClicked}>
                         <span className="ui-button-icon-primary ui-icon ui-icon-closethick"></span>
                     </button>
                 </div>
-                <div className="work-item-form-main-header" style={{ borderLeftColor: "rgb(0, 156, 204)" }}>
+                <div className="work-item-form-main-header" style={{ borderLeftColor: "rgb(0, 156, 204)", borderBottom: "1px solid rgb(234, 234, 234)" }}>
                     <div className="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
                 </div>
                 <div style={{ float: "left" }}>
