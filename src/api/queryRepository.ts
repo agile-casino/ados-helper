@@ -53,7 +53,8 @@ export async function RunQuery(collection: string, project: string, team: string
     const result: WorkItemDto[] = [];
 
     responseDto.payload.rows.forEach((row,i) => {
-        const workItem: any = { children: [] };
+
+        const workItem: any = { children: [] }; // eslint-disable-line @typescript-eslint/no-explicit-any
         responseDto.payload.columns.forEach((column, index) => {
             set(workItem, column, row[index]);
         });

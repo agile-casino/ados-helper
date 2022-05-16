@@ -47,6 +47,6 @@ export async function getWorkItemDetails(collection: string, project: string, wo
         method: "POST",
         body: JSON.stringify({ ids: workItemIds })
     });
-    var result = await response.json();
+    const result = await response.json();
     return result.value;
 }

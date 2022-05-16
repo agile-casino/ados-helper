@@ -11,7 +11,7 @@ root.render(<App />);
 let url = window.location.href;
 const urlChangeEvent = new Event("urlChange");
 
-const observer = new MutationObserver((mutations: MutationRecord[]) => {
+const observer = new MutationObserver(() => {
     if (window.location.href !== url) {
         window.dispatchEvent(urlChangeEvent);
         url = window.location.href;

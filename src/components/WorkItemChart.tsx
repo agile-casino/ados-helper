@@ -3,7 +3,6 @@ import sum from "lodash/sum";
 import { Pie } from "react-chartjs-2";
 import { ChartData, ChartOptions } from "chart.js";
 import "chart.js/auto";
-import { WorkItemDetailsDto } from "../api/workItemsRepository";
 import { getColourScheme } from "../utils/colourScheme";
 import { formatName } from "../utils/formatName";
 import { WorkItemDto } from "../api/queryRepository";

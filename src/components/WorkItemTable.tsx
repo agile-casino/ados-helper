@@ -1,6 +1,5 @@
 import { css } from "@emotion/react";
 import { WorkItemDto } from "../api/queryRepository";
-import { WorkItemDetailsDto } from "../api/workItemsRepository";
 import { formatName } from "../utils/formatName";
 
 const tableStyle = css(`
