@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import { WorkItemDto } from "../api/queryRepository";
+import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
 
 const tableStyle = css(`
@@ -40,7 +40,7 @@ const tableStyle = css(`
 `);
 
 interface  WorkItemTableProps {
-    workItems?: WorkItemDto[];
+    workItems?: WorkItem[];
 }
 
 export function WorkItemTable({ workItems }: WorkItemTableProps) {
@@ -49,9 +49,9 @@ export function WorkItemTable({ workItems }: WorkItemTableProps) {
         return null;
     }
 
-    const doneWorkItems = workItems?.filter(workItem => workItem.System.State === "Done");
-    const inProgressWorkitems = workItems?.filter(workItem => workItem.System.State !== "Done" && !workItem.children.every(task => task.System.State === "To Do"));
-    const notStartedWorkItems = workItems?.filter(workItem => workItem.System.State !== "Done" && workItem.children.every(task => task.System.State === "To Do"));
+    const doneWorkItems = workItems?.filter(workItem => workItem.isDone);
+    const inProgressWorkitems = workItems?.filter(workItem => workItem.isInProgress);
+    const notStartedWorkItems = workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone);
 
     return (
         <div css={tableStyle}>
@@ -83,16 +83,16 @@ function WorkItemTableHeader({ title }: { title: string }) {
     );
 }
 
-function WorkItemTableBody({ workItems }: { workItems: WorkItemDto[] }) {
+function WorkItemTableBody({ workItems }: { workItems: WorkItem[] }) {
     return (
         <tbody>
             {
                 workItems.length ? workItems.map(x => (
-                    <tr key={x.System.Id}>
-                        <td>{x.System.Id}</td>
-                        <td>{x.System.Title}</td>
-                        <td>{formatName(x.System.AssignedTo)}</td>
-                        <td>{x.Microsoft.VSTS.Scheduling.Effort}</td>
+                    <tr key={x.id}>
+                        <td>{x.id}</td>
+                        <td>{x.title}</td>
+                        <td>{formatName(x.assignedTo)}</td>
+                        <td>{x.effort}</td>
                     </tr>
                 )) : (
                     <tr>

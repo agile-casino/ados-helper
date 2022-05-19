@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { WorkItemTable } from "./WorkItemTable";
 import { WorkItemChart } from "./WorkItemChart";
-import { RunQuery, WorkItemDto } from "../api/queryRepository";
+import { RunQuery } from "../api/queryRepository";
 import { generateReport } from "./ReportGenerator";
+import { WorkItem } from "../domain/WorkItem";
 
 export interface ReportDialogProps {
     collection: string;
@@ -15,7 +16,7 @@ export interface ReportDialogProps {
 
 export const ReportDialog = (props: ReportDialogProps) => {
 
-    const [workItems, setWorkItems] = useState<WorkItemDto[]>([]);
+    const [workItems, setWorkItems] = useState<WorkItem[]>([]);
 
     async function updateIteration() {
         if (props.collection && props.project && props.team && props.sprint) {
@@ -29,7 +30,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
                         + "  mode(Recursive)";
 
             const queryResult = await RunQuery(props.collection, props.project, props.team, query);
-            setWorkItems(queryResult);
+            setWorkItems(queryResult.map(x => new WorkItem(x)));
         }
     }
 
