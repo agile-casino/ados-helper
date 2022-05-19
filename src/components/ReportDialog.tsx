@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { WorkItemTable } from "./WorkItemTable";
 import { WorkItemChart } from "./WorkItemChart";
 import { RunQuery, WorkItemDto } from "../api/queryRepository";
+import { generateReport } from "./ReportGenerator";
 
 export interface ReportDialogProps {
     collection: string;
@@ -49,6 +50,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
                 </div>
                 <div style={{ float: "left" }}>
                     <WorkItemTable workItems={workItems} />
+                    <button style={{ marginLeft: "1em" }} onClick={() => generateReport(props.collection, props.project, props.sprint, workItems)}>Generate Report</button>
                 </div>
                 <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
                     <WorkItemChart workItems={workItems} />
