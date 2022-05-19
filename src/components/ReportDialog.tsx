@@ -22,12 +22,11 @@ export const ReportDialog = (props: ReportDialogProps) => {
         if (props.collection && props.project && props.team && props.sprint) {
             const query = "SELECT [System.Id],[System.WorkItemType],[System.Title],[System.AssignedTo],[System.State],[System.Tags],[Microsoft.VSTS.Scheduling.Effort] "
                         + "FROM WorkItemLinks "
-                        + "WHERE ([Source].[System.TeamProject] = @project "
-                        + "  AND [Source].[System.WorkItemType] = 'Product Backlog Item' "
-                        + `  AND [Source].[System.IterationPath] = '${props.project}\\${props.team}\\${props.sprint}') `
+                        + `WHERE ([Source].[System.TeamProject] = @project AND [Source].[System.AreaPath] UNDER '${props.project}\\${props.team}' AND ([Source].[System.IterationPath] = '${props.project}\\${props.team}\\${props.sprint}' OR [Source].[System.Tags] CONTAINS '${props.sprint}' OR [Source].[System.Tags] CONTAINS '${props.sprint}+' OR [Source].[System.Tags] CONTAINS '${props.sprint}-' OR [Source].[System.Tags] CONTAINS '${props.sprint}!' )) `
                         + "  AND ([System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward') "
-                        + "  AND ([Target].[System.TeamProject] = @project AND [Target].[System.WorkItemType] <> '') "
-                        + "  mode(Recursive)";
+                        + "  AND ([Target].[System.TeamProject] = @project) "
+                        + "ORDER BY [System.Id] "
+                        + "mode(Recursive)";
 
             const queryResult = await RunQuery(props.collection, props.project, props.team, query);
             setWorkItems(queryResult.map(x => new WorkItem(x)));
