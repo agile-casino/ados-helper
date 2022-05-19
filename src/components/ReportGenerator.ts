@@ -1,8 +1,8 @@
 import * as xlsx from "xlsx-js-style";
-import { WorkItemDto } from "../api/queryRepository";
+import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
 
-export function generateReport(collection: string, project: string, sprint: string, workItems: WorkItemDto[]) {
+export function generateReport(collection: string, project: string, sprint: string, workItems: WorkItem[]) {
     const workbook = xlsx.utils.book_new();
 
     const rows: xlsx.CellObject[][] = [
@@ -19,12 +19,12 @@ export function generateReport(collection: string, project: string, sprint: stri
         { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
     ]);
 
-    const doneWorkItems = workItems.filter(workItem => workItem.System.State === "Done");
+    const doneWorkItems = workItems.filter(workItem => workItem.isDone);
     doneWorkItems.forEach(x => rows.push([
-        { v: x.System.Id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.System.Id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+        { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
         { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: x.System.Title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-        { v: formatName(x.System.AssignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
+        { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
+        { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
     ]));
 
     rows.push([
@@ -42,12 +42,12 @@ export function generateReport(collection: string, project: string, sprint: stri
         { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
     ]);
 
-    const inProgressWorkItems = workItems?.filter(workItem => workItem.System.State !== "Done" && !workItem.children.every(task => task.System.State === "To Do"));
+    const inProgressWorkItems = workItems?.filter(workItem => workItem.isInProgress);
     inProgressWorkItems.forEach(x => rows.push([
-        { v: x.System.Id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+        { v: x.id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
         { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: x.System.Title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-        { v: formatName(x.System.AssignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
+        { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
+        { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
     ]));
 
     rows.push([
@@ -65,12 +65,12 @@ export function generateReport(collection: string, project: string, sprint: stri
         { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
     ]);
 
-    const notStartedWorkItems = workItems?.filter(workItem => workItem.System.State !== "Done" && workItem.children.every(task => task.System.State === "To Do"));
+    const notStartedWorkItems = workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone);
     notStartedWorkItems.forEach(x => rows.push([
-        { v: x.System.Id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+        { v: x.id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
         { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: x.System.Title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-        { v: formatName(x.System.AssignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
+        { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
+        { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
     ]));
 
     const worksheet = xlsx.utils.aoa_to_sheet(rows);

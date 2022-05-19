@@ -5,16 +5,16 @@ import { ChartData, ChartOptions } from "chart.js";
 import "chart.js/auto";
 import { getColourScheme } from "../utils/colourScheme";
 import { formatName } from "../utils/formatName";
-import { WorkItemDto } from "../api/queryRepository";
+import { WorkItem } from "../domain/WorkItem";
 
 interface WorkItemChartProps {
-    workItems: WorkItemDto[];
+    workItems: WorkItem[];
 }
 
 export function WorkItemChart({ workItems }: WorkItemChartProps) {
 
-    const people = uniq(workItems?.map(x => x.System.AssignedTo)).sort();
-    const points = people.map(x => sum(workItems?.filter(y => y.System.AssignedTo === x).map(z => z.Microsoft.VSTS.Scheduling.Effort)));
+    const people = uniq(workItems?.map(x => x.assignedTo)).sort();
+    const points = people.map(x => sum(workItems?.filter(y => y.assignedTo === x).map(z => z.effort)));
 
     const chartData: ChartData<"pie", number[], string> = {
         labels: people.map(x => formatName(x) ?? "Unassigned"),
