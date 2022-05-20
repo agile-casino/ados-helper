@@ -4,6 +4,7 @@ import { WorkItemChart } from "./WorkItemChart";
 import { RunQuery } from "../api/queryRepository";
 import { generateReport } from "./ReportGenerator";
 import { WorkItem } from "../domain/WorkItem";
+import { If } from "./If";
 
 export interface ReportDialogProps {
     collection: string;
@@ -52,9 +53,11 @@ export const ReportDialog = (props: ReportDialogProps) => {
                     <WorkItemTable workItems={workItems} />
                     <button style={{ marginLeft: "1em" }} onClick={() => generateReport(props.collection, props.project, props.sprint, workItems)}>Generate Report</button>
                 </div>
-                <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
-                    <WorkItemChart workItems={workItems} />
-                </div>
+                <If condition={!!window.localStorage.getItem("debug")}>
+                    <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
+                        <WorkItemChart workItems={workItems} />
+                    </div>
+                </If>
             </div>
         );
     }

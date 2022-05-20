@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
-import { RenderIf as If } from "./If";
+import { If } from "./If";
 
 const tableStyle = css(`
     margin: 1em;
