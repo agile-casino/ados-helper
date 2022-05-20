@@ -8,70 +8,85 @@ export function generateReport(collection: string, project: string, sprint: stri
     const rows: xlsx.CellObject[][] = [
     ];
 
-    rows.push([
-        { v: "Completed", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
-    ]);
-
-    rows.push([
-        { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
-        { v: "WQ\\SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-        { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-        { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-    ]);
-
     const doneWorkItems = workItems.filter(workItem => workItem.isDone);
-    doneWorkItems.forEach(x => rows.push([
-        { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-        { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
-    ]));
 
-    rows.push([
-        { v: "", t: "s" }
-    ]);
+    if (doneWorkItems.length) {
 
-    rows.push([
-        { v: "In Progress", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
-    ]);
+        rows.push([
+            { v: "Completed", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
+        ]);
 
-    rows.push([
-        { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
-        { v: "WQ\\SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-        { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-        { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-    ]);
+        rows.push([
+            { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
+            { v: "WQ\\SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+        ]);
 
-    const inProgressWorkItems = workItems?.filter(workItem => workItem.isInProgress);
-    inProgressWorkItems.forEach(x => rows.push([
-        { v: x.id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-        { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
-    ]));
+        
+        doneWorkItems.forEach(x => rows.push([
+            { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+            { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+            { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
+            { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
+        ]));
 
-    rows.push([
-        { v: "", t: "s" }
-    ]);
+        rows.push([
+            { v: "", t: "s" }
+        ]);
+    }
 
-    rows.push([
-        { v: "Not Started", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
-    ]);
+    const inProgressWorkItems = workItems.filter(workItem => workItem.isInProgress);
 
-    rows.push([
-        { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
-        { v: "WQ\\SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-        { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-        { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-    ]);
+    if (inProgressWorkItems?.length) {
+
+        rows.push([
+            { v: "In Progress", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
+        ]);
+
+        rows.push([
+            { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
+            { v: "WQ\\SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+        ]);
+
+        
+        inProgressWorkItems.forEach(x => rows.push([
+            { v: x.id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+            { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+            { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
+            { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
+        ]));
+
+        rows.push([
+            { v: "", t: "s" }
+        ]);
+    }
 
     const notStartedWorkItems = workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone);
-    notStartedWorkItems.forEach(x => rows.push([
-        { v: x.id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-        { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-        { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
-    ]));
+
+        if (notStartedWorkItems.length) {
+        
+        rows.push([
+            { v: "Not Started", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
+        ]);
+
+        rows.push([
+            { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
+            { v: "WQ\\SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+        ]);
+
+        
+        notStartedWorkItems.forEach(x => rows.push([
+            { v: x.id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+            { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+            { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
+            { v: formatName(x.owner), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
+        ]));
+    }
 
     const worksheet = xlsx.utils.aoa_to_sheet(rows);
 

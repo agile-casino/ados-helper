@@ -13,8 +13,8 @@ interface WorkItemChartProps {
 
 export function WorkItemChart({ workItems }: WorkItemChartProps) {
 
-    const people = uniq(workItems?.map(x => x.assignedTo)).sort();
-    const points = people.map(x => sum(workItems?.filter(y => y.assignedTo === x).map(z => z.effort)));
+    const people = uniq(workItems?.map(x => x.owner)).sort();
+    const points = people.map(x => sum(workItems?.filter(y => y.owner === x).map(z => z.effort)));
 
     const chartData: ChartData<"pie", number[], string> = {
         labels: people.map(x => formatName(x) ?? "Unassigned"),

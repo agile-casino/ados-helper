@@ -1,4 +1,4 @@
-export function formatName(name: string): string {
+export function formatName(name: string|null): string {
     if (name) {
         name = name.replace(/\s*<.+/, "");
 
