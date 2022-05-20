@@ -9,14 +9,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
     - name: Use Node.js 16.x
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
 
-    - name: Build
+    - name: Build Code
       run: |
         npm ci
-        npx run build
+        npm run build
+
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
