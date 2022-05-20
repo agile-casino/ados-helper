@@ -2,7 +2,7 @@ import * as xlsx from "xlsx-js-style";
 import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
 
-export function generateReport(collection: string, project: string, sprint: string, workItems: WorkItem[]) {
+export function generateReport(collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
     const workbook = xlsx.utils.book_new();
 
     const rows: xlsx.CellObject[][] = [
@@ -99,5 +99,5 @@ export function generateReport(collection: string, project: string, sprint: stri
 
     xlsx.utils.book_append_sheet(workbook, worksheet, sprint);
 
-    xlsx.writeFile(workbook, `${sprint}.xlsx`);
+    xlsx.writeFile(workbook, `${team} - ${sprint}.xlsx`);
 }
