@@ -14,5 +14,5 @@ export function formatName(name: string): string {
             return `${match[1]}`;
         }
     }
-    return name;
+    return name ?? "";
 }
