@@ -1,10 +1,12 @@
+import countBy from "lodash/countBy";
+import maxBy from "lodash/maxBy";
 import { WorkItemDto } from "../api/queryRepository";
 
 export class WorkItem {
     constructor(private dto: WorkItemDto) {
     }
 
-    public get assignedTo(): string {
+    public get assignedTo(): string|null {
         return this.dto.System.AssignedTo;
     }
 
@@ -31,5 +33,16 @@ export class WorkItem {
 
     public get title(): string {
         return this.dto.System.Title;
+    }
+
+    public get owner(): string|null {
+        if (this.dto.System.AssignedTo){
+            return this.dto.System.AssignedTo;
+        }
+
+        const taskAssignees = this.dto.children.map(x => x.System.AssignedTo).filter(x => x);
+        const assigneeFrequencies = countBy(taskAssignees, x => x);
+        
+        return maxBy(Object.keys(assigneeFrequencies), x => assigneeFrequencies[x]) ?? null;
     }
 }

@@ -1,6 +1,7 @@
 import { css } from "@emotion/react";
 import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
+import { RenderIf as If } from "./If";
 
 const tableStyle = css(`
     margin: 1em;
@@ -56,12 +57,18 @@ export function WorkItemTable({ workItems }: WorkItemTableProps) {
     return (
         <div css={tableStyle}>
             <table>
-                <WorkItemTableHeader title="Done" />
-                <WorkItemTableBody workItems={doneWorkItems} />
-                <WorkItemTableHeader title="In Progress" />
-                <WorkItemTableBody workItems={inProgressWorkitems} />
-                <WorkItemTableHeader title="Not Started" />
-                <WorkItemTableBody workItems={notStartedWorkItems} />
+                <If condition={!!doneWorkItems.length}>
+                    <WorkItemTableHeader title="Done" />
+                    <WorkItemTableBody workItems={doneWorkItems} />
+                </If>
+                <If condition={!!inProgressWorkitems.length}>
+                    <WorkItemTableHeader title="In Progress" />
+                    <WorkItemTableBody workItems={inProgressWorkitems} />
+                </If>
+                <If condition={!!notStartedWorkItems.length}>
+                    <WorkItemTableHeader title="Not Started" />
+                    <WorkItemTableBody workItems={notStartedWorkItems} />
+                </If>
             </table>
         </div>
     );
@@ -91,7 +98,7 @@ function WorkItemTableBody({ workItems }: { workItems: WorkItem[] }) {
                     <tr key={x.id}>
                         <td>{x.id}</td>
                         <td>{x.title}</td>
-                        <td>{formatName(x.assignedTo)}</td>
+                        <td>{formatName(x.owner)}</td>
                         <td>{x.effort}</td>
                     </tr>
                 )) : (

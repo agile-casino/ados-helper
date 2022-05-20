@@ -28,7 +28,7 @@ export interface WorkItemDto {
         Rev: number;
         Tags: string;
         State: string;
-        AssignedTo: string;
+        AssignedTo: string|null;
         Title: string;
     },
     children: WorkItemDto[];
