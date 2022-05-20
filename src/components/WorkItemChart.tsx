@@ -14,13 +14,15 @@ interface WorkItemChartProps {
 export function WorkItemChart({ workItems }: WorkItemChartProps) {
 
     const people = uniq(workItems?.map(x => x.owner)).sort();
+    const numberOfPeople = people.filter(x => !!x).length;
+
     const points = people.map(x => sum(workItems?.filter(y => y.owner === x).map(z => z.effort)));
 
     const chartData: ChartData<"pie", number[], string> = {
         labels: people.map(x => formatName(x) ?? "Unassigned"),
         datasets: [{
           data: points,
-          backgroundColor: getColourScheme(people.length - 1).concat("hsl(0, 0%, 50%)")
+          backgroundColor: getColourScheme(numberOfPeople).concat("hsl(0, 0%, 50%)")
         }]
       };
 
