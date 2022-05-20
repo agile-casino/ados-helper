@@ -19,7 +19,7 @@ export function WorkItemChart({ workItems }: WorkItemChartProps) {
     const points = people.map(x => sum(workItems?.filter(y => y.owner === x).map(z => z.effort)));
 
     const chartData: ChartData<"pie", number[], string> = {
-        labels: people.map(x => formatName(x) ?? "Unassigned"),
+        labels: people.map(x => formatName(x) || "Unassigned"),
         datasets: [{
           data: points,
           backgroundColor: getColourScheme(numberOfPeople).concat("hsl(0, 0%, 50%)")
