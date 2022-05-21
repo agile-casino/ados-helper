@@ -3,6 +3,7 @@ name: Build
 on:
   push:
     branches: [ main, feature/git-actions ]
+  workflow_dispatch:
 
 jobs:
   build:
