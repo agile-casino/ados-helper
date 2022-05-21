@@ -33,7 +33,7 @@ jobs:
       uses: deka0106/upload-to-dropbox@v2
       with:
         dropbox_access_token: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
-        src: dist/**/*
+        src: dist/*
         dest: /Apps/ados-helper/
         mode: overwrite
         multiple: true
