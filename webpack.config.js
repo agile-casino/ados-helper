@@ -29,6 +29,7 @@ module.exports = {
   optimization:{
     minimizer: [
       new TerserPlugin({
+        extractComments: false,
         terserOptions: {
           output: {
             preamble: banner.trim()
