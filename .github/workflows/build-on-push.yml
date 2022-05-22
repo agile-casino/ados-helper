@@ -35,5 +35,4 @@ jobs:
         source_dir: dist
         container_name: apps
         connection_string: ${{ secrets.BLOB_CONNECTION_STRING }}
-        extra_args: '--pattern *.js'
         overwrite: 'true'
