@@ -28,11 +28,12 @@ jobs:
       with:
         name: dist
         path: dist/
-
+        
     - name: Release 
-      uses: deka0106/upload-to-dropbox@v2
+      uses: bacongobbler/azure-blob-storage-upload@main
       with:
-        dropbox_access_token: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
-        src: dist/index.js
-        dest: /
-        mode: overwrite
+        source_dir: dist
+        container_name: apps
+        connection_string: ${{ secrets.BLOB_CONNECTION_STRING }}
+        extra_args: '--pattern *.js'
+        overwrite: 'true'
