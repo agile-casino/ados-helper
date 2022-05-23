@@ -1,0 +1,11 @@
+// ==UserScript==
+// @name         ADOS Helper (Dev)
+// @namespace    https://ados/
+// @version      0.0.1
+// @description  ADOS Helper
+// @author       archerax
+// @match        https://ados/WirelineRnD_Collection/WirelineRnD*
+// @icon         https://ados/favicon.ico
+// @grant        none
+// @require      file:///<path goes here>
+// ==/UserScript==
