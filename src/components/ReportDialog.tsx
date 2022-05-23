@@ -51,7 +51,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
                 </div>
                 <div style={{ maxHeight: "calc(100% - 42px)", overflowY: "scroll" }}>
                     <div style={{ float: "left" }}>
-                        <WorkItemTable workItems={workItems} />
+                        <WorkItemTable collection={props.collection} project={props.project} workItems={workItems} />
                         <button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(props.collection, props.project, props.team, props.sprint, workItems)}>Generate Report</button>
                     </div>
                     <If condition={!!window.localStorage.getItem("debug")}>

@@ -42,10 +42,12 @@ const tableStyle = css(`
 `);
 
 interface  WorkItemTableProps {
+    collection: string;
+    project: string;
     workItems?: WorkItem[];
 }
 
-export function WorkItemTable({ workItems }: WorkItemTableProps) {
+export function WorkItemTable({ collection, project, workItems }: WorkItemTableProps) {
 
     if (!workItems) {
         return null;
@@ -60,15 +62,15 @@ export function WorkItemTable({ workItems }: WorkItemTableProps) {
             <table>
                 <If condition={!!doneWorkItems.length}>
                     <WorkItemTableHeader title="Done" />
-                    <WorkItemTableBody workItems={doneWorkItems} />
+                    <WorkItemTableBody workItems={doneWorkItems} collection={collection} project={project} />
                 </If>
                 <If condition={!!inProgressWorkitems.length}>
                     <WorkItemTableHeader title="In Progress" />
-                    <WorkItemTableBody workItems={inProgressWorkitems} />
+                    <WorkItemTableBody workItems={inProgressWorkitems} collection={collection} project={project} />
                 </If>
                 <If condition={!!notStartedWorkItems.length}>
                     <WorkItemTableHeader title="Not Started" />
-                    <WorkItemTableBody workItems={notStartedWorkItems} />
+                    <WorkItemTableBody workItems={notStartedWorkItems} collection={collection} project={project} />
                 </If>
             </table>
         </div>
@@ -91,20 +93,28 @@ function WorkItemTableHeader({ title }: { title: string }) {
     );
 }
 
-function WorkItemTableBody({ workItems }: { workItems: WorkItem[] }) {
+function WorkItemTableBody({ collection, project, workItems }: { collection: string, project: string, workItems: WorkItem[] }) {
     return (
         <tbody>
             {
                 workItems.length ? workItems.map(x => {
                     const style: React.CSSProperties = {};
                     
-                    if (x.sprintTag === `${x.sprint}+`) {
-                        style.backgroundColor = "#F4F785";
+                    if (x.sprint && x.sprint.sprintNumber && x.sprintTag && x.sprintTag.sprintNumber) {
+                        if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "+") {
+                            style.backgroundColor = "#F4F785";
+                        }
+                        else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber - 1 && x.sprintTag.sprintSuffix !== "+") {
+                            style.backgroundColor = "#E6B8B7";
+                        }
                     }
 
                     return (
                         <tr key={x.id}>
-                            <td style={style}>{x.id}</td>
+                            <td style={style}>
+                                <a href={`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`}>{x.id}</a>
+                                
+                            </td>
                             <td>{x.title}</td>
                             <td>{formatName(x.owner)}</td>
                             <td>{x.effort}</td>

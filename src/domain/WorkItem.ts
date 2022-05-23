@@ -1,6 +1,7 @@
 import countBy from "lodash/countBy";
 import maxBy from "lodash/maxBy";
 import { WorkItemDto } from "../api/queryRepository";
+import { Tag } from "./Tag";
 
 export class WorkItem {
     constructor(private dto: WorkItemDto) {
@@ -27,12 +28,13 @@ export class WorkItem {
             && this.dto.children.some(task => task.System.State !== "To Do")
     }
 
-    public get sprint(): string|undefined {
-        return this.dto.System.IterationPath.split("\\").pop();
+    public get sprint(): Tag|undefined {
+        const sprint = this.dto.System.IterationPath.split("\\").pop()
+        return sprint ? new Tag(sprint) : undefined;
     }
 
-    public get sprintTag(): string|undefined {
-        const sprintTags = this.tags.filter(x => x.toLowerCase().indexOf("sprint") >= 0);
+    public get sprintTag(): Tag|undefined {
+        const sprintTags = this.tags.filter(x => x.sprintNumber);
         if (sprintTags.length > 1) {
             console.log(`Work Item ${this.id} has ${sprintTags.length} sprint tags.`);
         }
@@ -43,8 +45,8 @@ export class WorkItem {
         return this.dto.System.State;
     }
 
-    public get tags(): string[] {
-        return this.dto.System.Tags.split(";").map(x => x.trim());
+    public get tags(): Tag[] {
+        return this.dto.System.Tags.split(";").map(x => new Tag(x.trim()));
     }
 
     public get title(): string {
