@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { WorkItemTable } from "./WorkItemTable";
 import { WorkItemChart } from "./WorkItemChart";
 import { RunQuery } from "../api/queryRepository";
-import { generateReport } from "./ReportGenerator";
+import { generateReport } from "../domain/ReportGenerator";
 import { WorkItem } from "../domain/WorkItem";
 import { If } from "./If";
 
