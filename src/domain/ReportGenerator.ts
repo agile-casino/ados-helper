@@ -1,6 +1,6 @@
 import sortBy from "lodash/sortBy";
 import * as xlsx from "xlsx-js-style";
-import { WorkItem } from "../domain/WorkItem";
+import { WorkItem } from "./WorkItem";
 import { formatName } from "../utils/formatName";
 
 function getExtraStyles(workItem: WorkItem): xlsx.CellStyle {
