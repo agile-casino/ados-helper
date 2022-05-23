@@ -11,6 +11,10 @@ export class WorkItem {
         return this.dto.System.AssignedTo;
     }
 
+    public get allTasksDone(): boolean {
+        return this.dto.children.every(task => task.System.State === "Done");
+    }
+
     public get effort(): number {
         return this.dto.Microsoft.VSTS.Scheduling.Effort;
     }
