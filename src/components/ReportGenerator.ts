@@ -4,15 +4,24 @@ import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
 
 function getExtraStyles(workItem: WorkItem): xlsx.CellStyle {
+    const result: xlsx.CellStyle = {
+        font: {
+            name: "Calibri",
+            sz: 11
+        }
+    };
     if (workItem.sprint?.sprintNumber && workItem.sprintTag?.sprintNumber) {
         if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "+") {
-            return { fill: { fgColor: { rgb: "F4F785" } } };
+            result.fill = { fgColor: { rgb: "F4F785" } };
         }
         else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber - 1 && workItem.sprintTag.sprintSuffix !== "+") {
-            return { fill: { fgColor: { rgb: "E6B8B7" } } };
+            result.fill = { fgColor: { rgb: "E6B8B7" } };
         }
     }
-    return {};
+    if (workItem.isInProgress && workItem.allTasksDone && result.font) {
+        result.font.bold = true;
+    }
+    return result;
 }
 
 export function generateReport(collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
