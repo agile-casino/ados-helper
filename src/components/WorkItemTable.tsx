@@ -100,7 +100,7 @@ function WorkItemTableBody({ collection, project, workItems }: { collection: str
                 workItems.length ? workItems.map(x => {
                     const style: React.CSSProperties = {};
                     
-                    if (x.sprint && x.sprint.sprintNumber && x.sprintTag && x.sprintTag.sprintNumber) {
+                    if (x.sprint?.sprintNumber && x.sprintTag?.sprintNumber) {
                         if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "+") {
                             style.backgroundColor = "#F4F785";
                         }
