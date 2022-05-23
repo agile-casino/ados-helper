@@ -23,7 +23,6 @@ export function generateReport(collection: string, project: string, team: string
             { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
         ]);
 
-        
         doneWorkItems.forEach(x => rows.push([
             { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
             { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
@@ -51,9 +50,8 @@ export function generateReport(collection: string, project: string, team: string
             { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
         ]);
 
-        
         inProgressWorkItems.forEach(x => rows.push([
-            { v: x.id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+            { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
             { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
             { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
             { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
@@ -79,9 +77,8 @@ export function generateReport(collection: string, project: string, team: string
             { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
         ]);
 
-        
         notStartedWorkItems.forEach(x => rows.push([
-            { v: x.id, t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
+            { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
             { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
             { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
             { v: formatName(x.owner), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
