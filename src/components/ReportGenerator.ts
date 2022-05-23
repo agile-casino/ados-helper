@@ -1,3 +1,4 @@
+import sortBy from "lodash/sortBy";
 import * as xlsx from "xlsx-js-style";
 import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
@@ -8,7 +9,7 @@ export function generateReport(collection: string, project: string, team: string
     const rows: xlsx.CellObject[][] = [
     ];
 
-    const doneWorkItems = workItems.filter(workItem => workItem.isDone);
+    const doneWorkItems = sortBy(workItems.filter(workItem => workItem.isDone), x => x.title);
 
     if (doneWorkItems.length) {
 
@@ -35,7 +36,7 @@ export function generateReport(collection: string, project: string, team: string
         ]);
     }
 
-    const inProgressWorkItems = workItems.filter(workItem => workItem.isInProgress);
+    const inProgressWorkItems = sortBy(workItems.filter(workItem => workItem.isInProgress), x => x.title);
 
     if (inProgressWorkItems?.length) {
 
@@ -62,7 +63,7 @@ export function generateReport(collection: string, project: string, team: string
         ]);
     }
 
-    const notStartedWorkItems = workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone);
+    const notStartedWorkItems = sortBy(workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone), x => x.title);
 
         if (notStartedWorkItems.length) {
         

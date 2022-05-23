@@ -49,15 +49,17 @@ export const ReportDialog = (props: ReportDialogProps) => {
                 <div className="work-item-form-main-header" style={{ borderLeftColor: "rgb(0, 156, 204)", borderBottom: "1px solid rgb(234, 234, 234)" }}>
                     <div className="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
                 </div>
-                <div style={{ float: "left" }}>
-                    <WorkItemTable workItems={workItems} />
-                    <button style={{ marginLeft: "1em" }} onClick={() => generateReport(props.collection, props.project, props.team, props.sprint, workItems)}>Generate Report</button>
-                </div>
-                <If condition={!!window.localStorage.getItem("debug")}>
-                    <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
-                        <WorkItemChart workItems={workItems} />
+                <div style={{ maxHeight: "calc(100% - 42px)", overflowY: "scroll" }}>
+                    <div style={{ float: "left" }}>
+                        <WorkItemTable workItems={workItems} />
+                        <button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(props.collection, props.project, props.team, props.sprint, workItems)}>Generate Report</button>
                     </div>
-                </If>
+                    <If condition={!!window.localStorage.getItem("debug")}>
+                        <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
+                            <WorkItemChart workItems={workItems} />
+                        </div>
+                    </If>
+                </div>
             </div>
         );
     }

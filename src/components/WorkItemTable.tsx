@@ -1,3 +1,4 @@
+import sortBy from "lodash/sortBy";
 import { css } from "@emotion/react";
 import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
@@ -50,9 +51,9 @@ export function WorkItemTable({ workItems }: WorkItemTableProps) {
         return null;
     }
 
-    const doneWorkItems = workItems?.filter(workItem => workItem.isDone);
-    const inProgressWorkitems = workItems?.filter(workItem => workItem.isInProgress);
-    const notStartedWorkItems = workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone);
+    const doneWorkItems = sortBy(workItems?.filter(workItem => workItem.isDone), x => x.title);
+    const inProgressWorkitems = sortBy(workItems?.filter(workItem => workItem.isInProgress), x => x.title);
+    const notStartedWorkItems = sortBy(workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone), x => x.title);
 
     return (
         <div css={tableStyle}>
