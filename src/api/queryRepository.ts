@@ -30,6 +30,7 @@ export interface WorkItemDto {
         State: string;
         AssignedTo: string|null;
         Title: string;
+        IterationPath: string;
     },
     children: WorkItemDto[];
 }

@@ -95,14 +95,22 @@ function WorkItemTableBody({ workItems }: { workItems: WorkItem[] }) {
     return (
         <tbody>
             {
-                workItems.length ? workItems.map(x => (
-                    <tr key={x.id}>
-                        <td>{x.id}</td>
-                        <td>{x.title}</td>
-                        <td>{formatName(x.owner)}</td>
-                        <td>{x.effort}</td>
-                    </tr>
-                )) : (
+                workItems.length ? workItems.map(x => {
+                    const style: React.CSSProperties = {};
+                    
+                    if (x.sprintTag === `${x.sprint}+`) {
+                        style.backgroundColor = "#F4F785";
+                    }
+
+                    return (
+                        <tr key={x.id}>
+                            <td style={style}>{x.id}</td>
+                            <td>{x.title}</td>
+                            <td>{formatName(x.owner)}</td>
+                            <td>{x.effort}</td>
+                        </tr>
+                    )
+                }) : (
                     <tr>
                         <td colSpan={5}>No work items found</td>
                     </tr>

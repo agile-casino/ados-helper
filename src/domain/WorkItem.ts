@@ -27,8 +27,24 @@ export class WorkItem {
             && this.dto.children.some(task => task.System.State !== "To Do")
     }
 
+    public get sprint(): string|undefined {
+        return this.dto.System.IterationPath.split("\\").pop();
+    }
+
+    public get sprintTag(): string|undefined {
+        const sprintTags = this.tags.filter(x => x.toLowerCase().indexOf("sprint") >= 0);
+        if (sprintTags.length > 1) {
+            console.log(`Work Item ${this.id} has ${sprintTags.length} sprint tags.`);
+        }
+        return sprintTags.shift();
+    }
+
     public get state(): string {
         return this.dto.System.State;
+    }
+
+    public get tags(): string[] {
+        return this.dto.System.Tags.split(";").map(x => x.trim());
     }
 
     public get title(): string {
