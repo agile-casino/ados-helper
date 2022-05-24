@@ -54,8 +54,10 @@ export class Cell implements CellObject {
         return this;
     }
 
-    public link(href: string) {
-        this.l = { Target: href };
+    public link(href: string|undefined) {
+        if (href) {
+            this.l = { Target: href };
+        }
         return this;
     }
 
