@@ -81,10 +81,11 @@ function WorkItemTableHeader({ title }: { title: string }) {
     return (
         <thead>
             <tr>
-                <th className="section" colSpan={4}>{title}</th>
+                <th className="section" colSpan={5}>{title}</th>
             </tr>
             <tr>
                 <th>PBI</th>
+                <th>WISE</th>
                 <th>Description</th>
                 <th>Assignee</th>
                 <th>Size</th>
@@ -113,7 +114,13 @@ function WorkItemTableBody({ collection, project, workItems }: { collection: str
                         <tr key={x.id}>
                             <td style={style}>
                                 <a href={`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`}>{x.id}</a>
-                                
+                            </td>
+                            <td>
+                                {
+                                    x.wiseNumber
+                                        ? <a href={x.wiseLink}>{x.wiseNumber}</a>
+                                        : null
+                                }
                             </td>
                             <td>{x.title}</td>
                             <td>{formatName(x.owner)}</td>

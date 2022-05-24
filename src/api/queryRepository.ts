@@ -1,5 +1,6 @@
 import set from "lodash/set";
 import { encodeUrl } from "./encodeUrl";
+import { getRelations } from "./workItemsRepository";
 
 interface QueryRequestDto {
     wiql: string;
@@ -31,8 +32,10 @@ export interface WorkItemDto {
         AssignedTo: string|null;
         Title: string;
         IterationPath: string;
+        HyperLinkCount: number;
     },
     children: WorkItemDto[];
+    links: string[];
 }
 
 export async function RunQuery(collection: string, project: string, team: string, wiql: string): Promise<WorkItemDto[]> {
@@ -55,7 +58,7 @@ export async function RunQuery(collection: string, project: string, team: string
 
     responseDto.payload.rows.forEach((row,i) => {
 
-        const workItem: any = { children: [] }; // eslint-disable-line @typescript-eslint/no-explicit-any
+        const workItem: any = { children: [], links: [] }; // eslint-disable-line @typescript-eslint/no-explicit-any
         responseDto.payload.columns.forEach((column, index) => {
             set(workItem, column, row[index]);
         });
@@ -69,6 +72,18 @@ export async function RunQuery(collection: string, project: string, team: string
             result.push(workItem);
         }
     });
+
+    const ids = result.map(x => x.System.Id);
+    if (ids.length) {
+        const relations = await getRelations(collection, project, ids);
+        relations.value.forEach(r => {
+            const workItem = result.find(workItem => workItem.System.Id === r.id);
+            if (workItem) {
+                workItem.links = r.relations.map(l => l.url);
+            }
+        });
+        console.log(result);
+    }
 
     return result;
 }

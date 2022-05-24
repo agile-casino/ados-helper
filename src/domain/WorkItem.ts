@@ -67,4 +67,18 @@ export class WorkItem {
         
         return maxBy(Object.keys(assigneeFrequencies), x => assigneeFrequencies[x]) ?? null;
     }
+
+    public get wiseNumber(): string|undefined {
+        const wiseLink = this.wiseLink;
+        if (wiseLink) {
+            const match = wiseLink.match(/.+?([0-9]+)$/);
+            if (match) {
+                return match[1];
+            }
+        }
+    }
+
+    public get wiseLink(): string|undefined {
+        return this.dto.links.find(x => x.includes("wise"));
+    }
 }
