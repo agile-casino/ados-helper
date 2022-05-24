@@ -32,6 +32,10 @@ export class WorkItem {
             && this.dto.children.some(task => task.System.State !== "To Do")
     }
 
+    public get isRemoved(): boolean {
+        return this.sprintTag?.sprintSuffix == "-";
+    }
+
     public get sprint(): Tag|undefined {
         const sprint = this.dto.System.IterationPath.split("\\").pop()
         return sprint ? new Tag(sprint) : undefined;
@@ -66,5 +70,19 @@ export class WorkItem {
         const assigneeFrequencies = countBy(taskAssignees, x => x);
         
         return maxBy(Object.keys(assigneeFrequencies), x => assigneeFrequencies[x]) ?? null;
+    }
+
+    public get wiseNumber(): string|undefined {
+        const wiseLink = this.wiseLink;
+        if (wiseLink) {
+            const match = wiseLink.match(/.+?([0-9]+)$/);
+            if (match) {
+                return match[1];
+            }
+        }
+    }
+
+    public get wiseLink(): string|undefined {
+        return this.dto.links.find(x => x.includes("wise"));
     }
 }

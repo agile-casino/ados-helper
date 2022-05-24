@@ -1,6 +1,6 @@
 {
   "name": "ados-helper",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "ados-helper",
   "main": "index.js",
   "scripts": {

@@ -14,7 +14,7 @@ export const App = () => {
         return () => window.removeEventListener('urlChange', onUrlChange);
     }, []);
 
-    const matches = url.match(/(?<collection>[\w\d_%]+)\/(?<project>[\w\d_%]+)\/_sprints\/taskboard\/[\w\d_%]+\/[\w\d_%]+\/(?<team>[\w\d_%]+)\/(?<sprint>[\w\d_%]+)/);
+    const matches = url.match(/(?<collection>[\w\d_%]+)\/(?<project>[\w\d_%]+)\/_sprints\/taskboard\/[\w\d_%]+\/[\w\d_%]+\/(?<team>[\w\d_%]+)\/(?<sprint>[\w\d_.%()]+)/);
 
     if (matches && matches.groups) {
         const collection = decodeURI(matches.groups.collection);
