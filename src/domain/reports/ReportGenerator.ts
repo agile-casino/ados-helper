@@ -125,7 +125,8 @@ export function generateReport(collection: string, project: string, team: string
             new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell("").alignText({ horizontal: "center" }),
             new Cell(x.title).alignText({ horizontal: "left" }),
-            new Cell(formatName(x.assignedTo)).alignText({ horizontal: "center" })        ]));
+            new Cell(formatName(x.assignedTo)).alignText({ horizontal: "center" })
+        ]));
     }
 
     const worksheet = utils.aoa_to_sheet(rows);
