@@ -86,7 +86,7 @@ export function generateReport(collection: string, project: string, team: string
 
     const notStartedWorkItems = sortBy(workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone), x => x.title);
 
-        if (notStartedWorkItems.length) {
+    if (notStartedWorkItems.length) {
         
         rows.push([
             new Cell("Not Started").font({ size: 12, bold: true })
@@ -100,6 +100,28 @@ export function generateReport(collection: string, project: string, team: string
         ]);
 
         notStartedWorkItems.forEach(x => rows.push([
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.title).alignText({ horizontal: "left" }),
+            new Cell(formatName(x.assignedTo)).alignText({ horizontal: "center" })        ]));
+    }
+
+    const removedWorkItems = sortBy(workItems?.filter(workItem => workItem.isRemoved), x => x.title);
+
+    if (removedWorkItems.length) {
+        
+        rows.push([
+            new Cell("Removed").font({ size: 12, bold: true })
+        ]);
+
+        rows.push([
+            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
+        ]);
+
+        removedWorkItems.forEach(x => rows.push([
             new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell("").alignText({ horizontal: "center" }),
             new Cell(x.title).alignText({ horizontal: "left" }),

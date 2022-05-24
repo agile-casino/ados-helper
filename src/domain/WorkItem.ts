@@ -32,6 +32,10 @@ export class WorkItem {
             && this.dto.children.some(task => task.System.State !== "To Do")
     }
 
+    public get isRemoved(): boolean {
+        return this.sprintTag?.sprintSuffix == "-";
+    }
+
     public get sprint(): Tag|undefined {
         const sprint = this.dto.System.IterationPath.split("\\").pop()
         return sprint ? new Tag(sprint) : undefined;
