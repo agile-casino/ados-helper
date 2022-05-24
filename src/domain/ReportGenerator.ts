@@ -1,10 +1,12 @@
+import cloneDeep from "lodash/cloneDeep";
+import merge from "lodash/merge";
 import sortBy from "lodash/sortBy";
-import * as xlsx from "xlsx-js-style";
+import { BorderType, CellObject, CellStyle, ExcelDataType, Hyperlink, utils, writeFile } from "xlsx-js-style";
 import { WorkItem } from "./WorkItem";
 import { formatName } from "../utils/formatName";
 
-function getExtraStyles(workItem: WorkItem): xlsx.CellStyle {
-    const result: xlsx.CellStyle = {
+function getExtraStyles(workItem: WorkItem): CellStyle {
+    const result: CellStyle = {
         font: {
             name: "Calibri",
             sz: 11
@@ -25,9 +27,9 @@ function getExtraStyles(workItem: WorkItem): xlsx.CellStyle {
 }
 
 export function generateReport(collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
-    const workbook = xlsx.utils.book_new();
+    const workbook = utils.book_new();
 
-    const rows: xlsx.CellObject[][] = [
+    const rows: CellObject[][] = [
     ];
 
     const doneWorkItems = sortBy(workItems.filter(workItem => workItem.isDone), x => x.title);
@@ -35,25 +37,25 @@ export function generateReport(collection: string, project: string, team: string
     if (doneWorkItems.length) {
 
         rows.push([
-            { v: "Completed", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
+            new Cell("Completed").font({ size: 12, bold: true })
         ]);
 
         rows.push([
-            { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
-            { v: "WQ/SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-            { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-            { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
         ]);
 
         doneWorkItems.forEach(x => rows.push([
-            { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" }, ...getExtraStyles(x) } },
-            { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-            { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-            { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.title).alignText({ horizontal: "left" }),
+            new Cell(formatName(x.assignedTo)).alignText({ horizontal: "center" })
         ]));
 
         rows.push([
-            { v: "", t: "s" }
+            new Cell("")
         ]);
     }
 
@@ -62,22 +64,21 @@ export function generateReport(collection: string, project: string, team: string
     if (inProgressWorkItems?.length) {
 
         rows.push([
-            { v: "In Progress", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
+            new Cell("In Progress").font({ size: 12, bold: true })
         ]);
 
         rows.push([
-            { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
-            { v: "WQ/SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-            { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-            { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
         ]);
 
         inProgressWorkItems.forEach(x => rows.push([
-            { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" }, ...getExtraStyles(x) } },
-            { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-            { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-            { v: formatName(x.assignedTo), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
-        ]));
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.title).alignText({ horizontal: "left" }),
+            new Cell(formatName(x.assignedTo)).alignText({ horizontal: "center" })        ]));
 
         rows.push([
             { v: "", t: "s" }
@@ -89,25 +90,24 @@ export function generateReport(collection: string, project: string, team: string
         if (notStartedWorkItems.length) {
         
         rows.push([
-            { v: "Not Started", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true } } }
+            new Cell("Not Started").font({ size: 12, bold: true })
         ]);
 
         rows.push([
-            { v: "PBI", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } as xlsx.CellStyle },
-            { v: "WQ/SDR", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-            { v: "Description", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
-            { v: "Assignee", t: "s", s: { font: { name: "Calibri", sz: 12, bold: true }, alignment: { horizontal: "center" }, border: { bottom: { color: { rgb: "000000" }, style: "thick" } } } },
+            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
         ]);
 
         notStartedWorkItems.forEach(x => rows.push([
-            { v: x.id, t: "s", l: { Target: `${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}` }, s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" }, ...getExtraStyles(x) } },
-            { v: "", t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } },
-            { v: x.title, t: "s", s: { font: { name: "Calibri", sz: 11 } } },
-            { v: formatName(x.owner), t: "s", s: { font: { name: "Calibri", sz: 11 }, alignment: { horizontal: "center" } } }
-        ]));
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.title).alignText({ horizontal: "left" }),
+            new Cell(formatName(x.assignedTo)).alignText({ horizontal: "center" })        ]));
     }
 
-    const worksheet = xlsx.utils.aoa_to_sheet(rows);
+    const worksheet = utils.aoa_to_sheet(rows);
 
     worksheet["!cols"] = [
         { wpx: 96  * 0.85714 },
@@ -116,7 +116,70 @@ export function generateReport(collection: string, project: string, team: string
         { wpx: 82  * 0.85714 }
     ];
 
-    xlsx.utils.book_append_sheet(workbook, worksheet, sprint);
+    utils.book_append_sheet(workbook, worksheet, sprint);
 
-    xlsx.writeFile(workbook, `${team} - ${sprint}.xlsx`);
+    writeFile(workbook, `${team} - ${sprint}.xlsx`);
+}
+
+class Cell implements CellObject {
+
+    public static defaultStyle: CellStyle = {
+        font: {
+            name: "Calibri",
+            sz: 11
+        }
+    };
+
+    public l?: Hyperlink;
+    public s: CellStyle = cloneDeep(Cell.defaultStyle);
+    public t: ExcelDataType = "s";
+    public v?: string | number | boolean | Date;
+
+    constructor(content: string | number | boolean | Date) {
+        this.v = content;
+    }
+
+    public alignText({ horizontal }: { horizontal: "left"|"center"|"right" }) {
+        const patch: CellStyle = {
+            alignment: {
+                horizontal: horizontal
+            }
+        };
+        this.s = merge(this.s, patch);
+        return this;
+    }
+
+    public borderBottom({ color, style }: { color: string, style: BorderType }) {
+        const patch: CellStyle = {
+            border: {
+                bottom: {
+                    color: { rgb: color },
+                    style: style
+                }
+            }
+        };
+        this.s = merge(this.s, patch);
+        return this;
+    }
+
+    public font({ size, bold = false }: { size: number, bold?: boolean }) {
+        const patch: CellStyle = {
+            font: {
+                sz: size,
+                bold: bold
+            }
+        };
+        this.s = merge(this.s, patch);
+        return this;
+    }
+
+    public link(href: string) {
+        this.l = { Target: href };
+        return this;
+    }
+
+    public style(patch: CellStyle) {
+        this.s = merge(this.s, patch);
+        return this;
+    }
 }
