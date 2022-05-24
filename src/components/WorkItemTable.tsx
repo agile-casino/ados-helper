@@ -56,6 +56,7 @@ export function WorkItemTable({ collection, project, workItems }: WorkItemTableP
     const doneWorkItems = sortBy(workItems?.filter(workItem => workItem.isDone), x => x.title);
     const inProgressWorkitems = sortBy(workItems?.filter(workItem => workItem.isInProgress), x => x.title);
     const notStartedWorkItems = sortBy(workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone), x => x.title);
+    const removedWorkItems = sortBy(workItems?.filter(workItem => workItem.isRemoved), x => x.title);
 
     return (
         <div css={tableStyle}>
@@ -71,6 +72,10 @@ export function WorkItemTable({ collection, project, workItems }: WorkItemTableP
                 <If condition={!!notStartedWorkItems.length}>
                     <WorkItemTableHeader title="Not Started" />
                     <WorkItemTableBody workItems={notStartedWorkItems} collection={collection} project={project} />
+                </If>
+                <If condition={!!removedWorkItems.length}>
+                    <WorkItemTableHeader title="Removed" />
+                    <WorkItemTableBody workItems={removedWorkItems} collection={collection} project={project} />
                 </If>
             </table>
         </div>
