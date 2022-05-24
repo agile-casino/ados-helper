@@ -62,6 +62,11 @@ export async function RunQuery(collection: string, project: string, team: string
         responseDto.payload.columns.forEach((column, index) => {
             set(workItem, column, row[index]);
         });
+
+        // little bit hacky, look into updating query
+        if (workItem.System.WorkItemType !== "Product Backlog Item" && workItem.System.WorkItemType !== "Task") {
+            return;
+        }
         
         const parentId = responseDto.sourceIds[i];
         if (parentId > 0) {
