@@ -7,6 +7,7 @@ const banner = `
 // @name         ADOS Helper
 // @namespace    https://ados/
 // @version      ${pkg.version}
+// @updateURL    https://archerax.blob.core.windows.net/apps/ados-helper/index.js
 // @description  ADOS Helper
 // @author       archerax
 // @match        https://ados/WirelineRnD_Collection/WirelineRnD*
