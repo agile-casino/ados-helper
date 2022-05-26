@@ -4,6 +4,7 @@
   "description": "ados-helper",
   "main": "index.js",
   "scripts": {
+    "analyze": "webpack --mode=production --profile --json > stats.json && webpack-bundle-analyzer stats.json",
     "build": "webpack --mode=production",
     "build:watch": "webpack --mode=development --watch",
     "lint": "eslint . --ext .ts,.tsx",
