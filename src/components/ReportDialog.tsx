@@ -62,7 +62,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
 
     useEffect(() => {
         updateIteration().catch(console.error);
-    }, [props.collection, props.project, props.team, props.sprint]);
+    }, [props.collection, props.project, props.team, props.sprint, props.open]);
 
     if (props.open) {
         return (
