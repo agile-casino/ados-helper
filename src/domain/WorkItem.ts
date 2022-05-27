@@ -36,6 +36,10 @@ export class WorkItem {
         return this.sprintTag?.sprintSuffix == "-";
     }
 
+    public get remainingWork(): number {
+        return this.dto.children.reduce((acc, task) => acc + task.Microsoft.VSTS.Scheduling.RemainingWork ?? 0, 0);
+    }
+
     public get sprint(): Tag|undefined {
         const sprint = this.dto.System.IterationPath.split("\\").pop()
         return sprint ? new Tag(sprint) : undefined;
