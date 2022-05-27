@@ -86,7 +86,7 @@ function WorkItemTableHeader({ title }: { title: string }) {
     return (
         <thead>
             <tr>
-                <th className="section" colSpan={5}>{title}</th>
+                <th className="section" colSpan={6}>{title}</th>
             </tr>
             <tr>
                 <th>PBI</th>
@@ -94,6 +94,7 @@ function WorkItemTableHeader({ title }: { title: string }) {
                 <th>Description</th>
                 <th>Assignee</th>
                 <th>Size</th>
+                <th>Remaining Work</th>
             </tr>
         </thead>
     );
@@ -130,6 +131,13 @@ function WorkItemTableBody({ collection, project, workItems }: { collection: str
                             <td>{x.title}</td>
                             <td>{formatName(x.owner)}</td>
                             <td>{x.effort}</td>
+                            <td>
+                                {
+                                    x.remainingWork
+                                        ? `${x.remainingWork} hours`
+                                        : null
+                                }
+                            </td>
                         </tr>
                     )
                 }) : (
