@@ -6,6 +6,7 @@ import { If } from "./If";
 
 const tableStyle = css(`
     margin: 1em;
+    margin-top: 0;
 
     h2 {
         margin-bottom: 0.25m;
@@ -27,6 +28,7 @@ const tableStyle = css(`
             border-right: none;
             padding-top: 1em;
             padding-bottom: 0.5em;
+            padding-left: 0;
         }
     
         td {
