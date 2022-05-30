@@ -119,6 +119,10 @@ function WorkItemTableBody({ origin, collection, project, workItems }: { origin:
                         }
                     }
 
+                    if (x.allTasksDone) {
+                        style.fontWeight = "bold";
+                    }
+
                     return (
                         <tr key={x.id}>
                             <td style={style}>
