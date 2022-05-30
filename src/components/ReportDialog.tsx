@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { WorkItemTable } from "./WorkItemTable";
 import { WorkItemChart } from "./WorkItemChart";
-import { RunQuery } from "../api/queryRepository";
+import { QueryClient } from "../api/query/QueryClient";
 import { generateReport } from "../domain/reports/ReportGenerator";
 import { WorkItem } from "../domain/WorkItem";
 import { If } from "./If";
+import { WorkItemClient } from "../api/workItems/WorkItemClient";
+import { ApiClient } from "../api/ApiClient";
 
 export interface ReportDialogProps {
+    origin: string;
     collection: string;
     project: string;
     team: string;
@@ -21,42 +24,13 @@ export const ReportDialog = (props: ReportDialogProps) => {
 
     async function updateIteration() {
         if (props.collection && props.project && props.team && props.sprint) {
-            const sprintMatch = props.sprint.match(/(Sprint \d+)/);
-            const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
-            const query = `
-                SELECT
-                  [System.Id],
-                  [System.IterationPath],
-                  [System.WorkItemType],
-                  [System.Title],
-                  [System.AssignedTo],
-                  [System.State],
-                  [System.Tags],
-                  [Microsoft.VSTS.Scheduling.Effort],
-                  [Microsoft.VSTS.Scheduling.RemainingWork]
-                FROM WorkItemLinks
-                WHERE [Source].[System.TeamProject] = @project
-                  AND (
-                    [Source].[System.WorkItemType] = 'Product Backlog Item' OR
-                    [Source].[System.WorkItemType] = 'Task'
-                  )
-                  AND (
-                    [Source].[System.IterationPath] UNDER '${props.project}\\${props.team}\\${props.sprint}' OR (
-                      [Source].[System.AreaPath] UNDER '${props.project}\\${props.team}' AND (
-                        [Source].[System.Tags] CONTAINS '${sprintNumber}' OR
-                        [Source].[System.Tags] CONTAINS '${sprintNumber}-' OR
-                        [Source].[System.Tags] CONTAINS '${sprintNumber}+' OR
-                        [Source].[System.Tags] CONTAINS '${sprintNumber}!'
-                      )
-                    )
-                  )
-                  AND [System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward'
-                  AND [Target].[System.TeamProject] = @project
-                  mode(Recursive)
-            `.replace(/\s+/g, " ").trim();
+            const workItemClient = new WorkItemClient(origin);
+            const queryClient = new QueryClient(origin, workItemClient);
+            const apiClient = new ApiClient(queryClient, workItemClient);
 
-            const queryResult = await RunQuery(props.collection, props.project, props.team, query);
-            setWorkItems(queryResult.map(x => new WorkItem(x)));
+            const queryResult = await apiClient.getIteration(props.collection, props.project, props.team, props.sprint);
+
+            setWorkItems(queryResult);
         }
     }
 
@@ -77,8 +51,8 @@ export const ReportDialog = (props: ReportDialogProps) => {
                 </div>
                 <div style={{ maxHeight: "calc(100% - 42px)", overflowY: "scroll" }}>
                     <div style={{ float: "left" }}>
-                        <WorkItemTable collection={props.collection} project={props.project} workItems={workItems} />
-                        <button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(props.collection, props.project, props.team, props.sprint, workItems)}>Generate Report</button>
+                        <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={workItems} />
+                        <button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(origin, props.collection, props.project, props.team, props.sprint, workItems)}>Generate Report</button>
                     </div>
                     <If condition={!!window.localStorage.getItem("debug")}>
                         <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>

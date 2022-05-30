@@ -44,12 +44,13 @@ const tableStyle = css(`
 `);
 
 interface  WorkItemTableProps {
+    origin: string;
     collection: string;
     project: string;
     workItems?: WorkItem[];
 }
 
-export function WorkItemTable({ collection, project, workItems }: WorkItemTableProps) {
+export function WorkItemTable({ origin, collection, project, workItems }: WorkItemTableProps) {
 
     if (!workItems) {
         return null;
@@ -65,19 +66,19 @@ export function WorkItemTable({ collection, project, workItems }: WorkItemTableP
             <table>
                 <If condition={!!doneWorkItems.length}>
                     <WorkItemTableHeader title="Done" />
-                    <WorkItemTableBody workItems={doneWorkItems} collection={collection} project={project} />
+                    <WorkItemTableBody origin={origin} workItems={doneWorkItems} collection={collection} project={project} />
                 </If>
                 <If condition={!!inProgressWorkitems.length}>
                     <WorkItemTableHeader title="In Progress" />
-                    <WorkItemTableBody workItems={inProgressWorkitems} collection={collection} project={project} />
+                    <WorkItemTableBody origin={origin} workItems={inProgressWorkitems} collection={collection} project={project} />
                 </If>
                 <If condition={!!notStartedWorkItems.length}>
                     <WorkItemTableHeader title="Not Started" />
-                    <WorkItemTableBody workItems={notStartedWorkItems} collection={collection} project={project} />
+                    <WorkItemTableBody origin={origin} workItems={notStartedWorkItems} collection={collection} project={project} />
                 </If>
                 <If condition={!!removedWorkItems.length}>
                     <WorkItemTableHeader title="Removed" />
-                    <WorkItemTableBody workItems={removedWorkItems} collection={collection} project={project} />
+                    <WorkItemTableBody origin={origin} workItems={removedWorkItems} collection={collection} project={project} />
                 </If>
             </table>
         </div>
@@ -102,7 +103,7 @@ function WorkItemTableHeader({ title }: { title: string }) {
     );
 }
 
-function WorkItemTableBody({ collection, project, workItems }: { collection: string, project: string, workItems: WorkItem[] }) {
+function WorkItemTableBody({ origin, collection, project, workItems }: { origin: string, collection: string, project: string, workItems: WorkItem[] }) {
     return (
         <tbody>
             {
@@ -121,7 +122,7 @@ function WorkItemTableBody({ collection, project, workItems }: { collection: str
                     return (
                         <tr key={x.id}>
                             <td style={style}>
-                                <a href={`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`}>{x.id}</a>
+                                <a href={`${origin}/${collection}/${project}/_workitems/edit/${x.id}`}>{x.id}</a>
                             </td>
                             <td>
                                 {

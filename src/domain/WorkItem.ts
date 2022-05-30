@@ -1,6 +1,6 @@
 import countBy from "lodash/countBy";
 import maxBy from "lodash/maxBy";
-import { WorkItemDto } from "../api/queryRepository";
+import { WorkItemDto } from "../api/query/WorkItemDto";
 import { Tag } from "./Tag";
 
 export class WorkItem {
