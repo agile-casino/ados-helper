@@ -25,7 +25,7 @@ function getExtraStyles(workItem: WorkItem): CellStyle {
     return result;
 }
 
-export function generateReport(collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
+export function generateReport(origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
     const workbook = utils.book_new();
 
     const rows: CellObject[][] = [
@@ -47,7 +47,7 @@ export function generateReport(collection: string, project: string, team: string
         ]);
 
         doneWorkItems.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell(x.wiseNumber ?? "").alignText({ horizontal: "center" }).link(x.wiseLink),
             new Cell(x.title).alignText({ horizontal: "left" }),
             new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
@@ -74,7 +74,7 @@ export function generateReport(collection: string, project: string, team: string
         ]);
 
         inProgressWorkItems.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell("").alignText({ horizontal: "center" }),
             new Cell(x.title).alignText({ horizontal: "left" }),
             new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
@@ -101,7 +101,7 @@ export function generateReport(collection: string, project: string, team: string
         ]);
 
         notStartedWorkItems.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell("").alignText({ horizontal: "center" }),
             new Cell(x.title).alignText({ horizontal: "left" }),
             new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
@@ -128,7 +128,7 @@ export function generateReport(collection: string, project: string, team: string
         ]);
 
         removedWorkItems.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${window.location.origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell("").alignText({ horizontal: "center" }),
             new Cell(x.title).alignText({ horizontal: "left" }),
             new Cell(formatName(x.owner)).alignText({ horizontal: "center" })

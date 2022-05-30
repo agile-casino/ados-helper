@@ -3,10 +3,12 @@ import { ReportDialog } from "./ReportDialog";
 
 export const App = () => {
     const [url, setUrl] = useState(window.location.href);
+    const [origin, setOrigin] = useState(window.location.origin);
     const [dialogOpen, setDialogOpen] = useState(false);
 
     function onUrlChange() {
         setUrl(window.location.href);
+        setOrigin(window.location.origin);
     }
 
     useEffect(() => {
@@ -24,7 +26,7 @@ export const App = () => {
         return (
             <>
                 <button onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", margin: "auto 8px", background: "none", border: "1px solid rgb(234,234,234)" }}>Reports</button>
-                <ReportDialog collection={collection} project={project} team={team} sprint={sprint} open={dialogOpen} onCloseClicked={() => setDialogOpen(!dialogOpen)} />
+                <ReportDialog origin={origin} collection={collection} project={project} team={team} sprint={sprint} open={dialogOpen} onCloseClicked={() => setDialogOpen(!dialogOpen)} />
             </>
         );
     }
