@@ -58,7 +58,9 @@ export class WorkItem {
     }
 
     public get tags(): Tag[] {
-        return this.dto.System.Tags.split(";").map(x => new Tag(x.trim()));
+        return this.dto.System.Tags
+             ? this.dto.System.Tags.split(";").map(x => new Tag(x.trim()))
+             : [];
     }
 
     public get title(): string {
