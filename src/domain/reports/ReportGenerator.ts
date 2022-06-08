@@ -3,6 +3,7 @@ import { CellObject, CellStyle, utils, writeFile } from "xlsx-js-style";
 import { WorkItem } from "../WorkItem";
 import { formatName } from "../../utils/formatName";
 import { Cell } from "./Cell";
+import { Range } from "./Range";
 
 function getExtraStyles(workItem: WorkItem): CellStyle {
     const result: CellStyle = {
@@ -28,13 +29,14 @@ function getExtraStyles(workItem: WorkItem): CellStyle {
 export function generateReport(origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
     const workbook = utils.book_new();
 
-    const rows: CellObject[][] = [
-    ];
+    const rows: CellObject[][] = [];
+    const merges: Range[] = [];
 
     const doneWorkItems = sortBy(workItems.filter(workItem => workItem.isDone), x => x.title);
 
     if (doneWorkItems.length) {
 
+        merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
             new Cell("Completed").font({ size: 12, bold: true })
         ]);
@@ -62,6 +64,7 @@ export function generateReport(origin: string, collection: string, project: stri
 
     if (inProgressWorkItems?.length) {
 
+        merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
             new Cell("In Progress").font({ size: 12, bold: true })
         ]);
@@ -89,6 +92,7 @@ export function generateReport(origin: string, collection: string, project: stri
 
     if (notStartedWorkItems.length) {
         
+        merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
             new Cell("Not Started").font({ size: 12, bold: true })
         ]);
@@ -116,6 +120,7 @@ export function generateReport(origin: string, collection: string, project: stri
 
     if (removedWorkItems.length) {
         
+        merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
             new Cell("Removed").font({ size: 12, bold: true })
         ]);
@@ -143,6 +148,8 @@ export function generateReport(origin: string, collection: string, project: stri
         { wpx: 705 * 0.85714 },
         { wpx: 82  * 0.85714 }
     ];
+
+    worksheet["!merges"] = merges;
 
     utils.book_append_sheet(workbook, worksheet, sprint);
 
