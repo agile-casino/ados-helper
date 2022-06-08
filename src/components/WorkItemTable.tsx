@@ -1,8 +1,10 @@
 import sortBy from "lodash/sortBy";
+import sumBy from "lodash/sumBy";
 import { css } from "@emotion/react";
 import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
 import { If } from "./If";
+
 
 const tableStyle = css(`
     margin: 1em;
@@ -65,19 +67,19 @@ export function WorkItemTable({ origin, collection, project, workItems }: WorkIt
         <div css={tableStyle}>
             <table>
                 <If condition={!!doneWorkItems.length}>
-                    <WorkItemTableHeader title="Done" />
+                    <WorkItemTableHeader title={`Done - ${sumBy(doneWorkItems, x => x.effort)} points`} />
                     <WorkItemTableBody origin={origin} workItems={doneWorkItems} collection={collection} project={project} />
                 </If>
                 <If condition={!!inProgressWorkitems.length}>
-                    <WorkItemTableHeader title="In Progress" />
+                    <WorkItemTableHeader title={`In Progress - ${sumBy(inProgressWorkitems, x => x.effort)} points`} />
                     <WorkItemTableBody origin={origin} workItems={inProgressWorkitems} collection={collection} project={project} />
                 </If>
                 <If condition={!!notStartedWorkItems.length}>
-                    <WorkItemTableHeader title="Not Started" />
+                    <WorkItemTableHeader title={`Not Started - ${sumBy(notStartedWorkItems, x => x.effort)} points`} />
                     <WorkItemTableBody origin={origin} workItems={notStartedWorkItems} collection={collection} project={project} />
                 </If>
                 <If condition={!!removedWorkItems.length}>
-                    <WorkItemTableHeader title="Removed" />
+                    <WorkItemTableHeader title={`Removed - ${sumBy(removedWorkItems, x => x.effort)} points`} />
                     <WorkItemTableBody origin={origin} workItems={removedWorkItems} collection={collection} project={project} />
                 </If>
             </table>
