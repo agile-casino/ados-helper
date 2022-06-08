@@ -18,6 +18,16 @@ export class Cell implements CellObject {
 
     constructor(content: string | number | boolean | Date) {
         this.v = content;
+
+        if (typeof(content) === "number") {
+            this.t = "n";
+        }
+        else if (typeof(content) === "boolean") {
+            this.t = "b";
+        }
+        else if (typeof(content) === "object" && content instanceof Date) {
+            this.t = "d"
+        }
     }
 
     public alignText({ horizontal }: { horizontal: "left" | "center" | "right"; }) {
