@@ -60,7 +60,7 @@ export function generateReport(origin: string, collection: string, project: stri
         ]);
     }
 
-    const inProgressWorkItems = sortBy(workItems.filter(workItem => workItem.isInProgress), x => x.title);
+    const inProgressWorkItems = sortBy(workItems.filter(workItem => workItem.isInProgress && !workItem.isRemoved), x => x.title);
 
     if (inProgressWorkItems?.length) {
 
@@ -88,7 +88,7 @@ export function generateReport(origin: string, collection: string, project: stri
         ]);
     }
 
-    const notStartedWorkItems = sortBy(workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone), x => x.title);
+    const notStartedWorkItems = sortBy(workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone && !workItem.isRemoved), x => x.title);
 
     if (notStartedWorkItems.length) {
         
