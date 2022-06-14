@@ -16,6 +16,9 @@ function getExtraStyles(workItem: WorkItem): CellStyle {
         if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "+") {
             result.fill = { fgColor: { rgb: "F4F785" } };
         }
+        else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "!") {
+            result.fill = { fgColor: { rgb: "FFCC66" } };
+        }
         else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber - 1 && workItem.sprintTag.sprintSuffix !== "+") {
             result.fill = { fgColor: { rgb: "E6B8B7" } };
         }
