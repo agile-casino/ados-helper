@@ -116,6 +116,9 @@ function WorkItemTableBody({ origin, collection, project, workItems }: { origin:
                         if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "+") {
                             style.backgroundColor = "#F4F785";
                         }
+                        else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "!") {
+                            style.backgroundColor = "#FFCC66";
+                        }
                         else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber - 1 && x.sprintTag.sprintSuffix !== "+") {
                             style.backgroundColor = "#E6B8B7";
                         }
