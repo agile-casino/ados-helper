@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "analyze": "webpack --mode=production --profile --json > stats.json && webpack-bundle-analyzer stats.json",
-    "build": "webpack --mode=production & cd dist & copy index.js index.user.js",
+    "build": "webpack --mode=production",
     "build:watch": "webpack --mode=development --watch",
+    "copy": "cp-cli ./dist/index.js ./dist/index.user.js",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -30,6 +31,7 @@
     "@types/react-dom": "^18.0.5",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
     "@typescript-eslint/parser": "^5.27.0",
+    "cp-cli": "^2.0.0",
     "eslint": "^8.16.0",
     "eslint-plugin-react": "^7.30.0",
     "jest": "^28.1.0",
