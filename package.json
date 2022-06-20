@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "analyze": "webpack --mode=production --profile --json > stats.json && webpack-bundle-analyzer stats.json",
-    "build": "webpack --mode=production",
+    "build": "webpack --mode=production & cd dist & copy index.js index.user.js",
     "build:watch": "webpack --mode=development --watch",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",
