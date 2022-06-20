@@ -12,7 +12,8 @@ export class WorkItem {
     }
 
     public get allTasksDone(): boolean {
-        return this.dto.children.every(task => task.System.State === "Done");
+        return this.tasks.length > 0
+            && this.tasks.every(task => task.System.State === "Done" || task.System.State === "Removed");
     }
 
     public get effort(): number {
@@ -29,7 +30,7 @@ export class WorkItem {
 
     public get isInProgress(): boolean {
         return this.dto.System.State !== "Done"
-            && this.dto.children.some(task => task.System.State !== "To Do")
+            && this.tasks.some(task => task.System.State !== "To Do")
     }
 
     public get isRemoved(): boolean {
@@ -37,7 +38,7 @@ export class WorkItem {
     }
 
     public get remainingWork(): number {
-        return this.dto.children.reduce((acc, task) => acc + task.Microsoft.VSTS.Scheduling.RemainingWork ?? 0, 0);
+        return this.tasks.reduce((acc, task) => acc + task.Microsoft.VSTS.Scheduling.RemainingWork ?? 0, 0);
     }
 
     public get sprint(): Tag|undefined {
@@ -63,6 +64,10 @@ export class WorkItem {
              : [];
     }
 
+    public get tasks(): WorkItemDto[] {
+        return this.dto.children.filter(task => task.System.State !== "Removed");
+    }
+
     public get title(): string {
         return this.dto.System.Title;
     }
@@ -72,7 +77,7 @@ export class WorkItem {
             return this.dto.System.AssignedTo;
         }
 
-        const taskAssignees = this.dto.children.map(x => x.System.AssignedTo).filter(x => x);
+        const taskAssignees = this.tasks.map(x => x.System.AssignedTo).filter(x => x);
         const assigneeFrequencies = countBy(taskAssignees, x => x);
         
         return maxBy(Object.keys(assigneeFrequencies), x => assigneeFrequencies[x]) ?? null;
