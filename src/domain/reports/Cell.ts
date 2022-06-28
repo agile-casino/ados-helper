@@ -2,6 +2,20 @@ import cloneDeep from "lodash/cloneDeep";
 import merge from "lodash/merge";
 import { BorderType, CellObject, CellStyle, ExcelDataType, Hyperlink } from "xlsx-js-style";
 
+export interface TextAlignStyle {
+    horizontal: "left" | "center" | "right";
+}
+
+export interface BorderStyle{
+    color?: string;
+    style?: BorderType;
+}
+
+export interface FontStyle {
+    size?: number;
+    bold?: boolean;
+}
+
 export class Cell implements CellObject {
 
     public static defaultStyle: CellStyle = {
@@ -30,7 +44,7 @@ export class Cell implements CellObject {
         }
     }
 
-    public alignText({ horizontal }: { horizontal: "left" | "center" | "right"; }) {
+    public alignText({ horizontal }: TextAlignStyle) {
         const patch: CellStyle = {
             alignment: {
                 horizontal: horizontal
@@ -40,7 +54,7 @@ export class Cell implements CellObject {
         return this;
     }
 
-    public borderBottom({ color, style }: { color: string; style: BorderType; }) {
+    public borderBottom({ color, style }: BorderStyle) {
         const patch: CellStyle = {
             border: {
                 bottom: {
@@ -53,7 +67,7 @@ export class Cell implements CellObject {
         return this;
     }
 
-    public font({ size, bold = false }: { size: number; bold?: boolean; }) {
+    public font({ size, bold = false }: FontStyle) {
         const patch: CellStyle = {
             font: {
                 sz: size,
