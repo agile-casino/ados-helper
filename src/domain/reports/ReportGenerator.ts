@@ -1,9 +1,9 @@
-import sortBy from "lodash/sortBy";
 import { CellObject, CellStyle, utils, writeFile } from "xlsx-js-style";
 import { WorkItem } from "../WorkItem";
 import { formatName } from "../../utils/formatName";
 import { Cell } from "./Cell";
 import { Range } from "./Range";
+import { WorkItemCollection } from "../WorkItemCollection";
 
 function getExtraStyles(workItem: WorkItem): CellStyle {
     const result: CellStyle = {
@@ -30,14 +30,15 @@ function getExtraStyles(workItem: WorkItem): CellStyle {
 }
 
 export function generateReport(origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
+
+    const workItemCollection = new WorkItemCollection(workItems);
+
     const workbook = utils.book_new();
 
     const rows: CellObject[][] = [];
     const merges: Range[] = [];
 
-    const doneWorkItems = sortBy(workItems.filter(workItem => workItem.isDone), x => x.title);
-
-    if (doneWorkItems.length) {
+    if (workItemCollection.done.length) {
 
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
@@ -51,7 +52,7 @@ export function generateReport(origin: string, collection: string, project: stri
             new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
         ]);
 
-        doneWorkItems.forEach(x => rows.push([
+        workItemCollection.done.forEach(x => rows.push([
             new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell(x.wiseNumber ?? "").alignText({ horizontal: "center" }).link(x.wiseLink),
             new Cell(x.title).alignText({ horizontal: "left" }),
@@ -63,9 +64,7 @@ export function generateReport(origin: string, collection: string, project: stri
         ]);
     }
 
-    const inProgressWorkItems = sortBy(workItems.filter(workItem => workItem.isInProgress && !workItem.isRemoved), x => x.title);
-
-    if (inProgressWorkItems?.length) {
+    if (workItemCollection.inProgress.length) {
 
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
@@ -79,7 +78,7 @@ export function generateReport(origin: string, collection: string, project: stri
             new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
         ]);
 
-        inProgressWorkItems.forEach(x => rows.push([
+        workItemCollection.inProgress.forEach(x => rows.push([
             new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell("").alignText({ horizontal: "center" }),
             new Cell(x.title).alignText({ horizontal: "left" }),
@@ -91,9 +90,7 @@ export function generateReport(origin: string, collection: string, project: stri
         ]);
     }
 
-    const notStartedWorkItems = sortBy(workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone && !workItem.isRemoved), x => x.title);
-
-    if (notStartedWorkItems.length) {
+    if (workItemCollection.notStarted.length) {
         
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
@@ -107,7 +104,7 @@ export function generateReport(origin: string, collection: string, project: stri
             new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
         ]);
 
-        notStartedWorkItems.forEach(x => rows.push([
+        workItemCollection.notStarted.forEach(x => rows.push([
             new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell("").alignText({ horizontal: "center" }),
             new Cell(x.title).alignText({ horizontal: "left" }),
@@ -119,9 +116,7 @@ export function generateReport(origin: string, collection: string, project: stri
         ]);
     }
 
-    const removedWorkItems = sortBy(workItems?.filter(workItem => workItem.isRemoved), x => x.title);
-
-    if (removedWorkItems.length) {
+    if (workItemCollection.removed.length) {
         
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
@@ -135,7 +130,33 @@ export function generateReport(origin: string, collection: string, project: stri
             new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
         ]);
 
-        removedWorkItems.forEach(x => rows.push([
+        workItemCollection.removed.forEach(x => rows.push([
+            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.title).alignText({ horizontal: "left" }),
+            new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
+        ]));
+
+        rows.push([
+            new Cell("")
+        ]);
+    }
+
+    if (workItemCollection.studyTime.length) {
+        
+        merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
+        rows.push([
+            new Cell("Study Time").font({ size: 12, bold: true })
+        ]);
+
+        rows.push([
+            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
+            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
+        ]);
+
+        workItemCollection.studyTime.forEach(x => rows.push([
             new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
             new Cell("").alignText({ horizontal: "center" }),
             new Cell(x.title).alignText({ horizontal: "left" }),

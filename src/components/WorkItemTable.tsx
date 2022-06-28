@@ -1,9 +1,9 @@
-import sortBy from "lodash/sortBy";
 import sumBy from "lodash/sumBy";
 import { css } from "@emotion/react";
 import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
 import { If } from "./If";
+import { WorkItemCollection } from "../domain/WorkItemCollection";
 
 
 const tableStyle = css(`
@@ -58,29 +58,30 @@ export function WorkItemTable({ origin, collection, project, workItems }: WorkIt
         return null;
     }
 
-    const doneWorkItems = sortBy(workItems?.filter(workItem => workItem.isDone), x => x.title);
-    const inProgressWorkitems = sortBy(workItems?.filter(workItem => workItem.isInProgress && !workItem.isRemoved), x => x.title);
-    const notStartedWorkItems = sortBy(workItems?.filter(workItem => !workItem.isInProgress && !workItem.isDone && !workItem.isRemoved), x => x.title);
-    const removedWorkItems = sortBy(workItems?.filter(workItem => workItem.isRemoved), x => x.title);
+    const workItemCollection = new WorkItemCollection(workItems);
 
     return (
         <div css={tableStyle}>
             <table>
-                <If condition={!!doneWorkItems.length}>
-                    <WorkItemTableHeader title={`Done - ${sumBy(doneWorkItems, x => x.effort)} points`} />
-                    <WorkItemTableBody origin={origin} workItems={doneWorkItems} collection={collection} project={project} />
+                <If condition={!!workItemCollection.done.length}>
+                    <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} />
+                    <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} />
                 </If>
-                <If condition={!!inProgressWorkitems.length}>
-                    <WorkItemTableHeader title={`In Progress - ${sumBy(inProgressWorkitems, x => x.effort)} points`} />
-                    <WorkItemTableBody origin={origin} workItems={inProgressWorkitems} collection={collection} project={project} />
+                <If condition={!!workItemCollection.inProgress.length}>
+                    <WorkItemTableHeader title={`In Progress - ${sumBy(workItemCollection.inProgress, x => x.effort)} points`} />
+                    <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} />
                 </If>
-                <If condition={!!notStartedWorkItems.length}>
-                    <WorkItemTableHeader title={`Not Started - ${sumBy(notStartedWorkItems, x => x.effort)} points`} />
-                    <WorkItemTableBody origin={origin} workItems={notStartedWorkItems} collection={collection} project={project} />
+                <If condition={!!workItemCollection.notStarted.length}>
+                    <WorkItemTableHeader title={`Not Started - ${sumBy(workItemCollection.notStarted, x => x.effort)} points`} />
+                    <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} />
                 </If>
-                <If condition={!!removedWorkItems.length}>
-                    <WorkItemTableHeader title={`Removed - ${sumBy(removedWorkItems, x => x.effort)} points`} />
-                    <WorkItemTableBody origin={origin} workItems={removedWorkItems} collection={collection} project={project} />
+                <If condition={!!workItemCollection.removed.length}>
+                    <WorkItemTableHeader title={`Removed - ${sumBy(workItemCollection.removed, x => x.effort)} points`} />
+                    <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} />
+                </If>
+                <If condition={!!workItemCollection.studyTime.length}>
+                    <WorkItemTableHeader title={"Study Time"} />
+                    <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} />
                 </If>
             </table>
         </div>
