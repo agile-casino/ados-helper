@@ -7,7 +7,6 @@
     "analyze": "webpack --mode=production --profile --json > stats.json && webpack-bundle-analyzer stats.json",
     "build": "webpack --mode=production",
     "build:watch": "webpack --mode=development --watch",
-    "copy": "cp-cli ./dist/index.js ./dist/index.user.js",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",
     "test:watch": "jest --watch"
