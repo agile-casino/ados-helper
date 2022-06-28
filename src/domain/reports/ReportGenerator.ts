@@ -1,17 +1,26 @@
 import { CellObject, CellStyle, utils, writeFile } from "xlsx-js-style";
 import { WorkItem } from "../WorkItem";
 import { formatName } from "../../utils/formatName";
-import { Cell } from "./Cell";
+import { BorderStyle, Cell, FontStyle, TextAlignStyle } from "./Cell";
 import { Range } from "./Range";
 import { WorkItemCollection } from "../WorkItemCollection";
 
+const thickBlack: BorderStyle = {
+    color: "000000",
+    style: "thick"
+};
+
+const centerAlign: TextAlignStyle = {
+    horizontal: "center"
+};
+
+const headerFont: FontStyle = {
+    size: 12,
+    bold: true
+};
+
 function getExtraStyles(workItem: WorkItem): CellStyle {
-    const result: CellStyle = {
-        font: {
-            name: "Calibri",
-            sz: 11
-        }
-    };
+    const result: CellStyle = {};
     if (workItem.sprint?.sprintNumber && workItem.sprintTag?.sprintNumber) {
         if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "+") {
             result.fill = { fgColor: { rgb: "F4F785" } };
@@ -42,21 +51,21 @@ export function generateReport(origin: string, collection: string, project: stri
 
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
-            new Cell("Completed").font({ size: 12, bold: true })
+            new Cell("Completed").font(headerFont)
         ]);
 
         rows.push([
-            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
+            new Cell("PBI").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("WQ/SDR").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Description").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Assignee").font(headerFont).alignText(centerAlign).borderBottom(thickBlack)
         ]);
 
         workItemCollection.done.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
-            new Cell(x.wiseNumber ?? "").alignText({ horizontal: "center" }).link(x.wiseLink),
+            new Cell(x.id).alignText(centerAlign).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell(x.wiseNumber ?? "").alignText(centerAlign).link(x.wiseLink),
             new Cell(x.title).alignText({ horizontal: "left" }),
-            new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
+            new Cell(formatName(x.owner)).alignText(centerAlign)
         ]));
 
         rows.push([
@@ -68,21 +77,21 @@ export function generateReport(origin: string, collection: string, project: stri
 
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
-            new Cell("In Progress").font({ size: 12, bold: true })
+            new Cell("In Progress").font(headerFont)
         ]);
 
         rows.push([
-            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
+            new Cell("PBI").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("WQ/SDR").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Description").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Assignee").font(headerFont).alignText(centerAlign).borderBottom(thickBlack)
         ]);
 
         workItemCollection.inProgress.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
-            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.id).alignText(centerAlign).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText(centerAlign),
             new Cell(x.title).alignText({ horizontal: "left" }),
-            new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
+            new Cell(formatName(x.owner)).alignText(centerAlign)
         ]));
 
         rows.push([
@@ -94,21 +103,21 @@ export function generateReport(origin: string, collection: string, project: stri
         
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
-            new Cell("Not Started").font({ size: 12, bold: true })
+            new Cell("Not Started").font(headerFont)
         ]);
 
         rows.push([
-            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
+            new Cell("PBI").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("WQ/SDR").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Description").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Assignee").font(headerFont).alignText(centerAlign).borderBottom(thickBlack)
         ]);
 
         workItemCollection.notStarted.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
-            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.id).alignText(centerAlign).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText(centerAlign),
             new Cell(x.title).alignText({ horizontal: "left" }),
-            new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
+            new Cell(formatName(x.owner)).alignText(centerAlign)
         ]));
 
         rows.push([
@@ -120,21 +129,21 @@ export function generateReport(origin: string, collection: string, project: stri
         
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
-            new Cell("Removed").font({ size: 12, bold: true })
+            new Cell("Removed").font(headerFont)
         ]);
 
         rows.push([
-            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
+            new Cell("PBI").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("WQ/SDR").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Description").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Assignee").font(headerFont).alignText(centerAlign).borderBottom(thickBlack)
         ]);
 
         workItemCollection.removed.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
-            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.id).alignText(centerAlign).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText(centerAlign),
             new Cell(x.title).alignText({ horizontal: "left" }),
-            new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
+            new Cell(formatName(x.owner)).alignText(centerAlign)
         ]));
 
         rows.push([
@@ -146,21 +155,21 @@ export function generateReport(origin: string, collection: string, project: stri
         
         merges.push(new Range().from(rows.length, 0).to(rows.length, 3));
         rows.push([
-            new Cell("Study Time").font({ size: 12, bold: true })
+            new Cell("Study Time").font(headerFont)
         ]);
 
         rows.push([
-            new Cell("PBI").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("WQ/SDR").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Description").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"}),
-            new Cell("Assignee").font({ size: 12, bold: true }).alignText({ horizontal: "center" }).borderBottom({ color: "000000", style: "thick"})
+            new Cell("PBI").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("WQ/SDR").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Description").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+            new Cell("Assignee").font(headerFont).alignText(centerAlign).borderBottom(thickBlack)
         ]);
 
         workItemCollection.studyTime.forEach(x => rows.push([
-            new Cell(x.id).alignText({ horizontal: "center" }).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
-            new Cell("").alignText({ horizontal: "center" }),
+            new Cell(x.id).alignText(centerAlign).link(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+            new Cell("").alignText(centerAlign),
             new Cell(x.title).alignText({ horizontal: "left" }),
-            new Cell(formatName(x.owner)).alignText({ horizontal: "center" })
+            new Cell(formatName(x.owner)).alignText(centerAlign)
         ]));
     }
 
