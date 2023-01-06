@@ -29,7 +29,7 @@ export class ApiClient {
               )
               AND (
                 [Source].[System.IterationPath] UNDER '${project}\\${team}\\${iteration}' OR (
-                  [Source].[System.AreaPath] UNDER '${project}\\${team}' AND (
+                  [Source].[System.IterationPath] UNDER '${project}\\${team}' AND (
                     [Source].[System.Tags] CONTAINS '${sprintNumber}' OR
                     [Source].[System.Tags] CONTAINS '${sprintNumber}-' OR
                     [Source].[System.Tags] CONTAINS '${sprintNumber}+' OR
