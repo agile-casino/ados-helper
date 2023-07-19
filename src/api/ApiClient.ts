@@ -50,7 +50,7 @@ export class ApiClient {
             relations.value.forEach(r => {
                 const workItem = workItemDtos.find(workItem => workItem.System.Id === r.id);
                 if (workItem) {
-                    workItem.links = r.relations.map(l => l.url);
+                    workItem.links = r.relations?.map(l => l.url) ?? [];
                 }
             });
         }

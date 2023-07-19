@@ -92,15 +92,16 @@ function WorkItemTableHeader({ title }: { title: string }) {
     return (
         <thead>
             <tr>
-                <th className="section" colSpan={6}>{title}</th>
+                <th className="section" colSpan={7}>{title}</th>
             </tr>
             <tr>
-                <th>PBI</th>
-                <th>WISE</th>
-                <th>Description</th>
-                <th>Assignee</th>
-                <th>Size</th>
-                <th>Remaining Work</th>
+                <th style={{ textAlign: "center" }}>PBI</th>
+                <th style={{ textAlign: "center" }}>WISE</th>
+                <th style={{ textAlign: "left" }}>Tags</th>
+                <th style={{ textAlign: "left" }}>Description</th>
+                <th style={{ textAlign: "left" }}>Assignee</th>
+                <th style={{ textAlign: "center" }}>Size</th>
+                <th style={{ textAlign: "left" }}>Remaining Work</th>
             </tr>
         </thead>
     );
@@ -129,6 +130,8 @@ function WorkItemTableBody({ origin, collection, project, workItems }: { origin:
                         style.fontWeight = "bold";
                     }
 
+                    const description = getDescription(x.title);
+
                     return (
                         <tr key={x.id}>
                             <td style={style}>
@@ -141,9 +144,10 @@ function WorkItemTableBody({ origin, collection, project, workItems }: { origin:
                                         : null
                                 }
                             </td>
-                            <td>{x.title}</td>
+                            <td>{description.tags}</td>
+                            <td>{description.title}</td>
                             <td>{formatName(x.owner)}</td>
-                            <td>{x.effort}</td>
+                            <td style={{ textAlign: "center" }}>{x.effort}</td>
                             <td>
                                 {
                                     x.remainingWork
@@ -161,4 +165,15 @@ function WorkItemTableBody({ origin, collection, project, workItems }: { origin:
             }
         </tbody>
     );
+}
+
+function getDescription(title: string) {
+    const match = title.match(/^\[(?<tag>.+?)\](?<title>.+)$/);
+    if (match && match.groups) {
+        const tags = (match.groups["tag"] ?? "").replace(" | ", ", ");
+        return { tags: tags, title: match.groups["title"] };
+    }
+    else {
+        return { tags: "", title: title };
+    }
 }
