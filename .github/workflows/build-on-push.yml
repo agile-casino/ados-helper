@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ main, feature/git-actions ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -13,10 +13,10 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Use Node.js 16.x
+    - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: lts
 
     - name: Build Code
       run: |
@@ -29,8 +29,8 @@ jobs:
       with:
         name: dist
         path: dist/
-        
-    - name: Release 
+
+    - name: Release
       uses: bacongobbler/azure-blob-storage-upload@main
       with:
         source_dir: dist
