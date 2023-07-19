@@ -1,6 +1,6 @@
 {
   "name": "ados-helper",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "ados-helper",
   "main": "index.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "url": "git+https://github.com/archerax/ados-helper.git"
   },
   "author": "archerax",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "bugs": {
     "url": "https://github.com/archerax/ados-helper/issues"
   },
