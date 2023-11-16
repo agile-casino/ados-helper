@@ -1,8 +1,8 @@
-name: Build
+name: Release
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -10,31 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
 
-    - name: Build Code
-      run: |
-        pnpm ci
-        pnpm run build
-        pnpm run test
+      - name: Install Packages
+        run: |
+          corepack enable
+          pnpm install
 
-    - name: Publish Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: dist
-        path: dist/
+      - name: Build Code
+        run: |
+          pnpm run build
+          pnpm run test
 
-    - name: Release
-      uses: bacongobbler/azure-blob-storage-upload@main
-      with:
-        source_dir: dist
-        container_name: apps
-        extra_args: '--destination-path ados-helper'
-        connection_string: ${{ secrets.BLOB_CONNECTION_STRING }}
-        overwrite: 'true'
+      - name: Publish Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Release
+        uses: bacongobbler/azure-blob-storage-upload@main
+        with:
+          source_dir: dist
+          container_name: apps
+          extra_args: "--destination-path ados-helper"
+          connection_string: ${{ secrets.BLOB_CONNECTION_STRING }}
+          overwrite: "true"
