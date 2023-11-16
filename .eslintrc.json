@@ -1,27 +1,26 @@
 {
-    "root":true,
+    "root": true,
     "env": {
         "browser": true
     },
     "extends": [
+        "eslint:recommended",
         "plugin:react/recommended",
         "plugin:react/jsx-runtime",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:react-hooks/recommended",
+        "plugin:@typescript-eslint/strict-type-checked",
+        "plugin:@typescript-eslint/stylistic-type-checked",
+        "plugin:sonarjs/recommended",
+        "plugin:vitest/recommended"
     ],
-    "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "ecmaFeatures": {
-            "jsx": true
-        },
-        "ecmaVersion": "latest",
-        "sourceType": "module"
+        "project": "./tsconfig.json"
     },
-    "plugins": [
-        "react",
-        "@typescript-eslint"
-    ],
     "rules": {
-        "react/no-unknown-property": [ "error", { "ignore": ["css"] } ]
+        "brace-style":  ["error", "stroustrup"],
+        "indent": ["error", 4],
+        "@typescript-eslint/no-confusing-void-expression": ["error", { "ignoreArrowShorthand": true }],
+        "react/no-unknown-property": ["error", { "ignore": ["css"] }]
     },
     "settings": {
         "react": {

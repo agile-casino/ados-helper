@@ -30,7 +30,7 @@ export const App = () => {
 
     const matches = url.match(/(?<collection>[\w\d\-_%]+)\/(?<project>[\w\d_%]+)\/_sprints\/taskboard\/[\w\d_%]+\/[\w\d_%]+\/(?<team>[\w\d_%]+)\/(?<sprint>[\w\d_.%()]+)/);
 
-    if (matches && matches.groups) {
+    if (matches?.groups) {
         const collection = decodeURI(matches.groups.collection);
         const project = decodeURI(matches.groups.project);
         const team = decodeURI(matches.groups.team);

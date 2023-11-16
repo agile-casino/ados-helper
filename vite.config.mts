@@ -19,23 +19,23 @@ const banner = `
 `.trim();
 
 export default defineConfig({
-  plugins: [
-    bannerPlugin({ content: banner, verify: false }),
-    cssInjectedByJsPlugin()
-  ],
-  build: {
-    manifest: true,
-    target: "chrome118",
-    chunkSizeWarningLimit: 1024,
-    rollupOptions: {
-      input: "src/index.tsx",
-      output: {
-        entryFileNames: "index.user.js",
-        manualChunks: undefined
-      }
-    }
-  },
-  test: {
-    setupFiles: "tests/setup.ts"
-  },
+    plugins: [
+        bannerPlugin({ content: banner, verify: false }),
+        cssInjectedByJsPlugin()
+    ],
+    build: {
+        manifest: true,
+        target: "chrome118",
+        chunkSizeWarningLimit: 1024,
+        rollupOptions: {
+            input: "src/index.tsx",
+            output: {
+                entryFileNames: "index.user.js",
+                manualChunks: undefined
+            }
+        }
+    },
+    test: {
+        setupFiles: "tests/setup.ts"
+    },
 });

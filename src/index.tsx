@@ -12,16 +12,16 @@ let url = window.location.href;
 const urlChangeEvent = new Event("urlChange");
 
 const observer = new MutationObserver(() => {
-    if (window.location.href !== url) {
-        window.dispatchEvent(urlChangeEvent);
-        url = window.location.href;
+  if (window.location.href !== url) {
+    window.dispatchEvent(urlChangeEvent);
+    url = window.location.href;
+  }
+  if (!isInDocument(container)) {
+    const searchHeader = document.querySelector(".expandable-search-header");
+    if (searchHeader) {
+      searchHeader.parentElement?.insertBefore(container, searchHeader);
     }
-    if (!isInDocument(container)) {
-        const searchHeader = document.querySelector(".expandable-search-header");
-        if (searchHeader) {
-            searchHeader.parentElement?.insertBefore(container, searchHeader);
-        }
-    }
+  }
 });
 
 observer.observe(document.body, { subtree: true, characterData: true, childList: true });
