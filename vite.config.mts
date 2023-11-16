@@ -15,7 +15,6 @@ const banner = `
 // @match        https://dev.azure.com/ADOS-WirelineRnD-Collection-dryrun/WirelineRnD*
 // @icon         https://cdn.vsassets.io/content/icons/favicon.ico
 // @grant        none
-// @require      file:///<path goes here>
 // ==/UserScript==
 `.trim();
 
