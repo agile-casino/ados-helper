@@ -19,7 +19,7 @@ jobs:
 
     - name: Build Code
       run: |
-        npm ci
-        npm run build
-        npm run test
+        pnpm ci
+        pnpm run build
+        pnpm run test
 
