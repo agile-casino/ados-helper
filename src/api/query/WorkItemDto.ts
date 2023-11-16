@@ -3,7 +3,7 @@ export interface WorkItemDto {
         VSTS: {
             Scheduling: {
                 Effort: number;
-                RemainingWork: number;
+                RemainingWork?: number;
             };
         };
     };

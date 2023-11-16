@@ -7,6 +7,7 @@ import { WorkItem } from "../domain/WorkItem";
 import { If } from "./If";
 import { WorkItemClient } from "../api/workItems/WorkItemClient";
 import { ApiClient } from "../api/ApiClient";
+import { Button, Dialog, Title } from "@mantine/core";
 
 export interface ReportDialogProps {
     origin: string;
@@ -40,19 +41,14 @@ export const ReportDialog = (props: ReportDialogProps) => {
 
     if (props.open) {
         return (
-            <div className="ui-dialog workitem-dialog ui-dialog-legacy full-screen" style={{ zIndex: 10002 }}>
-                <div className="ui-dialog-titlebar">
-                    <button type="button" className="ui-button ui-button-icon-only ui-dialog-titlebar-close" style={{ margin: "0.5em" }} onClick={props.onCloseClicked}>
-                        <span className="ui-button-icon-primary ui-icon ui-icon-closethick"></span>
-                    </button>
-                </div>
-                <div className="work-item-form-main-header" style={{ borderLeftColor: "rgb(0, 156, 204)", borderBottom: "1px solid rgb(234, 234, 234)" }}>
-                    <div className="info-text-wrapper" style={{ fontSize: "large", padding: "0.5em" }}>{props.team} {props.sprint} Reports</div>
-                </div>
+            <Dialog opened={true} w={1000} h={650} withCloseButton={true} onClose={props.onCloseClicked}>
+                <Title order={4} fw={400} style={{ marginBottom: "1rem" }}>
+                    <span>{props.team} {props.sprint} Reports</span>
+                </Title>
                 <div style={{ maxHeight: "calc(100% - 42px)", overflowY: "scroll" }}>
                     <div style={{ float: "left" }}>
                         <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={workItems} />
-                        <button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(origin, props.collection, props.project, props.team, props.sprint, workItems)}>Generate Report</button>
+                        <Button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(origin, props.collection, props.project, props.team, props.sprint, workItems)}>Generate Report</Button>
                     </div>
                     <If condition={!!window.localStorage.getItem("debug")}>
                         <div style={{ float: "right", position: "relative", height: "300px", width: "400px" }}>
@@ -60,7 +56,7 @@ export const ReportDialog = (props: ReportDialogProps) => {
                         </div>
                     </If>
                 </div>
-            </div>
+            </Dialog>
         );
     }
     else {

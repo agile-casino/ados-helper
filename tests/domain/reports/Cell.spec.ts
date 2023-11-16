@@ -1,3 +1,4 @@
+import { test, expect } from "vitest";
 import { Cell } from "../../../src/domain/reports/Cell";
 
 test("Cell_WhenContentIsString_CellTypeIsString", () => {

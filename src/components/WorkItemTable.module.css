@@ -1,0 +1,38 @@
+.workItemTable {
+    margin: 1em;
+    margin-top: 0;
+
+    h2 {
+        margin-bottom: 0.25m;
+    }
+
+    table {
+
+        th {
+            padding: 0.1em 0.5em;
+            border-left: 1px solid silver;
+            border-right: 1px solid silver;
+            border-bottom: 1px solid silver;
+        }
+
+        th.section {
+            font-size: 1.2em;
+            text-align: left;
+            border-left: none;
+            border-right: none;
+            padding-top: 1em;
+            padding-bottom: 0.5em;
+            padding-left: 0;
+        }
+    
+        td {
+            padding: 0.1em 0.5em;
+            border-left: 1px solid silver;
+            border-right: 1px solid silver;
+        }
+
+        tbody {
+            border-bottom: 1px solid silver;
+        }
+    }
+}
