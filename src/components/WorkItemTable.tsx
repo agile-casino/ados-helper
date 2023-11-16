@@ -1,49 +1,10 @@
 import sumBy from "lodash/sumBy";
-import { css } from "@emotion/react";
 import { WorkItem } from "../domain/WorkItem";
 import { formatName } from "../utils/formatName";
 import { If } from "./If";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
-
-
-const tableStyle = css(`
-    margin: 1em;
-    margin-top: 0;
-
-    h2 {
-        margin-bottom: 0.25m;
-    }
-
-    table {
-
-        th {
-            padding: 0.1em 0.5em;
-            border-left: 1px solid silver;
-            border-right: 1px solid silver;
-            border-bottom: 1px solid silver;
-        }
-
-        th.section {
-            font-size: 1.2em;
-            text-align: left;
-            border-left: none;
-            border-right: none;
-            padding-top: 1em;
-            padding-bottom: 0.5em;
-            padding-left: 0;
-        }
-    
-        td {
-            padding: 0.1em 0.5em;
-            border-left: 1px solid silver;
-            border-right: 1px solid silver;
-        }
-
-        tbody {
-            border-bottom: 1px solid silver;
-        }
-    }
-`);
+import styles from "./WorkItemTable.module.css";
+import { Table } from "@mantine/core";
 
 interface  WorkItemTableProps {
     origin: string;
@@ -61,8 +22,8 @@ export function WorkItemTable({ origin, collection, project, workItems }: WorkIt
     const workItemCollection = new WorkItemCollection(workItems);
 
     return (
-        <div css={tableStyle}>
-            <table>
+        <div className={styles.workItemTable}>
+            <Table>
                 <If condition={!!workItemCollection.done.length}>
                     <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} />
                     <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} />
@@ -83,33 +44,33 @@ export function WorkItemTable({ origin, collection, project, workItems }: WorkIt
                     <WorkItemTableHeader title={"Study Time"} />
                     <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} />
                 </If>
-            </table>
+            </Table>
         </div>
     );
 }
 
 function WorkItemTableHeader({ title }: { title: string }) {
     return (
-        <thead>
-            <tr>
-                <th className="section" colSpan={7}>{title}</th>
-            </tr>
-            <tr>
-                <th style={{ textAlign: "center" }}>PBI</th>
-                <th style={{ textAlign: "center" }}>WISE</th>
-                <th style={{ textAlign: "left" }}>Tags</th>
-                <th style={{ textAlign: "left" }}>Description</th>
-                <th style={{ textAlign: "left" }}>Assignee</th>
-                <th style={{ textAlign: "center" }}>Size</th>
-                <th style={{ textAlign: "left" }}>Remaining Work</th>
-            </tr>
-        </thead>
+        <Table.Thead>
+            <Table.Tr>
+                <Table.Th className={styles.section} colSpan={7}>{title}</Table.Th>
+            </Table.Tr>
+            <Table.Tr>
+                <Table.Th style={{ textAlign: "center" }}>PBI</Table.Th>
+                <Table.Th style={{ textAlign: "center" }}>WISE</Table.Th>
+                <Table.Th style={{ textAlign: "left" }}>Tags</Table.Th>
+                <Table.Th style={{ textAlign: "left" }}>Description</Table.Th>
+                <Table.Th style={{ textAlign: "left" }}>Assignee</Table.Th>
+                <Table.Th style={{ textAlign: "center" }}>Size</Table.Th>
+                <Table.Th style={{ textAlign: "left" }}>Remaining Work</Table.Th>
+            </Table.Tr>
+        </Table.Thead>
     );
 }
 
 function WorkItemTableBody({ origin, collection, project, workItems }: { origin: string, collection: string, project: string, workItems: WorkItem[] }) {
     return (
-        <tbody>
+        <Table.Tbody>
             {
                 workItems.length ? workItems.map(x => {
                     const style: React.CSSProperties = {};
@@ -133,37 +94,37 @@ function WorkItemTableBody({ origin, collection, project, workItems }: { origin:
                     const description = getDescription(x.title);
 
                     return (
-                        <tr key={x.id}>
-                            <td style={style}>
+                        <Table.Tr key={x.id}>
+                            <Table.Td style={style}>
                                 <a href={`${origin}/${collection}/${project}/_workitems/edit/${x.id}`}>{x.id}</a>
-                            </td>
-                            <td>
+                            </Table.Td>
+                            <Table.Td>
                                 {
                                     x.wiseNumber
                                         ? <a href={x.wiseLink}>{x.wiseNumber}</a>
                                         : null
                                 }
-                            </td>
-                            <td>{description.tags}</td>
-                            <td>{description.title}</td>
-                            <td>{formatName(x.owner)}</td>
-                            <td style={{ textAlign: "center" }}>{x.effort}</td>
-                            <td>
+                            </Table.Td>
+                            <Table.Td>{description.tags}</Table.Td>
+                            <Table.Td>{description.title}</Table.Td>
+                            <Table.Td>{formatName(x.owner)}</Table.Td>
+                            <Table.Td style={{ textAlign: "center" }}>{x.effort}</Table.Td>
+                            <Table.Td>
                                 {
                                     x.remainingWork
                                         ? `${x.remainingWork} hours`
                                         : null
                                 }
-                            </td>
-                        </tr>
+                            </Table.Td>
+                        </Table.Tr>
                     )
                 }) : (
-                    <tr>
-                        <td colSpan={5}>No work items found</td>
-                    </tr>
+                    <Table.Tr>
+                        <Table.Td colSpan={5}>No work items found</Table.Td>
+                    </Table.Tr>
                 )
             }
-        </tbody>
+        </Table.Tbody>
     );
 }
 

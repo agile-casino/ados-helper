@@ -1,3 +1,6 @@
+// @vitest-environment happy-dom
+
+import { test, expect } from "vitest";
 import { render } from '@testing-library/react';
 import { If } from '../../src/components/If';
 
