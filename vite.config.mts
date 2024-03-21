@@ -5,7 +5,7 @@ import pkg from "./package.json";
 
 const banner = `
 // ==UserScript==
-// @name         ADOS Helper (Dev)
+// @name         ADOS Helper
 // @namespace    https://ados/
 // @version      ${pkg.version}
 // @description  ADOS Helper
