@@ -1,10 +1,8 @@
 export interface WorkItemResponseDto {
-    value: [
-        {
-            id: number;
-            relations: [
-                { rel: string; url: string; }
-            ];
-        }
-    ];
+  value: [
+    {
+      id: number;
+      relations: [{ rel: string; url: string }];
+    }
+  ];
 }

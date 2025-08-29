@@ -1,3 +1,3 @@
 export interface QueryRequestDto {
-    wiql: string;
+  wiql: string;
 }

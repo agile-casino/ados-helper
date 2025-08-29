@@ -1,5 +1,5 @@
-import { WorkItemResponseDto } from "./WorkItemResponseDto";
+import type { WorkItemResponseDto } from "./WorkItemResponseDto";
 
 export interface IWorkItemClient {
-    getRelations(collection: string, project: string, ids: number[]): Promise<WorkItemResponseDto>;
+  getRelations(collection: string, project: string, ids: number[]): Promise<WorkItemResponseDto>;
 }

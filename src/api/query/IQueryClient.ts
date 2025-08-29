@@ -1,5 +1,5 @@
-import { WorkItemDto } from "./WorkItemDto";
+import type { WorkItemDto } from "./WorkItemDto";
 
 export interface IQueryClient {
-    runQuery(collection: string, project: string, team: string, wiql: string): Promise<WorkItemDto[]>;
+  runQuery(collection: string, project: string, team: string, wiql: string): Promise<WorkItemDto[]>;
 }

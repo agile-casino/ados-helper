@@ -1,16 +1,17 @@
 import { WorkItem } from "../domain/WorkItem";
-import { IQueryClient } from "./query/IQueryClient";
-import { IWorkItemClient } from "./workItems/IWorkItemClient";
+import type { IQueryClient } from "./query/IQueryClient";
+import type { IWorkItemClient } from "./workItems/IWorkItemClient";
 
 export class ApiClient {
+  constructor(
+    private queryClient: IQueryClient,
+    private workItemClient: IWorkItemClient
+  ) {}
 
-    constructor(private queryClient: IQueryClient, private workItemClient: IWorkItemClient) {
-    }
-
-    public async getIteration(collection: string, project: string, team: string, iteration: string): Promise<WorkItem[]> {
-        const sprintMatch = iteration.match(/(Sprint \d+)/);
-        const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
-        const query = `
+  public async getIteration(collection: string, project: string, team: string, iteration: string): Promise<WorkItem[]> {
+    const sprintMatch = iteration.match(/(Sprint \d+)/);
+    const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
+    const query = `
             SELECT
               [System.Id],
               [System.IterationPath],
@@ -40,28 +41,30 @@ export class ApiClient {
               AND [System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward'
               AND [Target].[System.TeamProject] = @project
               mode(Recursive)
-        `.replace(/\s+/g, " ").trim();
+        `
+      .replace(/\s+/g, " ")
+      .trim();
 
-        const workItemDtos = await this.queryClient.runQuery(collection, project, team, query);
+    const workItemDtos = await this.queryClient.runQuery(collection, project, team, query);
 
-        const ids = workItemDtos.map(x => x.System.Id);
-        if (ids.length) {
-            const relations = await this.workItemClient.getRelations(collection, project, ids);
-            relations.value.forEach(r => {
-                const workItem = workItemDtos.find(workItem => workItem.System.Id === r.id);
-                if (workItem) {
-                    workItem.links = r.relations?.map(l => l.url) ?? [];
-                }
-            });
+    const ids = workItemDtos.map(x => x.System.Id);
+    if (ids.length) {
+      const relations = await this.workItemClient.getRelations(collection, project, ids);
+      relations.value.forEach(r => {
+        const workItem = workItemDtos.find(workItem => workItem.System.Id === r.id);
+        if (workItem) {
+          workItem.links = r.relations?.map(l => l.url) ?? [];
         }
-
-        return workItemDtos.map(x => new WorkItem(x));
+      });
     }
 
-    public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<WorkItem[]> {
-        const sprintMatch = iteration.match(/(Sprint \d+)/);
-        const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
-        const query = `
+    return workItemDtos.map(x => new WorkItem(x));
+  }
+
+  public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<WorkItem[]> {
+    const sprintMatch = iteration.match(/(Sprint \d+)/);
+    const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
+    const query = `
             SELECT
               [System.Id],
               [System.IterationPath],
@@ -94,21 +97,23 @@ export class ApiClient {
               AND [System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward'
               AND [Target].[System.TeamProject] = @project
               mode(Recursive)
-        `.replace(/\s+/g, " ").trim();
+        `
+      .replace(/\s+/g, " ")
+      .trim();
 
-        const workItemDtos = await this.queryClient.runQuery(collection, project, team, query);
+    const workItemDtos = await this.queryClient.runQuery(collection, project, team, query);
 
-        const ids = workItemDtos.map(x => x.System.Id);
-        if (ids.length) {
-            const relations = await this.workItemClient.getRelations(collection, project, ids);
-            relations.value.forEach(r => {
-                const workItem = workItemDtos.find(workItem => workItem.System.Id === r.id);
-                if (workItem) {
-                    workItem.links = r.relations?.map(l => l.url) ?? [];
-                }
-            });
+    const ids = workItemDtos.map(x => x.System.Id);
+    if (ids.length) {
+      const relations = await this.workItemClient.getRelations(collection, project, ids);
+      relations.value.forEach(r => {
+        const workItem = workItemDtos.find(workItem => workItem.System.Id === r.id);
+        if (workItem) {
+          workItem.links = r.relations?.map(l => l.url) ?? [];
         }
-
-        return workItemDtos.map(x => new WorkItem(x));
+      });
     }
+
+    return workItemDtos.map(x => new WorkItem(x));
+  }
 }
