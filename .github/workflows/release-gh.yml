@@ -1,12 +1,14 @@
-name: CI Build
+name: Release (GitHub)
 
 on:
   push:
-  pull_request:
+    tags: ['v*.*.*']
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Code
@@ -28,3 +30,9 @@ jobs:
           pnpm run build
           pnpm run test
           pnpm biome ci src
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/index.user.js
