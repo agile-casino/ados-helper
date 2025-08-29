@@ -3,4 +3,3 @@ declare const styles: {
   readonly "workItemTable": string;
 };
 export = styles;
-

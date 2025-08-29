@@ -1,92 +1,89 @@
 import cloneDeep from "lodash/cloneDeep";
 import merge from "lodash/merge";
-import { BorderType, CellObject, CellStyle, ExcelDataType, Hyperlink } from "xlsx-js-style";
+import type { BorderType, CellObject, CellStyle, ExcelDataType, Hyperlink } from "xlsx-js-style";
 
 export interface TextAlignStyle {
-    horizontal: "left" | "center" | "right";
+  horizontal: "left" | "center" | "right";
 }
 
-export interface BorderStyle{
-    color?: string;
-    style?: BorderType;
+export interface BorderStyle {
+  color?: string;
+  style?: BorderType;
 }
 
 export interface FontStyle {
-    size?: number;
-    bold?: boolean;
+  size?: number;
+  bold?: boolean;
 }
 
 export class Cell implements CellObject {
+  public static defaultStyle: CellStyle = {
+    font: {
+      name: "Calibri",
+      sz: 11
+    }
+  };
 
-    public static defaultStyle: CellStyle = {
-        font: {
-            name: "Calibri",
-            sz: 11
-        }
+  public l?: Hyperlink;
+  public s: CellStyle = cloneDeep(Cell.defaultStyle);
+  public t: ExcelDataType = "s";
+  public v?: string | number | boolean | Date;
+
+  constructor(content: string | number | boolean | Date) {
+    this.v = content;
+
+    if (typeof content === "number") {
+      this.t = "n";
+    } else if (typeof content === "boolean") {
+      this.t = "b";
+    } else if (typeof content === "object" && content instanceof Date) {
+      this.t = "d";
+    }
+  }
+
+  public alignText({ horizontal }: TextAlignStyle) {
+    const patch: CellStyle = {
+      alignment: {
+        horizontal: horizontal
+      }
     };
+    this.s = merge(this.s, patch);
+    return this;
+  }
 
-    public l?: Hyperlink;
-    public s: CellStyle = cloneDeep(Cell.defaultStyle);
-    public t: ExcelDataType = "s";
-    public v?: string | number | boolean | Date;
-
-    constructor(content: string | number | boolean | Date) {
-        this.v = content;
-
-        if (typeof(content) === "number") {
-            this.t = "n";
+  public borderBottom({ color, style }: BorderStyle) {
+    const patch: CellStyle = {
+      border: {
+        bottom: {
+          color: { rgb: color },
+          style: style
         }
-        else if (typeof(content) === "boolean") {
-            this.t = "b";
-        }
-        else if (typeof(content) === "object" && content instanceof Date) {
-            this.t = "d"
-        }
-    }
+      }
+    };
+    this.s = merge(this.s, patch);
+    return this;
+  }
 
-    public alignText({ horizontal }: TextAlignStyle) {
-        const patch: CellStyle = {
-            alignment: {
-                horizontal: horizontal
-            }
-        };
-        this.s = merge(this.s, patch);
-        return this;
-    }
+  public font({ size, bold = false }: FontStyle) {
+    const patch: CellStyle = {
+      font: {
+        sz: size,
+        bold: bold
+      }
+    };
+    this.s = merge(this.s, patch);
+    return this;
+  }
 
-    public borderBottom({ color, style }: BorderStyle) {
-        const patch: CellStyle = {
-            border: {
-                bottom: {
-                    color: { rgb: color },
-                    style: style
-                }
-            }
-        };
-        this.s = merge(this.s, patch);
-        return this;
+  public link(href: string | undefined) {
+    if (href) {
+      this.l = { Target: href };
     }
+    return this;
+  }
 
-    public font({ size, bold = false }: FontStyle) {
-        const patch: CellStyle = {
-            font: {
-                sz: size,
-                bold: bold
-            }
-        };
-        this.s = merge(this.s, patch);
-        return this;
-    }
-
-    public link(href: string|undefined) {
-        if (href) {
-            this.l = { Target: href };
-        }
-        return this;
-    }
-
-    public style(patch: CellStyle) {
-        this.s = merge(this.s, patch);
-        return this;
-    }
+  public style(patch: CellStyle) {
+    this.s = merge(this.s, patch);
+    return this;
+  }
 }
