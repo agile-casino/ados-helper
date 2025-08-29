@@ -1,6 +1,6 @@
 import * as ReactDOM from "react-dom/client";
 import { App } from "./components/App";
-import { isInDocument } from "./utils";
+import { isInDocument } from "./utils/isInDocument";
 
 const container = document.createElement("div");
 container.className = "flex";
