@@ -1,9 +1,8 @@
-name: Release
+name: Release (Azure)
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    tags: ['v*.*.*']
 
 jobs:
   build:
@@ -11,7 +10,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -20,6 +19,7 @@ jobs:
 
       - name: Install Packages
         run: |
+          npm i -g corepack@latest
           corepack enable
           pnpm install
 
@@ -27,6 +27,7 @@ jobs:
         run: |
           pnpm run build
           pnpm run test
+          pnpm biome ci src
 
       - name: Publish Artifacts
         uses: actions/upload-artifact@v4

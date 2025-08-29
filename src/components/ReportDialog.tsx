@@ -29,8 +29,10 @@ export const ReportDialog = (props: ReportDialogProps) => {
                 const queryClient = new QueryClient(origin, workItemClient);
                 const apiClient = new ApiClient(queryClient, workItemClient);
     
-                const queryResult = await apiClient.getIteration(props.collection, props.project, props.team, props.sprint);
-    
+                const queryResult = props.project === "WirelineRnD"
+                    ? await apiClient.getIteration(props.collection, props.project, props.team, props.sprint)
+                    : await apiClient.getIteration2(props.collection, props.project, props.team, props.sprint);
+
                 setWorkItems(queryResult);
             }
         }
