@@ -86,4 +86,18 @@ export class Cell implements CellObject {
     this.s = merge(this.s, patch);
     return this;
   }
+
+  public backgroundColor(color: string | undefined) {
+    if (color) {
+      // Remove # prefix if present and ensure uppercase
+      const rgb = color.replace(/^#/, "").toUpperCase();
+      const patch: CellStyle = {
+        fill: {
+          fgColor: { rgb }
+        }
+      };
+      this.s = merge(this.s, patch);
+    }
+    return this;
+  }
 }
