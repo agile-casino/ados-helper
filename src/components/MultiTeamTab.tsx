@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { QueryClient } from "../api/query/QueryClient";
 import { WorkItemClient } from "../api/workItems/WorkItemClient";
+import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
-import { type TeamWorkItems, generateMultiTeamReport } from "../domain/reports/ReportGenerator";
 import { WorkItemTable } from "./WorkItemTable";
 
 interface MultiTeamTabProps {
@@ -84,27 +84,27 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
 
     const newTeamNames = teamInput
       .split(",")
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0)
-      .filter((t) => !teams.some((existing) => existing.name.toLowerCase() === t.toLowerCase()));
+      .map(t => t.trim())
+      .filter(t => t.length > 0)
+      .filter(t => !teams.some(existing => existing.name.toLowerCase() === t.toLowerCase()));
 
     if (newTeamNames.length > 0) {
-      setTeams([...teams, ...newTeamNames.map((name) => ({ name, selected: true, backgroundColor: undefined }))]);
+      setTeams([...teams, ...newTeamNames.map(name => ({ name, selected: true, backgroundColor: undefined }))]);
       setTeamInput("");
     }
   };
 
   const handleTeamToggle = (teamName: string) => {
-    setTeams(teams.map((t) => (t.name === teamName ? { ...t, selected: !t.selected } : t)));
+    setTeams(teams.map(t => (t.name === teamName ? { ...t, selected: !t.selected } : t)));
   };
 
   const handleColorChange = (teamName: string, color: string) => {
-    setTeams(teams.map((t) => (t.name === teamName ? { ...t, backgroundColor: color || undefined } : t)));
+    setTeams(teams.map(t => (t.name === teamName ? { ...t, backgroundColor: color || undefined } : t)));
   };
 
   const handleRemoveTeam = (teamName: string) => {
-    setTeams(teams.filter((t) => t.name !== teamName));
-    setTeamData(teamData.filter((t) => t.team !== teamName));
+    setTeams(teams.filter(t => t.name !== teamName));
+    setTeamData(teamData.filter(t => t.team !== teamName));
   };
 
   const handleMoveTeamUp = (index: number) => {
@@ -122,7 +122,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
   };
 
   const handleLoadData = async () => {
-    const selectedTeams = teams.filter((t) => t.selected);
+    const selectedTeams = teams.filter(t => t.selected);
     if (selectedTeams.length === 0) return;
 
     setIsLoading(true);
@@ -135,23 +135,20 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
 
     for (const team of selectedTeams) {
       try {
-        const queryResult =
-          props.project === "WirelineRnD"
-            ? await apiClient.getIteration(props.collection, props.project, team.name, props.sprint)
-            : await apiClient.getIteration2(props.collection, props.project, team.name, props.sprint);
+        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, team.name, props.sprint) : await apiClient.getIteration2(props.collection, props.project, team.name, props.sprint);
 
         results.push({
           team: team.name,
           workItems: queryResult,
           loading: false,
-          error: null,
+          error: null
         });
       } catch (error) {
         results.push({
           team: team.name,
           workItems: [],
           loading: false,
-          error: error instanceof Error ? error.message : "Failed to load data",
+          error: error instanceof Error ? error.message : "Failed to load data"
         });
       }
     }
@@ -161,24 +158,24 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
   };
 
   const handleGenerateCombinedReport = () => {
-    const validTeamData = teamData.filter((t) => t.workItems.length > 0 && !t.error);
+    const validTeamData = teamData.filter(t => t.workItems.length > 0 && !t.error);
     if (validTeamData.length === 0) return;
 
-    const teamWorkItems: TeamWorkItems[] = validTeamData.map((t) => {
-      const teamSelection = teams.find((ts) => ts.name === t.team);
+    const teamWorkItems: TeamWorkItems[] = validTeamData.map(t => {
+      const teamSelection = teams.find(ts => ts.name === t.team);
       return {
         team: t.team,
         workItems: t.workItems,
-        backgroundColor: teamSelection?.backgroundColor,
+        backgroundColor: teamSelection?.backgroundColor
       };
     });
 
     generateMultiTeamReport(props.origin, props.collection, props.project, props.sprint, teamWorkItems);
   };
 
-  const selectedTeamsCount = teams.filter((t) => t.selected).length;
+  const selectedTeamsCount = teams.filter(t => t.selected).length;
   const hasLoadedData = teamData.length > 0;
-  const canGenerateReport = teamData.some((t) => t.workItems.length > 0 && !t.error);
+  const canGenerateReport = teamData.some(t => t.workItems.length > 0 && !t.error);
 
   return (
     <div style={{ height: "100%", overflowY: "scroll" }}>
@@ -190,10 +187,10 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
           <Group gap="xs">
             <TextInput
               value={teamInput}
-              onChange={(e) => setTeamInput(e.currentTarget.value)}
+              onChange={e => setTeamInput(e.currentTarget.value)}
               placeholder="Team A, Team B, Team C"
               style={{ flex: 1 }}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === "Enter") handleAddTeams();
               }}
             />
@@ -213,31 +210,29 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
                 display: "grid",
                 gridTemplateColumns: "auto 1fr 130px auto auto",
                 gap: "8px",
-                alignItems: "center",
+                alignItems: "center"
               }}
             >
               {/* Header row */}
               <Text size="xs" fw={500} c="dimmed" />
-              <Text size="xs" fw={500} c="dimmed">Team</Text>
-              <Text size="xs" fw={500} c="dimmed">Header Color</Text>
-              <Text size="xs" fw={500} c="dimmed" style={{ textAlign: "center" }}>Order</Text>
+              <Text size="xs" fw={500} c="dimmed">
+                Team
+              </Text>
+              <Text size="xs" fw={500} c="dimmed">
+                Header Color
+              </Text>
+              <Text size="xs" fw={500} c="dimmed" style={{ textAlign: "center" }}>
+                Order
+              </Text>
               <Text size="xs" fw={500} c="dimmed" />
 
               {teams.map((team, index) => (
                 <>
-                  <Checkbox
-                    key={`${team.name}-checkbox`}
-                    checked={team.selected}
-                    onChange={() => handleTeamToggle(team.name)}
-                  />
-                  <Text key={`${team.name}-label`} size="sm">{team.name}</Text>
-                  <ColorInput
-                    key={`${team.name}-color`}
-                    value={team.backgroundColor || ""}
-                    onChange={(color) => handleColorChange(team.name, color)}
-                    placeholder="None"
-                    size="xs"
-                  />
+                  <Checkbox key={`${team.name}-checkbox`} checked={team.selected} onChange={() => handleTeamToggle(team.name)} />
+                  <Text key={`${team.name}-label`} size="sm">
+                    {team.name}
+                  </Text>
+                  <ColorInput key={`${team.name}-color`} value={team.backgroundColor || ""} onChange={color => handleColorChange(team.name, color)} placeholder="None" size="xs" />
                   <Group key={`${team.name}-order`} gap={4} wrap="nowrap">
                     <Button variant="subtle" size="xs" onClick={() => handleMoveTeamUp(index)} disabled={index === 0}>
                       ↑
@@ -266,7 +261,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
           )}
         </Group>
 
-        {teamData.map((data) => (
+        {teamData.map(data => (
           <div key={data.team}>
             <Title order={5} mb="xs">
               {data.team}

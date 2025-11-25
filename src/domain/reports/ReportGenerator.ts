@@ -78,14 +78,7 @@ function addWorkItemRows(rows: CellObject[][], workItems: WorkItem[], context: R
   });
 }
 
-function addWorkItemSection(
-  rows: CellObject[][],
-  merges: Range[],
-  title: string,
-  workItems: WorkItem[],
-  context: ReportContext,
-  includeDoneWiseColumn: boolean
-) {
+function addWorkItemSection(rows: CellObject[][], merges: Range[], title: string, workItems: WorkItem[], context: ReportContext, includeDoneWiseColumn: boolean) {
   if (workItems.length === 0) return;
 
   addSectionHeader(rows, merges, title);
