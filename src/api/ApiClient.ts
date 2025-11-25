@@ -64,6 +64,7 @@ export class ApiClient {
   public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<WorkItem[]> {
     const sprintMatch = iteration.match(/(Sprint \d+)/);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
+    const areaPath = `${project}\\Engineering\\${team}`.replace("Pixel_Perfect", "PixelPerfect");
     const query = `
             SELECT
               [System.Id],
@@ -79,10 +80,11 @@ export class ApiClient {
             WHERE [Source].[System.TeamProject] = @project
               AND (
                 [Source].[System.WorkItemType] = 'Product Backlog Item' OR
+                [Source].[System.WorkItemType] = 'Bug' OR
                 [Source].[System.WorkItemType] = 'Task'
               )
               AND (
-                [Source].[Area Path] UNDER '${project}\\Engineering\\${team}'
+                [Source].[Area Path] UNDER '${areaPath}'
               )
               AND (
                 [Source].[System.IterationPath] UNDER '${project}\\${iteration}' OR (
