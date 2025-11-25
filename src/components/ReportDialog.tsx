@@ -1,11 +1,6 @@
-import { Button, Dialog, Title } from "@mantine/core";
-import { useEffect, useState } from "react";
-import { ApiClient } from "../api/ApiClient";
-import { QueryClient } from "../api/query/QueryClient";
-import { WorkItemClient } from "../api/workItems/WorkItemClient";
-import { generateReport } from "../domain/reports/ReportGenerator";
-import type { WorkItem } from "../domain/WorkItem";
-import { WorkItemTable } from "./WorkItemTable";
+import { Dialog, Tabs, Title } from "@mantine/core";
+import { CurrentTeamTab } from "./CurrentTeamTab";
+import { MultiTeamTab } from "./MultiTeamTab";
 
 interface ReportDialogProps {
   origin: string;
@@ -18,39 +13,40 @@ interface ReportDialogProps {
 }
 
 export const ReportDialog = (props: ReportDialogProps) => {
-  const [workItems, setWorkItems] = useState<WorkItem[]>([]);
-
-  useEffect(() => {
-    async function updateIteration() {
-      if (props.collection && props.project && props.team && props.sprint) {
-        const workItemClient = new WorkItemClient(origin);
-        const queryClient = new QueryClient(origin, workItemClient);
-        const apiClient = new ApiClient(queryClient, workItemClient);
-
-        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, props.team, props.sprint) : await apiClient.getIteration2(props.collection, props.project, props.team, props.sprint);
-
-        setWorkItems(queryResult);
-      }
-    }
-    updateIteration().catch((e: unknown) => console.error(e));
-  }, [props.collection, props.project, props.team, props.sprint]);
-
   if (props.open) {
     return (
       <Dialog opened={true} w={1000} h={650} withCloseButton={true} onClose={props.onCloseClicked}>
         <Title order={4} fw={400} style={{ marginBottom: "1rem" }}>
           <span>
-            {props.team} {props.sprint} Reports
+            {props.sprint} Reports
           </span>
         </Title>
-        <div style={{ maxHeight: "calc(100% - 42px)", overflowY: "scroll" }}>
-          <div style={{ float: "left" }}>
-            <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={workItems} />
-            <Button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(origin, props.collection, props.project, props.team, props.sprint, workItems)}>
-              Generate Report
-            </Button>
-          </div>
-        </div>
+        <Tabs defaultValue="current-team">
+          <Tabs.List>
+            <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
+            <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel value="current-team" pt="xs" style={{ height: "calc(650px - 120px)", overflow: "hidden" }}>
+            <CurrentTeamTab
+              origin={props.origin}
+              collection={props.collection}
+              project={props.project}
+              team={props.team}
+              sprint={props.sprint}
+            />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="multi-team" pt="xs" style={{ height: "calc(650px - 120px)", overflow: "hidden" }}>
+            <MultiTeamTab
+              origin={props.origin}
+              collection={props.collection}
+              project={props.project}
+              currentTeam={props.team}
+              sprint={props.sprint}
+            />
+          </Tabs.Panel>
+        </Tabs>
       </Dialog>
     );
   } else {
