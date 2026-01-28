@@ -1,4 +1,4 @@
-import { Table } from "@mantine/core";
+import { Badge, Table } from "@mantine/core";
 import sumBy from "lodash/sumBy";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
@@ -11,37 +11,96 @@ interface WorkItemTableProps {
   collection: string;
   project: string;
   workItems?: WorkItem[];
+  sprintStartDate?: Date;
+  sprintEndDate?: Date;
 }
 
-export function WorkItemTable({ origin, collection, project, workItems }: WorkItemTableProps) {
+function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
+  const committedItems = collection.committedWorkItems();
+  const pulledInItems = collection.pulledInWorkItems();
+  const completedCommitted = committedItems.filter(w => w.isDone);
+  const percentage = collection.commitmentPercentage;
+  
+  const getColor = (pct: number) => {
+    if (pct >= 90) return "green";
+    if (pct >= 70) return "yellow";
+    return "red";
+  };
+
+  return (
+    <div style={{ 
+      padding: "1rem", 
+      marginBottom: "1rem", 
+      backgroundColor: "#f8f9fa", 
+      borderRadius: "4px",
+      display: "flex",
+      gap: "2rem",
+      alignItems: "center",
+      flexWrap: "wrap"
+    }}>
+      <div>
+        <strong>Sprint Statistics</strong>
+      </div>
+      <div>
+        <div style={{ fontSize: "0.875rem", color: "#666" }}>Completed Items</div>
+        <div style={{ fontSize: "1.25rem", fontWeight: 600 }}>
+          {completedCommitted.length} / {committedItems.length}
+        </div>
+      </div>
+      <div>
+        <div style={{ fontSize: "0.875rem", color: "#666" }}>Completed Points</div>
+        <div style={{ fontSize: "1.25rem", fontWeight: 600 }}>
+          {collection.completedCommittedEffort} / {collection.committedEffort}
+        </div>
+      </div>
+      <div>
+        <div style={{ fontSize: "0.875rem", color: "#666" }}>Achievement</div>
+        <Badge size="xl" color={getColor(percentage)} style={{ fontSize: "1.25rem" }}>
+          {percentage}%
+        </Badge>
+      </div>
+      <If condition={pulledInItems.length > 0}>
+        <div>
+          <div style={{ fontSize: "0.875rem", color: "#666" }}>Pulled In Later</div>
+          <div style={{ fontSize: "1rem" }}>
+            {pulledInItems.length} items ({collection.pulledInEffort} pts)
+          </div>
+        </div>
+      </If>
+    </div>
+  );
+}
+
+export function WorkItemTable({ origin, collection, project, workItems, sprintStartDate, sprintEndDate }: WorkItemTableProps) {
   if (!workItems) {
     return null;
   }
 
-  const workItemCollection = new WorkItemCollection(workItems);
+  const workItemCollection = new WorkItemCollection(workItems, sprintStartDate, sprintEndDate);
 
   return (
     <div className={styles.workItemTable}>
+      <StatisticsSummary collection={workItemCollection} />
       <Table>
         <If condition={!!workItemCollection.done.length}>
           <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} sprintStartDate={sprintStartDate} />
         </If>
         <If condition={!!workItemCollection.inProgress.length}>
           <WorkItemTableHeader title={`In Progress - ${sumBy(workItemCollection.inProgress, x => x.effort)} points`} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} sprintStartDate={sprintStartDate} />
         </If>
         <If condition={!!workItemCollection.notStarted.length}>
           <WorkItemTableHeader title={`Not Started - ${sumBy(workItemCollection.notStarted, x => x.effort)} points`} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} sprintStartDate={sprintStartDate} />
         </If>
         <If condition={!!workItemCollection.removed.length}>
           <WorkItemTableHeader title={`Removed - ${sumBy(workItemCollection.removed, x => x.effort)} points`} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} sprintStartDate={sprintStartDate} />
         </If>
         <If condition={!!workItemCollection.studyTime.length}>
           <WorkItemTableHeader title={"Study Time"} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} sprintStartDate={sprintStartDate} />
         </If>
       </Table>
     </div>
@@ -69,19 +128,32 @@ function WorkItemTableHeader({ title }: { title: string }) {
   );
 }
 
-function WorkItemTableBody({ origin, collection, project, workItems }: { origin: string; collection: string; project: string; workItems: WorkItem[] }) {
+function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date }) {
   return (
     <Table.Tbody>
       {workItems.length ? (
         workItems.map(x => {
           const style: React.CSSProperties = {};
 
+          // Tag-based color coding for yellow and orange
           if (x.sprint?.sprintNumber && x.sprintTag?.sprintNumber) {
             if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "+") {
               style.backgroundColor = "#F4F785";
             } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "!") {
               style.backgroundColor = "#FFCC66";
             } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber - 1 && x.sprintTag.sprintSuffix !== "+") {
+              style.backgroundColor = "#E6B8B7";
+            }
+          }
+          
+          // Date-based color coding (only if no tag-based color applied)
+          if (!style.backgroundColor && sprintStartDate) {
+            // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
+            if (x.isPulledInLate(sprintStartDate)) {
+              style.backgroundColor = "#F4F785";
+            }
+            // Pink for PBIs activated before sprint start
+            else if (x.activatedDate && x.activatedDate < sprintStartDate) {
               style.backgroundColor = "#E6B8B7";
             }
           }

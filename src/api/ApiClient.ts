@@ -2,13 +2,39 @@ import { WorkItem } from "../domain/WorkItem";
 import type { IQueryClient } from "./query/IQueryClient";
 import type { IWorkItemClient } from "./workItems/IWorkItemClient";
 
+export interface IterationData {
+  workItems: WorkItem[];
+  sprintStartDate?: Date;
+  sprintEndDate?: Date;
+}
+
 export class ApiClient {
   constructor(
+    private origin: string,
     private queryClient: IQueryClient,
     private workItemClient: IWorkItemClient
   ) {}
 
-  public async getIteration(collection: string, project: string, team: string, iteration: string): Promise<WorkItem[]> {
+  private async getIterationDates(collection: string, project: string, team: string, iteration: string): Promise<{ startDate?: Date; finishDate?: Date }> {
+    try {
+      const url = `${this.origin}/${collection}/${project}/${team}/_apis/work/teamsettings/iterations?api-version=6.0`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      const sprint = data.value.find((iter: any) => iter.name === iteration || iter.path.endsWith(iteration));
+      if (sprint?.attributes) {
+        return {
+          startDate: sprint.attributes.startDate ? new Date(sprint.attributes.startDate) : undefined,
+          finishDate: sprint.attributes.finishDate ? new Date(sprint.attributes.finishDate) : undefined
+        };
+      }
+    } catch (error) {
+      console.warn("Failed to fetch iteration dates:", error);
+    }
+    return {};
+  }
+
+  public async getIteration(collection: string, project: string, team: string, iteration: string): Promise<IterationData> {
     const sprintMatch = iteration.match(/(Sprint \d+)/);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
     const query = `
@@ -58,10 +84,16 @@ export class ApiClient {
       });
     }
 
-    return workItemDtos.map(x => new WorkItem(x));
+    const dates = await this.getIterationDates(collection, project, team, iteration);
+    
+    return {
+      workItems: workItemDtos.map(x => new WorkItem(x)),
+      sprintStartDate: dates.startDate,
+      sprintEndDate: dates.finishDate
+    };
   }
 
-  public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<WorkItem[]> {
+  public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<IterationData> {
     const sprintMatch = iteration.match(/(Sprint \d+)/);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
     const areaPath = `${project}\\Engineering\\${team}`.replace("Pixel_Perfect", "PixelPerfect");
@@ -74,6 +106,7 @@ export class ApiClient {
               [System.AssignedTo],
               [System.State],
               [System.Tags],
+              [Microsoft.VSTS.Common.ActivatedDate],
               [Microsoft.VSTS.Scheduling.Effort],
               [Microsoft.VSTS.Scheduling.RemainingWork]
             FROM WorkItemLinks
@@ -116,6 +149,12 @@ export class ApiClient {
       });
     }
 
-    return workItemDtos.map(x => new WorkItem(x));
+    const dates = await this.getIterationDates(collection, project, team, iteration);
+    
+    return {
+      workItems: workItemDtos.map(x => new WorkItem(x)),
+      sprintStartDate: dates.startDate,
+      sprintEndDate: dates.finishDate
+    };
   }
 }

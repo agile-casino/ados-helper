@@ -18,7 +18,7 @@ const banner = `
 // ==/UserScript==
 `.trim();
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     plugins: [
         bannerPlugin({ content: banner, verify: false }),
         cssInjectedByJsPlugin()
@@ -33,9 +33,11 @@ export default defineConfig({
                 entryFileNames: "index.user.js",
                 manualChunks: undefined
             }
-        }
+        },
+        minify: mode === "production",
+        sourcemap: mode === "production" ? true : "inline"
     },
     test: {
         setupFiles: "tests/setup.ts"
     },
-});
+}));
