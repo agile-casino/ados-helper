@@ -1,6 +1,7 @@
 import countBy from "lodash/countBy";
 import maxBy from "lodash/maxBy";
 import type { WorkItemDto } from "../api/query/WorkItemDto";
+import { parseAzureDate } from "../utils/parseAzureDate";
 import { Tag } from "./Tag";
 
 export class WorkItem {
@@ -14,8 +15,19 @@ export class WorkItem {
     return this.tasks.length > 0 && this.tasks.every(task => task.System.State === "Done" || task.System.State === "Removed");
   }
 
+  public get activatedDate(): Date | null {
+    return parseAzureDate(this.dto.Microsoft.VSTS.Common?.ActivatedDate);
+  }
+
   public get effort(): number {
     return this.dto.Microsoft.VSTS.Scheduling.Effort;
+  }
+
+  public isPulledInLate(sprintStartDate: Date): boolean {
+    // If item was activated more than 2 days after sprint start, consider it pulled in late
+    if (!this.activatedDate) return false;
+    const twoDaysAfterStart = new Date(sprintStartDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+    return this.activatedDate > twoDaysAfterStart;
   }
 
   public get id(): number {
@@ -35,7 +47,10 @@ export class WorkItem {
   }
 
   public get remainingWork(): number {
-    return this.tasks.reduce((acc, task) => acc + task.Microsoft.VSTS.Scheduling.RemainingWork ?? 0, 0);
+    return this.tasks.reduce((acc, task) => {
+      const taskRemainingWork = task.Microsoft.VSTS.Scheduling.RemainingWork;
+      return acc + (taskRemainingWork ?? 0);
+    }, 0);
   }
 
   public get sprint(): Tag | undefined {

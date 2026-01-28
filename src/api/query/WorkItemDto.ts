@@ -1,6 +1,9 @@
 export interface WorkItemDto {
   Microsoft: {
     VSTS: {
+      Common?: {
+        ActivatedDate?: string;
+      };
       Scheduling: {
         Effort: number;
         RemainingWork?: number;

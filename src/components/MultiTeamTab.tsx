@@ -24,6 +24,8 @@ interface TeamSelection {
 interface TeamData {
   team: string;
   workItems: WorkItem[];
+  sprintStartDate?: Date;
+  sprintEndDate?: Date;
   loading: boolean;
   error: string | null;
 }
@@ -129,7 +131,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
 
     const workItemClient = new WorkItemClient(props.origin);
     const queryClient = new QueryClient(props.origin, workItemClient);
-    const apiClient = new ApiClient(queryClient, workItemClient);
+    const apiClient = new ApiClient(props.origin, queryClient, workItemClient);
 
     const results: TeamData[] = [];
 
@@ -139,7 +141,9 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
 
         results.push({
           team: team.name,
-          workItems: queryResult,
+          workItems: queryResult.workItems,
+          sprintStartDate: queryResult.sprintStartDate,
+          sprintEndDate: queryResult.sprintEndDate,
           loading: false,
           error: null
         });
@@ -147,6 +151,8 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
         results.push({
           team: team.name,
           workItems: [],
+          sprintStartDate: undefined,
+          sprintEndDate: undefined,
           loading: false,
           error: error instanceof Error ? error.message : "Failed to load data"
         });
@@ -275,7 +281,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
                 No work items found
               </Text>
             ) : (
-              <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={data.workItems} />
+              <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={data.workItems} sprintStartDate={data.sprintStartDate} sprintEndDate={data.sprintEndDate} />
             )}
           </div>
         ))}
