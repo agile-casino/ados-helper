@@ -99,14 +99,14 @@ function addWorkItemSection(rows: CellObject[][], merges: Range[], title: string
   rows.push([new Cell("")]);
 }
 
-function addStatisticsSummary(rows: CellObject[][], merges: Range[], workItemCollection: WorkItemCollection) {
+function _addStatisticsSummary(rows: CellObject[][], merges: Range[], workItemCollection: WorkItemCollection) {
   const committedItems = workItemCollection.committedWorkItems();
   const pulledInItems = workItemCollection.pulledInWorkItems();
   const allCompletedItems = [...committedItems, ...pulledInItems].filter(w => w.isDone);
-  
+
   merges.push(new Range().from(rows.length, 0).to(rows.length, 4));
   rows.push([new Cell("Sprint Statistics").font(headerFont).backgroundColor("E7E6E6")]);
-  
+
   rows.push([
     new Cell("Completed Items:").font({ bold: true }),
     new Cell(`${allCompletedItems.length} / ${committedItems.length}`).alignText(centerAlign),
@@ -114,7 +114,7 @@ function addStatisticsSummary(rows: CellObject[][], merges: Range[], workItemCol
     new Cell("Completed Points:").font({ bold: true }),
     new Cell(`${workItemCollection.completedEffort} / ${workItemCollection.committedEffort}`).alignText(centerAlign)
   ]);
-  
+
   rows.push([
     new Cell("Achievement:").font({ bold: true }),
     new Cell(`${workItemCollection.commitmentPercentage}%`).alignText(centerAlign).font({ bold: true, color: workItemCollection.commitmentPercentage >= 90 ? "008000" : workItemCollection.commitmentPercentage >= 70 ? "FF8C00" : "FF0000" }),
@@ -122,15 +122,15 @@ function addStatisticsSummary(rows: CellObject[][], merges: Range[], workItemCol
     new Cell("Pulled In Later:").font({ bold: true }),
     new Cell(`${pulledInItems.length} items (${workItemCollection.pulledInEffort} pts)`).alignText(centerAlign)
   ]);
-  
-  rows.push([new Cell("")]);  
+
+  rows.push([new Cell("")]);
 }
 
 function addTeamWorkItems(rows: CellObject[][], merges: Range[], workItems: WorkItem[], context: ReportContext) {
   const workItemCollection = new WorkItemCollection(workItems);
 
   // addStatisticsSummary(rows, merges, workItemCollection);
-  
+
   addWorkItemSection(rows, merges, "Completed", workItemCollection.done, context, true);
   addWorkItemSection(rows, merges, "In Progress", workItemCollection.inProgress, context, false);
   addWorkItemSection(rows, merges, "Not Started", workItemCollection.notStarted, context, false);

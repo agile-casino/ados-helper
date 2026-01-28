@@ -8,6 +8,7 @@
     "build:dev": "vite build --mode development",
     "build:watch": "vite build --watch --mode development",
     "lint": "biome check src",
+    "lint:fix": "biome check src --write",
     "tcm": "tcm src",
     "test": "vitest",
     "test:watch": "vitest",
