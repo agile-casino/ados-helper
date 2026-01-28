@@ -20,7 +20,7 @@ function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
   const pulledInItems = collection.pulledInWorkItems();
   const completedCommitted = committedItems.filter(w => w.isDone);
   const percentage = collection.commitmentPercentage;
-  
+
   const getColor = (pct: number) => {
     if (pct >= 90) return "green";
     if (pct >= 70) return "yellow";
@@ -28,16 +28,18 @@ function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
   };
 
   return (
-    <div style={{ 
-      padding: "1rem", 
-      marginBottom: "1rem", 
-      backgroundColor: "#f8f9fa", 
-      borderRadius: "4px",
-      display: "flex",
-      gap: "2rem",
-      alignItems: "center",
-      flexWrap: "wrap"
-    }}>
+    <div
+      style={{
+        padding: "1rem",
+        marginBottom: "1rem",
+        backgroundColor: "#f8f9fa",
+        borderRadius: "4px",
+        display: "flex",
+        gap: "2rem",
+        alignItems: "center",
+        flexWrap: "wrap"
+      }}
+    >
       <div>
         <strong>Sprint Statistics</strong>
       </div>
@@ -145,7 +147,7 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
               style.backgroundColor = "#E6B8B7";
             }
           }
-          
+
           // Date-based color coding (only if no tag-based color applied)
           if (!style.backgroundColor && sprintStartDate) {
             // Yellow for PBIs pulled in late (activated > 2 days after sprint start)

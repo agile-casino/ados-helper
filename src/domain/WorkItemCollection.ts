@@ -35,10 +35,10 @@ export class WorkItemCollection {
       .map(w => w.activatedDate)
       .filter((d): d is Date => d !== null)
       .sort((a, b) => a.getTime() - b.getTime());
-    
+
     if (activatedDates.length === 0) return undefined;
     if (activatedDates.length === 1) return activatedDates[0];
-    
+
     // Use the 25th percentile (first quartile) to exclude carried-over items from previous sprints
     const firstQuartileIndex = Math.floor(activatedDates.length * 0.25);
     return activatedDates[firstQuartileIndex];
@@ -47,19 +47,15 @@ export class WorkItemCollection {
   public committedWorkItems(sprintStartDate?: Date): WorkItem[] {
     const startDate = sprintStartDate || this.actualSprintStartDate || this.estimatedSprintStartDate;
     if (!startDate) return this.workItems.filter(w => !w.isRemoved);
-    
-    return this.workItems.filter(w => 
-      !w.isRemoved && !w.isPulledInLate(startDate)
-    );
+
+    return this.workItems.filter(w => !w.isRemoved && !w.isPulledInLate(startDate));
   }
 
   public pulledInWorkItems(sprintStartDate?: Date): WorkItem[] {
     const startDate = sprintStartDate || this.actualSprintStartDate || this.estimatedSprintStartDate;
     if (!startDate) return [];
-    
-    return this.workItems.filter(w => 
-      !w.isRemoved && w.isPulledInLate(startDate)
-    );
+
+    return this.workItems.filter(w => !w.isRemoved && w.isPulledInLate(startDate));
   }
 
   public get committedEffort(): number {
@@ -74,9 +70,7 @@ export class WorkItemCollection {
 
   public get completedEffort(): number {
     // All completed items, regardless of when they were added
-    return this.workItems
-      .filter(w => w.isDone && !w.isRemoved)
-      .reduce((sum, w) => sum + (w.effort || 0), 0);
+    return this.workItems.filter(w => w.isDone && !w.isRemoved).reduce((sum, w) => sum + (w.effort || 0), 0);
   }
 
   public get pulledInEffort(): number {
@@ -90,9 +84,9 @@ export class WorkItemCollection {
   }
 
   public constructor(
-    private workItems: WorkItem[], 
+    private workItems: WorkItem[],
     private actualSprintStartDate?: Date,
-    private actualSprintEndDate?: Date
+    _actualSprintEndDate?: Date
   ) {}
 
   public getWorkItemCategory(workItem: WorkItem): WorkItemCategoryName {

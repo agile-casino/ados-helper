@@ -8,6 +8,15 @@ export interface IterationData {
   sprintEndDate?: Date;
 }
 
+interface AzureDevOpsIteration {
+  name: string;
+  path: string;
+  attributes?: {
+    startDate?: string;
+    finishDate?: string;
+  };
+}
+
 export class ApiClient {
   constructor(
     private origin: string,
@@ -20,8 +29,8 @@ export class ApiClient {
       const url = `${this.origin}/${collection}/${project}/${team}/_apis/work/teamsettings/iterations?api-version=6.0`;
       const response = await fetch(url);
       const data = await response.json();
-      
-      const sprint = data.value.find((iter: any) => iter.name === iteration || iter.path.endsWith(iteration));
+
+      const sprint = data.value.find((iter: AzureDevOpsIteration) => iter.name === iteration || iter.path.endsWith(iteration));
       if (sprint?.attributes) {
         return {
           startDate: sprint.attributes.startDate ? new Date(sprint.attributes.startDate) : undefined,
@@ -85,7 +94,7 @@ export class ApiClient {
     }
 
     const dates = await this.getIterationDates(collection, project, team, iteration);
-    
+
     return {
       workItems: workItemDtos.map(x => new WorkItem(x)),
       sprintStartDate: dates.startDate,
@@ -150,7 +159,7 @@ export class ApiClient {
     }
 
     const dates = await this.getIterationDates(collection, project, team, iteration);
-    
+
     return {
       workItems: workItemDtos.map(x => new WorkItem(x)),
       sprintStartDate: dates.startDate,
