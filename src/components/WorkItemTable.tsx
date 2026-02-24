@@ -140,11 +140,11 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
           // Tag-based color coding for yellow and orange
           if (x.sprint?.sprintNumber && x.sprintTag?.sprintNumber) {
             if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "+") {
-              style.backgroundColor = "#F4F785";
+              style.backgroundColor = "#eeece1";
             } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "!") {
               style.backgroundColor = "#FFCC66";
             } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber - 1 && x.sprintTag.sprintSuffix !== "+") {
-              style.backgroundColor = "#E6B8B7";
+              style.backgroundColor = "#f2dcdb";
             }
           }
 
@@ -152,11 +152,11 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
           if (!style.backgroundColor && sprintStartDate) {
             // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
             if (x.isPulledInLate(sprintStartDate)) {
-              style.backgroundColor = "#F4F785";
+              style.backgroundColor = "#eeece1";
             }
             // Pink for PBIs activated before sprint start
             else if (x.activatedDate && x.activatedDate < sprintStartDate) {
-              style.backgroundColor = "#E6B8B7";
+              style.backgroundColor = "#f2dcdb";
             }
           }
 

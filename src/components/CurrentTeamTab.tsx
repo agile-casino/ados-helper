@@ -41,7 +41,7 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
     <div style={{ height: "100%", overflowY: "scroll" }}>
       <div style={{ float: "left" }}>
         <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={workItems} sprintStartDate={sprintStartDate} sprintEndDate={sprintEndDate} />
-        <Button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(origin, props.collection, props.project, props.team, props.sprint, workItems)}>
+        <Button style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
           Generate Report
         </Button>
       </div>

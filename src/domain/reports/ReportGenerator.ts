@@ -24,18 +24,34 @@ const teamHeaderFont: FontStyle = {
   bold: true
 };
 
-function getExtraStyles(workItem: WorkItem): CellStyle {
+function getExtraStyles(workItem: WorkItem, sprintStartDate?: Date): CellStyle {
   const result: CellStyle = {};
+
+  // Tag-based color coding for yellow and orange
   if (workItem.sprint?.sprintNumber && workItem.sprintTag?.sprintNumber) {
     if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "+") {
-      result.fill = { fgColor: { rgb: "F4F785" } };
+      result.fill = { fgColor: { rgb: "eeece1" } };
     } else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "!") {
       result.fill = { fgColor: { rgb: "FFCC66" } };
     } else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber - 1 && workItem.sprintTag.sprintSuffix !== "+") {
-      result.fill = { fgColor: { rgb: "E6B8B7" } };
+      result.fill = { fgColor: { rgb: "f2dcdb" } };
     }
   }
-  if (workItem.isInProgress && workItem.allTasksDone && result.font) {
+
+  // Date-based color coding (only if no tag-based color applied)
+  if (!result.fill && sprintStartDate) {
+    // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
+    if (workItem.isPulledInLate(sprintStartDate)) {
+      result.fill = { fgColor: { rgb: "eeece1" } };
+    }
+    // Pink for PBIs activated before sprint start
+    else if (workItem.activatedDate && workItem.activatedDate < sprintStartDate) {
+      result.fill = { fgColor: { rgb: "f2dcdb" } };
+    }
+  }
+
+  if (workItem.allTasksDone) {
+    result.font = result.font || {};
     result.font.bold = true;
   }
   return result;
@@ -45,6 +61,7 @@ export interface TeamWorkItems {
   team: string;
   workItems: WorkItem[];
   backgroundColor?: string;
+  sprintStartDate?: Date;
 }
 
 interface ReportContext {
@@ -68,10 +85,10 @@ function addColumnHeaders(rows: CellObject[][]) {
   ]);
 }
 
-function addWorkItemRows(rows: CellObject[][], workItems: WorkItem[], context: ReportContext) {
+function addWorkItemRows(rows: CellObject[][], workItems: WorkItem[], context: ReportContext, sprintStartDate?: Date) {
   workItems.forEach(x => {
     rows.push([
-      new Cell(x.id).alignText(centerAlign).link(`${context.origin}/${context.collection}/${context.project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+      new Cell(x.id).alignText(centerAlign).link(`${context.origin}/${context.collection}/${context.project}/_workitems/edit/${x.id}`).style(getExtraStyles(x, sprintStartDate)),
       new Cell(x.wiseNumber ?? "").alignText(centerAlign).link(x.wiseLink),
       new Cell(x.title).alignText({ horizontal: "left" }),
       new Cell(x.effort || "").alignText(centerAlign),
@@ -80,7 +97,7 @@ function addWorkItemRows(rows: CellObject[][], workItems: WorkItem[], context: R
   });
 }
 
-function addWorkItemSection(rows: CellObject[][], merges: Range[], title: string, workItems: WorkItem[], context: ReportContext, includeDoneWiseColumn: boolean) {
+function addWorkItemSection(rows: CellObject[][], merges: Range[], title: string, workItems: WorkItem[], context: ReportContext, includeDoneWiseColumn: boolean, sprintStartDate?: Date) {
   if (workItems.length === 0) return;
 
   addSectionHeader(rows, merges, title);
@@ -88,7 +105,7 @@ function addWorkItemSection(rows: CellObject[][], merges: Range[], title: string
 
   workItems.forEach(x => {
     rows.push([
-      new Cell(x.id).alignText(centerAlign).link(`${context.origin}/${context.collection}/${context.project}/_workitems/edit/${x.id}`).style(getExtraStyles(x)),
+      new Cell(x.id).alignText(centerAlign).link(`${context.origin}/${context.collection}/${context.project}/_workitems/edit/${x.id}`).style(getExtraStyles(x, sprintStartDate)),
       includeDoneWiseColumn ? new Cell(x.wiseNumber ?? "").alignText(centerAlign).link(x.wiseLink) : new Cell("").alignText(centerAlign),
       new Cell(x.title).alignText({ horizontal: "left" }),
       new Cell(x.effort || "").alignText(centerAlign),
@@ -126,31 +143,31 @@ function _addStatisticsSummary(rows: CellObject[][], merges: Range[], workItemCo
   rows.push([new Cell("")]);
 }
 
-function addTeamWorkItems(rows: CellObject[][], merges: Range[], workItems: WorkItem[], context: ReportContext) {
-  const workItemCollection = new WorkItemCollection(workItems);
+function addTeamWorkItems(rows: CellObject[][], merges: Range[], workItems: WorkItem[], context: ReportContext, sprintStartDate?: Date) {
+  const workItemCollection = new WorkItemCollection(workItems, sprintStartDate);
 
   // addStatisticsSummary(rows, merges, workItemCollection);
 
-  addWorkItemSection(rows, merges, "Completed", workItemCollection.done, context, true);
-  addWorkItemSection(rows, merges, "In Progress", workItemCollection.inProgress, context, false);
-  addWorkItemSection(rows, merges, "Not Started", workItemCollection.notStarted, context, false);
-  addWorkItemSection(rows, merges, "Removed", workItemCollection.removed, context, false);
+  addWorkItemSection(rows, merges, "Completed", workItemCollection.done, context, true, sprintStartDate);
+  addWorkItemSection(rows, merges, "In Progress", workItemCollection.inProgress, context, false, sprintStartDate);
+  addWorkItemSection(rows, merges, "Not Started", workItemCollection.notStarted, context, false, sprintStartDate);
+  addWorkItemSection(rows, merges, "Removed", workItemCollection.removed, context, false, sprintStartDate);
 
   if (workItemCollection.studyTime.length) {
     addSectionHeader(rows, merges, "Study Time");
     addColumnHeaders(rows);
-    addWorkItemRows(rows, workItemCollection.studyTime, context);
+    addWorkItemRows(rows, workItemCollection.studyTime, context, sprintStartDate);
   }
 }
 
-export function generateReport(origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
+export function generateReport(origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[], sprintStartDate?: Date) {
   const workbook = utils.book_new();
 
   const rows: CellObject[][] = [];
   const merges: Range[] = [];
   const context: ReportContext = { origin, collection, project };
 
-  addTeamWorkItems(rows, merges, workItems, context);
+  addTeamWorkItems(rows, merges, workItems, context, sprintStartDate);
 
   const worksheet = utils.aoa_to_sheet(rows);
 
@@ -171,13 +188,20 @@ export function generateMultiTeamReport(origin: string, collection: string, proj
   const context: ReportContext = { origin, collection, project };
 
   teamWorkItems.forEach((teamData, index) => {
-    // Add team header
-    merges.push(new Range().from(rows.length, 0).to(rows.length, 4));
-    rows.push([new Cell(teamData.team).font(teamHeaderFont).backgroundColor(teamData.backgroundColor)]);
+    // Add team header with commitment percentage
+    const workItemCollection = new WorkItemCollection(teamData.workItems, teamData.sprintStartDate);
+    merges.push(new Range().from(rows.length, 0).to(rows.length, 2));
+    rows.push([
+      new Cell(teamData.team).font(teamHeaderFont).backgroundColor(teamData.backgroundColor),
+      new Cell(""),
+      new Cell(""),
+      new Cell(`${workItemCollection.commitmentPercentage}%`).font(teamHeaderFont).backgroundColor(teamData.backgroundColor).alignText(centerAlign),
+      new Cell("").backgroundColor(teamData.backgroundColor)
+    ]);
     rows.push([new Cell("")]);
 
     // Add team's work items
-    addTeamWorkItems(rows, merges, teamData.workItems, context);
+    addTeamWorkItems(rows, merges, teamData.workItems, context, teamData.sprintStartDate);
 
     // Add spacing between teams (except after last team)
     if (index < teamWorkItems.length - 1) {
