@@ -7,6 +7,18 @@ import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/R
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemTable } from "./WorkItemTable";
 
+const DEFAULT_TEAM_COLORS: Record<string, string> = {
+  "DE_BK_Green": "#94ff8f",
+  "DE_BK_Blue": "#4a9eff",
+  "DE_EX_Yellow": "#ffe491",
+  "DE_EX_UX": "#e4dfec",
+  "DE_EX_TechDoc": "#feddb7"
+};
+
+function getDefaultTeamColor(teamName: string): string | undefined {
+  return DEFAULT_TEAM_COLORS[teamName];
+}
+
 interface MultiTeamTabProps {
   origin: string;
   collection: string;
@@ -91,7 +103,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
       .filter(t => !teams.some(existing => existing.name.toLowerCase() === t.toLowerCase()));
 
     if (newTeamNames.length > 0) {
-      setTeams([...teams, ...newTeamNames.map(name => ({ name, selected: true, backgroundColor: undefined }))]);
+      setTeams([...teams, ...newTeamNames.map(name => ({ name, selected: true, backgroundColor: getDefaultTeamColor(name) }))]);
       setTeamInput("");
     }
   };
@@ -172,7 +184,8 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
       return {
         team: t.team,
         workItems: t.workItems,
-        backgroundColor: teamSelection?.backgroundColor
+        backgroundColor: teamSelection?.backgroundColor,
+        sprintStartDate: t.sprintStartDate
       };
     });
 
@@ -267,24 +280,37 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
           )}
         </Group>
 
-        {teamData.map(data => (
-          <div key={data.team}>
-            <Title order={5} mb="xs">
-              {data.team}
-            </Title>
-            {data.error ? (
-              <Text color="red" size="sm">
-                Error: {data.error}
-              </Text>
-            ) : data.workItems.length === 0 ? (
-              <Text size="sm" c="dimmed">
-                No work items found
-              </Text>
-            ) : (
-              <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={data.workItems} sprintStartDate={data.sprintStartDate} sprintEndDate={data.sprintEndDate} />
-            )}
-          </div>
-        ))}
+        {teamData.map(data => {
+          const teamSelection = teams.find(t => t.name === data.team);
+          const teamColor = teamSelection?.backgroundColor;
+
+          return (
+            <div key={data.team}>
+              <Title
+                order={5}
+                mb="xs"
+                style={{
+                  borderBottom: teamColor ? `4px solid ${teamColor}` : undefined,
+                  paddingBottom: "4px",
+                  display: "inline-block"
+                }}
+              >
+                {data.team}
+              </Title>
+              {data.error ? (
+                <Text color="red" size="sm">
+                  Error: {data.error}
+                </Text>
+              ) : data.workItems.length === 0 ? (
+                <Text size="sm" c="dimmed">
+                  No work items found
+                </Text>
+              ) : (
+                <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={data.workItems} sprintStartDate={data.sprintStartDate} sprintEndDate={data.sprintEndDate} />
+              )}
+            </div>
+          );
+        })}
       </Stack>
     </div>
   );
