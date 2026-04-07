@@ -1,4 +1,4 @@
-import { expect, test, describe, beforeEach } from "vitest";
+import { describe, expect, test } from "vitest";
 import { WorkItemCollection } from "../../src/domain/WorkItemCollection";
 import type { WorkItemDto } from "../../src/api/query/WorkItemDto";
 import { WorkItem } from "../../src/domain/WorkItem";
@@ -55,6 +55,22 @@ describe("WorkItemCollection", () => {
       expect(collection.getWorkItemCategory(workItem)).toBe("Done");
     });
 
+    test("returns 'Done' for work item with Staging state", () => {
+      const dto = createWorkItemDto({ state: "Staging" });
+      const workItem = new WorkItem(dto);
+      const collection = new WorkItemCollection([workItem]);
+
+      expect(collection.getWorkItemCategory(workItem)).toBe("Done");
+    });
+
+    test("returns 'Done' for work item with Released state", () => {
+      const dto = createWorkItemDto({ state: "Released" });
+      const workItem = new WorkItem(dto);
+      const collection = new WorkItemCollection([workItem]);
+
+      expect(collection.getWorkItemCategory(workItem)).toBe("Done");
+    });
+
     test("returns 'Removed' for work item with sprint tag ending in minus", () => {
       const dto = createWorkItemDto({ tags: "Sprint 23-" });
       const workItem = new WorkItem(dto);
@@ -104,7 +120,23 @@ describe("WorkItemCollection", () => {
       const collection = new WorkItemCollection([doneWorkItem, newWorkItem]);
 
       expect(collection.done).toHaveLength(1);
-      expect(collection.done[0].title).toBe("Done Item");
+      expect(collection.done[0]?.title).toBe("Done Item");
+    });
+
+    test("returns work items with Staging state", () => {
+      const dto = createWorkItemDto({ id: 1, state: "Staging", title: "Staging Item" });
+      const collection = new WorkItemCollection([new WorkItem(dto)]);
+
+      expect(collection.done).toHaveLength(1);
+      expect(collection.done[0]?.title).toBe("Staging Item");
+    });
+
+    test("returns work items with Released state", () => {
+      const dto = createWorkItemDto({ id: 1, state: "Released", title: "Released Item" });
+      const collection = new WorkItemCollection([new WorkItem(dto)]);
+
+      expect(collection.done).toHaveLength(1);
+      expect(collection.done[0]?.title).toBe("Released Item");
     });
 
     test("sorts done items by title", () => {
@@ -112,8 +144,8 @@ describe("WorkItemCollection", () => {
       const dto2 = createWorkItemDto({ id: 2, state: "Done", title: "Alpha" });
       const collection = new WorkItemCollection([new WorkItem(dto1), new WorkItem(dto2)]);
 
-      expect(collection.done[0].title).toBe("Alpha");
-      expect(collection.done[1].title).toBe("Zebra");
+      expect(collection.done[0]?.title).toBe("Alpha");
+      expect(collection.done[1]?.title).toBe("Zebra");
     });
   });
 
@@ -130,7 +162,7 @@ describe("WorkItemCollection", () => {
       const collection = new WorkItemCollection([new WorkItem(inProgressDto), new WorkItem(newDto)]);
 
       expect(collection.inProgress).toHaveLength(1);
-      expect(collection.inProgress[0].title).toBe("In Progress Item");
+      expect(collection.inProgress[0]?.title).toBe("In Progress Item");
     });
   });
 
@@ -141,7 +173,7 @@ describe("WorkItemCollection", () => {
       const collection = new WorkItemCollection([new WorkItem(doneDto), new WorkItem(newDto)]);
 
       expect(collection.notStarted).toHaveLength(1);
-      expect(collection.notStarted[0].title).toBe("New Item");
+      expect(collection.notStarted[0]?.title).toBe("New Item");
     });
   });
 
@@ -152,7 +184,7 @@ describe("WorkItemCollection", () => {
       const collection = new WorkItemCollection([new WorkItem(removedDto), new WorkItem(normalDto)]);
 
       expect(collection.removed).toHaveLength(1);
-      expect(collection.removed[0].title).toBe("Removed Item");
+      expect(collection.removed[0]?.title).toBe("Removed Item");
     });
   });
 
@@ -163,7 +195,7 @@ describe("WorkItemCollection", () => {
       const collection = new WorkItemCollection([new WorkItem(studyDto), new WorkItem(normalDto)]);
 
       expect(collection.studyTime).toHaveLength(1);
-      expect(collection.studyTime[0].title).toBe("[Study Time] Learn React");
+      expect(collection.studyTime[0]?.title).toBe("[Study Time] Learn React");
     });
   });
 });

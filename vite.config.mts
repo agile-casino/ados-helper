@@ -1,7 +1,8 @@
 import { defineConfig } from "vite";
 import bannerPlugin from "vite-plugin-banner";
+import checkerPlugin from 'vite-plugin-checker';
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
-import pkg from "./package.json";
+import pkg from "./package.json" with { type: "json" };
 
 const banner = `
 // ==UserScript==
@@ -20,6 +21,10 @@ const banner = `
 
 export default defineConfig(({ mode }) => ({
     plugins: [
+        checkerPlugin({
+            biome: { command: "check", flags: "src" },
+            typescript: false
+        }),
         bannerPlugin({ content: banner, verify: false }),
         cssInjectedByJsPlugin()
     ],
@@ -27,11 +32,16 @@ export default defineConfig(({ mode }) => ({
         manifest: true,
         target: "chrome118",
         chunkSizeWarningLimit: 1024,
-        rollupOptions: {
+        rolldownOptions: {
             input: "src/index.tsx",
             output: {
                 entryFileNames: "index.user.js",
-                manualChunks: undefined
+            },
+            onwarn(warning, warn) {
+                if (warning.code === 'MODULE_LEVEL_DIRECTIVE' && warning.message.includes('use client')) {
+                    return;
+                }
+                warn(warning);
             }
         },
         minify: mode === "production",

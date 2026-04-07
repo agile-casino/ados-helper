@@ -2,7 +2,7 @@ import { WorkItem } from "../domain/WorkItem";
 import type { IQueryClient } from "./query/IQueryClient";
 import type { IWorkItemClient } from "./workItems/IWorkItemClient";
 
-export interface IterationData {
+interface IterationData {
   workItems: WorkItem[];
   sprintStartDate?: Date;
   sprintEndDate?: Date;

@@ -35,11 +35,11 @@ export class WorkItem {
   }
 
   public get isDone(): boolean {
-    return this.dto.System.State === "Done";
+    return ["Done", "Staging", "Released"].includes(this.dto.System.State);
   }
 
   public get isInProgress(): boolean {
-    return this.dto.System.State !== "Done" && this.tasks.some(task => task.System.State !== "To Do");
+    return !this.isDone && this.tasks.some(task => task.System.State !== "To Do");
   }
 
   public get isRemoved(): boolean {
