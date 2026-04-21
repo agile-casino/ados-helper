@@ -11,8 +11,8 @@ interface WorkItemTableProps {
   collection: string;
   project: string;
   workItems?: WorkItem[];
-  sprintStartDate?: Date;
-  sprintEndDate?: Date;
+  sprintStartDate?: Date | undefined;
+  sprintEndDate?: Date | undefined;
 }
 
 function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
@@ -130,7 +130,7 @@ function WorkItemTableHeader({ title }: { title: string }) {
   );
 }
 
-function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date }) {
+function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date | undefined }) {
   return (
     <Table.Tbody>
       {workItems.length ? (
@@ -193,7 +193,7 @@ function getDescription(title: string) {
   const match = title.match(/^\[(?<tag>.+?)\](?<title>.+)$/);
   if (match?.groups) {
     const tags = (match.groups.tag ?? "").replace(" | ", ", ");
-    return { tags: tags, title: match.groups.title };
+    return { tags: tags, title: match.groups.title ?? "" };
   } else {
     return { tags: "", title: title };
   }

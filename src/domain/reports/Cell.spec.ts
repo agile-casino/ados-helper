@@ -1,5 +1,5 @@
-import { expect, test, describe } from "vitest";
-import { Cell } from "../../../src/domain/reports/Cell";
+import { describe, expect, test } from "vitest";
+import { Cell } from "./Cell";
 
 describe("Cell", () => {
   describe("constructor", () => {
@@ -161,12 +161,7 @@ describe("Cell", () => {
 
   describe("chaining", () => {
     test("allows multiple methods to be chained together", () => {
-      const cell = new Cell("test")
-        .alignText({ horizontal: "center" })
-        .font({ size: 14, bold: true })
-        .borderBottom({ style: "thick" })
-        .backgroundColor("#AABBCC")
-        .link("https://example.com");
+      const cell = new Cell("test").alignText({ horizontal: "center" }).font({ size: 14, bold: true }).borderBottom({ style: "thick" }).backgroundColor("#AABBCC").link("https://example.com");
 
       expect(cell.s.alignment?.horizontal).toBe("center");
       expect(cell.s.font?.sz).toBe(14);

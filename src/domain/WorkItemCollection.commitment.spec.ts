@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { WorkItemDto } from "../../src/api/query/WorkItemDto";
-import { WorkItem } from "../../src/domain/WorkItem";
-import { WorkItemCollection } from "../../src/domain/WorkItemCollection";
+import type { WorkItemDto } from "../api/query/WorkItemDto";
+import { WorkItem } from "./WorkItem";
+import { WorkItemCollection } from "./WorkItemCollection";
 
 describe("WorkItemCollection - Commitment Tracking", () => {
   const createMockWorkItem = (id: number, activatedDate: string, effort: number, state: string): WorkItem => {
@@ -37,22 +37,22 @@ describe("WorkItemCollection - Commitment Tracking", () => {
 
   it("should calculate committed vs pulled-in items based on ActivatedDate", () => {
     const sprintStart = new Date("2026-01-13T00:00:00Z");
-    
+
     // Items activated on day 1 (committed)
     const item1 = createMockWorkItem(1, "2026-01-13T08:00:00Z", 5, "Done");
     const item2 = createMockWorkItem(2, "2026-01-13T09:00:00Z", 3, "In Progress");
-    
+
     // Item activated on day 2 (still committed - within 2 day threshold)
     const item3 = createMockWorkItem(3, "2026-01-14T10:00:00Z", 8, "Done");
-    
+
     // Item activated on day 4 (pulled in late - after 2 day threshold)
     const item4 = createMockWorkItem(4, "2026-01-16T10:00:00Z", 5, "Done");
-    
+
     const collection = new WorkItemCollection([item1, item2, item3, item4], sprintStart);
-    
+
     const committedItems = collection.committedWorkItems();
     const pulledInItems = collection.pulledInWorkItems();
-    
+
     expect(committedItems.length).toBe(3); // items 1, 2, 3
     expect(pulledInItems.length).toBe(1); // item 4
     expect(collection.committedEffort).toBe(16); // 5 + 3 + 8
@@ -89,7 +89,7 @@ describe("WorkItemCollection - Commitment Tracking", () => {
     };
     const item = new WorkItem(dto);
     const sprintStart = new Date("2026-01-13T00:00:00Z");
-    
+
     expect(item.isPulledInLate(sprintStart)).toBe(false);
   });
 });

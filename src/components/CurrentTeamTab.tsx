@@ -13,6 +13,7 @@ interface CurrentTeamTabProps {
   project: string;
   team: string;
   sprint: string;
+  iterationPath: string;
 }
 
 export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
@@ -27,7 +28,7 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
         const queryClient = new QueryClient(origin, workItemClient);
         const apiClient = new ApiClient(props.origin, queryClient, workItemClient);
 
-        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, props.team, props.sprint) : await apiClient.getIteration2(props.collection, props.project, props.team, props.sprint);
+        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, props.team, props.sprint) : await apiClient.getIteration2(props.collection, props.project, props.team, props.iterationPath);
 
         setWorkItems(queryResult.workItems);
         setSprintStartDate(queryResult.sprintStartDate);
@@ -35,7 +36,7 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
       }
     }
     updateIteration().catch((e: unknown) => console.error(e));
-  }, [props.collection, props.project, props.team, props.sprint, props.origin]);
+  }, [props.collection, props.project, props.team, props.sprint, props.iterationPath, props.origin]);
 
   return (
     <div style={{ height: "100%", overflowY: "scroll" }}>

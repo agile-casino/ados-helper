@@ -8,6 +8,7 @@ interface ReportDialogProps {
   project: string;
   team: string;
   sprint: string;
+  iterationPath: string;
   open: boolean;
   onCloseClicked: () => void;
 }
@@ -26,11 +27,11 @@ export const ReportDialog = (props: ReportDialogProps) => {
           </Tabs.List>
 
           <Tabs.Panel value="current-team" pt="xs" style={{ height: "calc(650px - 120px)", overflow: "hidden" }}>
-            <CurrentTeamTab origin={props.origin} collection={props.collection} project={props.project} team={props.team} sprint={props.sprint} />
+            <CurrentTeamTab origin={props.origin} collection={props.collection} project={props.project} team={props.team} sprint={props.sprint} iterationPath={props.iterationPath} />
           </Tabs.Panel>
 
           <Tabs.Panel value="multi-team" pt="xs" style={{ height: "calc(650px - 120px)", overflow: "hidden" }}>
-            <MultiTeamTab origin={props.origin} collection={props.collection} project={props.project} currentTeam={props.team} sprint={props.sprint} />
+            <MultiTeamTab origin={props.origin} collection={props.collection} project={props.project} currentTeam={props.team} sprint={props.sprint} iterationPath={props.iterationPath} />
           </Tabs.Panel>
         </Tabs>
       </Dialog>

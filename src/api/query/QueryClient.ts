@@ -38,7 +38,7 @@ export class QueryClient implements IQueryClient {
       });
 
       const parentId = responseDto.sourceIds[i];
-      if (parentId > 0) {
+      if (parentId !== undefined && parentId > 0) {
         const parent = result.find(x => x.System.Id === parentId);
         parent?.children.push(workItem);
       } else {

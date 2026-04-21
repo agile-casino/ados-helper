@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAzureDate } from "../../src/utils/parseAzureDate";
+import { parseAzureDate } from "./parseAzureDate";
 
 describe("parseAzureDate", () => {
   describe("Azure DevOps legacy format (/Date(timestamp)/)", () => {
@@ -167,7 +167,7 @@ describe("parseAzureDate", () => {
       // Test the actual timestamp from the project
       const result = parseAzureDate("/Date(1764079201133)/");
       expect(result).toBeInstanceOf(Date);
-      
+
       // Verify it's the same as direct Date constructor
       const direct = new Date(1764079201133);
       expect(result?.getTime()).toBe(direct.getTime());
@@ -178,10 +178,10 @@ describe("parseAzureDate", () => {
     it("should return Date or null, never undefined", () => {
       const validResult = parseAzureDate("2026-01-27");
       expect(validResult === null || validResult instanceof Date).toBe(true);
-      
+
       const invalidResult = parseAzureDate("invalid");
       expect(invalidResult === null || invalidResult instanceof Date).toBe(true);
-      
+
       const undefinedResult = parseAzureDate(undefined);
       expect(undefinedResult === null || undefinedResult instanceof Date).toBe(true);
     });

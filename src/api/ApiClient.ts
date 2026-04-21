@@ -4,8 +4,8 @@ import type { IWorkItemClient } from "./workItems/IWorkItemClient";
 
 interface IterationData {
   workItems: WorkItem[];
-  sprintStartDate?: Date;
-  sprintEndDate?: Date;
+  sprintStartDate?: Date | undefined;
+  sprintEndDate?: Date | undefined;
 }
 
 interface AzureDevOpsIteration {
@@ -24,7 +24,7 @@ export class ApiClient {
     private workItemClient: IWorkItemClient
   ) {}
 
-  private async getIterationDates(collection: string, project: string, team: string, iteration: string): Promise<{ startDate?: Date; finishDate?: Date }> {
+  private async getIterationDates(collection: string, project: string, team: string, iteration: string): Promise<{ startDate?: Date | undefined; finishDate?: Date | undefined }> {
     try {
       const url = `${this.origin}/${collection}/${project}/${team}/_apis/work/teamsettings/iterations?api-version=6.0`;
       const response = await fetch(url);
@@ -103,9 +103,12 @@ export class ApiClient {
   }
 
   public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<IterationData> {
-    const sprintMatch = iteration.match(/(Sprint \d+)/);
+    const iterationSegments = iteration.split("/");
+    const sprintName = iterationSegments[iterationSegments.length - 1] ?? iteration;
+    const sprintMatch = sprintName.match(/(Sprint \d+)/);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
     const areaPath = `${project}\\Engineering\\${team}`.replace("Pixel_Perfect", "PixelPerfect");
+    const adoIterationPath = `${project}\\${iteration.replace(/\//g, "\\")}`;
     const query = `
             SELECT
               [System.Id],
@@ -129,7 +132,7 @@ export class ApiClient {
                 [Source].[Area Path] UNDER '${areaPath}'
               )
               AND (
-                [Source].[System.IterationPath] UNDER '${project}\\${iteration}' OR (
+                [Source].[System.IterationPath] UNDER '${adoIterationPath}' OR (
                   [Source].[System.IterationPath] UNDER '${project}' AND (
                     [Source].[System.Tags] CONTAINS '${sprintNumber}' OR
                     [Source].[System.Tags] CONTAINS '${sprintNumber}-' OR
@@ -158,7 +161,7 @@ export class ApiClient {
       });
     }
 
-    const dates = await this.getIterationDates(collection, project, team, iteration);
+    const dates = await this.getIterationDates(collection, project, team, sprintName);
 
     return {
       workItems: workItemDtos.map(x => new WorkItem(x)),
