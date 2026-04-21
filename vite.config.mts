@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import bannerPlugin from "vite-plugin-banner";
-import checkerPlugin from 'vite-plugin-checker';
+import checkerPlugin from "vite-plugin-checker";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import pkg from "./package.json" with { type: "json" };
 
@@ -20,34 +20,34 @@ const banner = `
 `.trim();
 
 export default defineConfig(({ mode }) => ({
-    plugins: [
-        checkerPlugin({
-            biome: { command: "check", flags: "src" },
-            typescript: true
-        }),
-        bannerPlugin({ content: banner, verify: false }),
-        cssInjectedByJsPlugin()
-    ],
-    build: {
-        manifest: true,
-        target: "chrome118",
-        chunkSizeWarningLimit: 1024,
-        rolldownOptions: {
-            input: "src/index.tsx",
-            output: {
-                entryFileNames: "index.user.js",
-            },
-            onwarn(warning, warn) {
-                if (warning.code === 'MODULE_LEVEL_DIRECTIVE' && warning.message.includes('use client')) {
-                    return;
-                }
-                warn(warning);
-            }
-        },
-        minify: mode === "production",
-        sourcemap: mode === "production" ? true : "inline"
+  plugins: [
+    checkerPlugin({
+      biome: { command: "check", flags: "src" },
+      typescript: true
+    }),
+    bannerPlugin({ content: banner, verify: false }),
+    cssInjectedByJsPlugin()
+  ],
+  build: {
+    manifest: true,
+    target: "chrome118",
+    chunkSizeWarningLimit: 1024,
+    rolldownOptions: {
+      input: "src/index.tsx",
+      output: {
+        entryFileNames: "index.user.js"
+      },
+      onwarn(warning, warn) {
+        if (warning.code === "MODULE_LEVEL_DIRECTIVE" && warning.message.includes("use client")) {
+          return;
+        }
+        warn(warning);
+      }
     },
-    test: {
-        setupFiles: "tests/setup.ts"
-    },
+    minify: mode === "production",
+    sourcemap: mode === "production" ? true : "inline"
+  },
+  test: {
+    setupFiles: "tests/setup.ts"
+  }
 }));
