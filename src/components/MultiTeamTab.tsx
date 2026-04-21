@@ -125,14 +125,28 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
   const handleMoveTeamUp = (index: number) => {
     if (index === 0) return;
     const newTeams = [...teams];
-    [newTeams[index - 1], newTeams[index]] = [newTeams[index], newTeams[index - 1]];
+    const previousTeam = newTeams[index - 1];
+    const currentTeam = newTeams[index];
+
+    if (!previousTeam || !currentTeam) {
+      return;
+    }
+
+    [newTeams[index - 1], newTeams[index]] = [currentTeam, previousTeam];
     setTeams(newTeams);
   };
 
   const handleMoveTeamDown = (index: number) => {
     if (index === teams.length - 1) return;
     const newTeams = [...teams];
-    [newTeams[index], newTeams[index + 1]] = [newTeams[index + 1], newTeams[index]];
+    const currentTeam = newTeams[index];
+    const nextTeam = newTeams[index + 1];
+
+    if (!currentTeam || !nextTeam) {
+      return;
+    }
+
+    [newTeams[index], newTeams[index + 1]] = [nextTeam, currentTeam];
     setTeams(newTeams);
   };
 
