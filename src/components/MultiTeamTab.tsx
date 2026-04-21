@@ -25,19 +25,20 @@ interface MultiTeamTabProps {
   project: string;
   currentTeam: string;
   sprint: string;
+  iterationPath: string;
 }
 
 interface TeamSelection {
   name: string;
   selected: boolean;
-  backgroundColor?: string;
+  backgroundColor?: string | undefined;
 }
 
 interface TeamData {
   team: string;
   workItems: WorkItem[];
-  sprintStartDate?: Date;
-  sprintEndDate?: Date;
+  sprintStartDate?: Date | undefined;
+  sprintEndDate?: Date | undefined;
   loading: boolean;
   error: string | null;
 }
@@ -149,7 +150,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
 
     for (const team of selectedTeams) {
       try {
-        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, team.name, props.sprint) : await apiClient.getIteration2(props.collection, props.project, team.name, props.sprint);
+        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, team.name, props.sprint) : await apiClient.getIteration2(props.collection, props.project, team.name, props.iterationPath);
 
         results.push({
           team: team.name,

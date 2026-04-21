@@ -55,8 +55,8 @@ export class Cell implements CellObject {
     const patch: CellStyle = {
       border: {
         bottom: {
-          color: { rgb: color },
-          style: style
+          color: color !== undefined ? { rgb: color } : {},
+          ...(style !== undefined ? { style } : {})
         }
       }
     };
@@ -67,7 +67,7 @@ export class Cell implements CellObject {
   public font({ size, bold = false }: FontStyle) {
     const patch: CellStyle = {
       font: {
-        sz: size,
+        ...(size !== undefined ? { sz: size } : {}),
         bold: bold
       }
     };

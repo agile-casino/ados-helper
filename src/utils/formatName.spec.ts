@@ -1,5 +1,5 @@
-import { expect, test, describe } from "vitest";
-import { formatName } from "../../src/utils/formatName";
+import { describe, expect, test } from "vitest";
+import { formatName } from "./formatName";
 
 describe("formatName", () => {
   test("returns empty string for null input", () => {

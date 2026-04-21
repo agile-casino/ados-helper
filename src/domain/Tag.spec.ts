@@ -1,5 +1,5 @@
-import { expect, test, describe } from "vitest";
-import { Tag } from "../../src/domain/Tag";
+import { describe, expect, test } from "vitest";
+import { Tag } from "./Tag";
 
 describe("Tag", () => {
   describe("sprintName", () => {

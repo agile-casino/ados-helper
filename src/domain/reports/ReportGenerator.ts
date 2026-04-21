@@ -60,8 +60,8 @@ function getExtraStyles(workItem: WorkItem, sprintStartDate?: Date): CellStyle {
 export interface TeamWorkItems {
   team: string;
   workItems: WorkItem[];
-  backgroundColor?: string;
-  sprintStartDate?: Date;
+  backgroundColor?: string | undefined;
+  sprintStartDate?: Date | undefined;
 }
 
 interface ReportContext {

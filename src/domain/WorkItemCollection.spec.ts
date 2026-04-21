@@ -1,16 +1,18 @@
 import { describe, expect, test } from "vitest";
-import { WorkItemCollection } from "../../src/domain/WorkItemCollection";
-import type { WorkItemDto } from "../../src/api/query/WorkItemDto";
-import { WorkItem } from "../../src/domain/WorkItem";
+import type { WorkItemDto } from "../api/query/WorkItemDto";
+import { WorkItem } from "./WorkItem";
+import { WorkItemCollection } from "./WorkItemCollection";
 
-function createWorkItemDto(overrides: Partial<{
-  id: number;
-  state: string;
-  title: string;
-  tags: string;
-  assignedTo: string | null;
-  children: WorkItemDto[];
-}>): WorkItemDto {
+function createWorkItemDto(
+  overrides: Partial<{
+    id: number;
+    state: string;
+    title: string;
+    tags: string;
+    assignedTo: string | null;
+    children: WorkItemDto[];
+  }>
+): WorkItemDto {
   return {
     Microsoft: {
       VSTS: {
@@ -81,8 +83,8 @@ describe("WorkItemCollection", () => {
 
     test("returns 'In Progress' for work item with task that has started", () => {
       const taskDto = createWorkItemDto({ state: "In Progress" });
-      const dto = createWorkItemDto({ 
-        state: "Active", 
+      const dto = createWorkItemDto({
+        state: "Active",
         children: [taskDto]
       });
       const workItem = new WorkItem(dto);
@@ -100,9 +102,9 @@ describe("WorkItemCollection", () => {
     });
 
     test("Study Time takes precedence over Done state", () => {
-      const dto = createWorkItemDto({ 
+      const dto = createWorkItemDto({
         title: "[Study Time] Completed study",
-        state: "Done" 
+        state: "Done"
       });
       const workItem = new WorkItem(dto);
       const collection = new WorkItemCollection([workItem]);
@@ -152,9 +154,9 @@ describe("WorkItemCollection", () => {
   describe("inProgress", () => {
     test("returns work items that are in progress", () => {
       const taskDto = createWorkItemDto({ state: "In Progress" });
-      const inProgressDto = createWorkItemDto({ 
-        id: 1, 
-        state: "Active", 
+      const inProgressDto = createWorkItemDto({
+        id: 1,
+        state: "Active",
         title: "In Progress Item",
         children: [taskDto]
       });

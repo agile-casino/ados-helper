@@ -5,4 +5,5 @@ export function isInDocument(element: Element) {
       return true;
     }
   }
+  return false;
 }

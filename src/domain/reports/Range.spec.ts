@@ -1,5 +1,5 @@
-import { expect, test, describe } from "vitest";
-import { Range } from "../../../src/domain/reports/Range";
+import { describe, expect, test } from "vitest";
+import { Range } from "./Range";
 
 describe("Range", () => {
   test("initializes with default values of 0,0 for start and end", () => {

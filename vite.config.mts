@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
     plugins: [
         checkerPlugin({
             biome: { command: "check", flags: "src" },
-            typescript: false
+            typescript: true
         }),
         bannerPlugin({ content: banner, verify: false }),
         cssInjectedByJsPlugin()
