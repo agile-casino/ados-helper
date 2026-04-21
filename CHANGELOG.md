@@ -21,4 +21,3 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 - Improved team movement logic.
 - Tightened Azure date parsing validation.
-

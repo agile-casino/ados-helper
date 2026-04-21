@@ -32,7 +32,8 @@
    - Centralize date parsing with validation, avoid `new Date()` fallback that hides errors, add unit tests for formats.
 
 10. Add CI/CD (GitHub Actions)
-   - Run lint, tests, and build on PRs. Add release automation and tagging for user script builds.
+
+- Run lint, tests, and build on PRs. Add release automation and tagging for user script builds.
 
 ## Quick Wins (low effort, high impact)
 
