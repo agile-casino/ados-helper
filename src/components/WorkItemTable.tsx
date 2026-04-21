@@ -192,8 +192,8 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
 function getDescription(title: string) {
   const match = title.match(/^\[(?<tag>.+?)\](?<title>.+)$/);
   if (match?.groups) {
-    const tags = (match.groups.tag ?? "").replace(" | ", ", ");
-    return { tags: tags, title: match.groups.title ?? "" };
+    const tags = (match.groups["tag"] ?? "").replace(" | ", ", ");
+    return { tags: tags, title: match.groups["title"] ?? "" };
   } else {
     return { tags: "", title: title };
   }

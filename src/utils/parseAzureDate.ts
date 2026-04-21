@@ -22,7 +22,12 @@ export function parseAzureDate(dateStr: string | undefined): Date | null {
   // Try Azure DevOps legacy format: /Date(1234567890123)/
   const azureMatch = dateStr.match(/^\/Date\((\d+)\)\/$/);
   if (azureMatch) {
-    const timestamp = Number.parseInt(azureMatch[1], 10);
+    const rawTimestamp = azureMatch[1];
+    if (!rawTimestamp) {
+      return null;
+    }
+
+    const timestamp = Number.parseInt(rawTimestamp, 10);
 
     // Validate timestamp is reasonable (between year 1970 and year 2100)
     const minTimestamp = 0; // Jan 1, 1970
