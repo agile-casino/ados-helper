@@ -39,15 +39,26 @@ function createWorkItemDto(
 }
 
 function createTaskDto(originalEstimate?: number, completedWork?: number, remainingWork?: number): WorkItemDto {
+  const scheduling: {
+    Effort: number;
+    RemainingWork?: number;
+    OriginalEstimate?: number;
+    CompletedWork?: number;
+  } = { Effort: 0 };
+  if (remainingWork !== undefined) {
+    scheduling.RemainingWork = remainingWork;
+  }
+  if (originalEstimate !== undefined) {
+    scheduling.OriginalEstimate = originalEstimate;
+  }
+  if (completedWork !== undefined) {
+    scheduling.CompletedWork = completedWork;
+  }
+
   return {
     Microsoft: {
       VSTS: {
-        Scheduling: {
-          Effort: 0,
-          RemainingWork: remainingWork,
-          OriginalEstimate: originalEstimate,
-          CompletedWork: completedWork
-        }
+        Scheduling: scheduling
       }
     },
     System: {
