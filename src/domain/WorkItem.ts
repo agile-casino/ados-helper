@@ -53,6 +53,20 @@ export class WorkItem {
     }, 0);
   }
 
+  public get originalEstimate(): number {
+    return this.tasks.reduce((acc, task) => {
+      const taskOriginalEstimate = task.Microsoft.VSTS.Scheduling.OriginalEstimate;
+      return acc + (taskOriginalEstimate ?? 0);
+    }, 0);
+  }
+
+  public get completedWork(): number {
+    return this.tasks.reduce((acc, task) => {
+      const taskCompletedWork = task.Microsoft.VSTS.Scheduling.CompletedWork;
+      return acc + (taskCompletedWork ?? 0);
+    }, 0);
+  }
+
   public get sprint(): Tag | undefined {
     const sprint = this.dto.System.IterationPath.split("\\").pop();
     return sprint ? new Tag(sprint) : undefined;

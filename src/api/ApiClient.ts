@@ -56,7 +56,9 @@ export class ApiClient {
               [System.State],
               [System.Tags],
               [Microsoft.VSTS.Scheduling.Effort],
-              [Microsoft.VSTS.Scheduling.RemainingWork]
+              [Microsoft.VSTS.Scheduling.RemainingWork],
+              [Microsoft.VSTS.Scheduling.OriginalEstimate],
+              [Microsoft.VSTS.Scheduling.CompletedWork]
             FROM WorkItemLinks
             WHERE [Source].[System.TeamProject] = @project
               AND (
@@ -120,7 +122,9 @@ export class ApiClient {
               [System.Tags],
               [Microsoft.VSTS.Common.ActivatedDate],
               [Microsoft.VSTS.Scheduling.Effort],
-              [Microsoft.VSTS.Scheduling.RemainingWork]
+              [Microsoft.VSTS.Scheduling.RemainingWork],
+              [Microsoft.VSTS.Scheduling.OriginalEstimate],
+              [Microsoft.VSTS.Scheduling.CompletedWork]
             FROM WorkItemLinks
             WHERE [Source].[System.TeamProject] = @project
               AND (

@@ -71,7 +71,7 @@ interface ReportContext {
 }
 
 function addSectionHeader(rows: CellObject[][], merges: Range[], title: string) {
-  merges.push(new Range().from(rows.length, 0).to(rows.length, 4));
+  merges.push(new Range().from(rows.length, 0).to(rows.length, 6));
   rows.push([new Cell(title).font(headerFont)]);
 }
 
@@ -81,7 +81,9 @@ function addColumnHeaders(rows: CellObject[][]) {
     new Cell("WQ/SDR").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
     new Cell("Description").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
     new Cell("Size").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
-    new Cell("Assignee").font(headerFont).alignText(centerAlign).borderBottom(thickBlack)
+    new Cell("Assignee").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+    new Cell("Original Estimate").font(headerFont).alignText(centerAlign).borderBottom(thickBlack),
+    new Cell("Completed Work").font(headerFont).alignText(centerAlign).borderBottom(thickBlack)
   ]);
 }
 
@@ -92,7 +94,9 @@ function addWorkItemRows(rows: CellObject[][], workItems: WorkItem[], context: R
       new Cell(x.wiseNumber ?? "").alignText(centerAlign).link(x.wiseLink),
       new Cell(x.title).alignText({ horizontal: "left" }),
       new Cell(x.effort || "").alignText(centerAlign),
-      new Cell(formatName(x.owner)).alignText(centerAlign)
+      new Cell(formatName(x.owner)).alignText(centerAlign),
+      new Cell(x.originalEstimate || "").alignText(centerAlign),
+      new Cell(x.completedWork || "").alignText(centerAlign)
     ]);
   });
 }
@@ -109,7 +113,9 @@ function addWorkItemSection(rows: CellObject[][], merges: Range[], title: string
       includeDoneWiseColumn ? new Cell(x.wiseNumber ?? "").alignText(centerAlign).link(x.wiseLink) : new Cell("").alignText(centerAlign),
       new Cell(x.title).alignText({ horizontal: "left" }),
       new Cell(x.effort || "").alignText(centerAlign),
-      new Cell(formatName(x.owner)).alignText(centerAlign)
+      new Cell(formatName(x.owner)).alignText(centerAlign),
+      new Cell(x.originalEstimate || "").alignText(centerAlign),
+      new Cell(x.completedWork || "").alignText(centerAlign)
     ]);
   });
 
@@ -144,7 +150,7 @@ export function generateReport(origin: string, collection: string, project: stri
 
   const worksheet = utils.aoa_to_sheet(rows);
 
-  worksheet["!cols"] = [{ wpx: 96 * 0.85714 }, { wpx: 75 * 0.85714 }, { wpx: 705 * 0.85714 }, { wpx: 50 * 0.85714 }, { wpx: 82 * 0.85714, hidden: true }];
+  worksheet["!cols"] = [{ wpx: 96 * 0.85714 }, { wpx: 75 * 0.85714 }, { wpx: 705 * 0.85714 }, { wpx: 50 * 0.85714 }, { wpx: 82 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }];
 
   worksheet["!merges"] = merges;
 
@@ -169,6 +175,8 @@ export function generateMultiTeamReport(origin: string, collection: string, proj
       new Cell(""),
       new Cell(""),
       new Cell(`${workItemCollection.commitmentPercentage}%`).font(teamHeaderFont).backgroundColor(teamData.backgroundColor).alignText(centerAlign),
+      new Cell("").backgroundColor(teamData.backgroundColor),
+      new Cell("").backgroundColor(teamData.backgroundColor),
       new Cell("").backgroundColor(teamData.backgroundColor)
     ]);
     rows.push([new Cell("")]);
@@ -185,7 +193,7 @@ export function generateMultiTeamReport(origin: string, collection: string, proj
 
   const worksheet = utils.aoa_to_sheet(rows);
 
-  worksheet["!cols"] = [{ wpx: 96 * 0.85714 }, { wpx: 75 * 0.85714 }, { wpx: 705 * 0.85714 }, { wpx: 50 * 0.85714 }, { wpx: 82 * 0.85714, hidden: true }];
+  worksheet["!cols"] = [{ wpx: 96 * 0.85714 }, { wpx: 75 * 0.85714 }, { wpx: 705 * 0.85714 }, { wpx: 50 * 0.85714 }, { wpx: 82 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }];
 
   worksheet["!merges"] = merges;
 
