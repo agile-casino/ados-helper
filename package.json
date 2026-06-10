@@ -11,7 +11,7 @@
     "lint": "npx prettier **/*.{md,yml} && biome check && knip",
     "lint:fix": "npx prettier --write **/*.{md,yml} && biome check --write && knip --fix",
     "tcm": "tcm src",
-    "test": "vitest",
+    "test": "vitest run",
     "test:watch": "vitest",
     "knip": "knip"
   },
