@@ -7,6 +7,8 @@ export interface WorkItemDto {
       Scheduling: {
         Effort: number;
         RemainingWork?: number;
+        OriginalEstimate?: number;
+        CompletedWork?: number;
       };
     };
   };
