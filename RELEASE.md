@@ -238,13 +238,27 @@ Prefer creating new releases to maintain version history integrity.
 
 ## Automation
 
-GitHub Actions can automate release steps:
+GitHub Actions automates the release steps:
 
-1. Publish user script on tag push
-2. Create GitHub releases with changelogs
-3. Update documentation sites
+1. **Build & Test**: Compiles the code and runs verification tests.
+2. **Deploy to GitHub Releases**: Uploads `index.user.js` to the GitHub release.
+3. **Deploy to Azure**: Uploads the entire build to Azure Blob Storage.
+4. **Deploy to GitHub Gist**: Deploys `index.user.js` to a specified Gist.
 
-Check `.github/workflows/` for CI/CD configuration.
+Check [.github/workflows/release.yml](file:///root/ados-helper/.github/workflows/release.yml) for the full CI/CD configuration.
+
+### Required Repository Secrets
+
+To enable these deployments, the following secrets must be set in the GitHub repository:
+
+- `BLOB_CONNECTION_STRING`: Connection string for the destination Azure Blob Storage container.
+- `GIST_TOKEN`: A GitHub Personal Access Token (PAT) with `gist` scope.
+
+### Required Repository Variables
+
+The following non-sensitive configurations can be configured as repository variables:
+
+- `GIST_ID`: The ID of the GitHub Gist where the userscript should be published.
 
 ## Questions?
 
