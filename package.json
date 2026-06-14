@@ -25,7 +25,7 @@
     "url": "https://github.com/archerax/ados-helper/issues"
   },
   "homepage": "https://github.com/archerax/ados-helper#readme",
-  "packageManager": "pnpm@8.15.4",
+  "packageManager": "pnpm@11.6.0",
   "devDependencies": {
     "@biomejs/biome": "2.5.0",
     "@testing-library/react": "^16.3.2",
