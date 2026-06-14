@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Packages
+        run: |
+          npm i -g corepack@latest
+          corepack enable
+          pnpm install
+
+      - name: Build and Test Code
+        run: |
+          pnpm run build
+          pnpm run test
+          pnpm biome ci src
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+          retention-days: 1
+
+  deploy-github:
+    name: Deploy to GitHub
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/index.user.js
+
+  deploy-azure:
+    name: Deploy to Azure
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
+      - name: Upload to Azure Blob Storage
+        uses: bacongobbler/azure-blob-storage-upload@main
+        with:
+          source_dir: dist
+          container_name: apps
+          extra_args: "--destination-path ados-helper"
+          connection_string: ${{ secrets.BLOB_CONNECTION_STRING }}
+          overwrite: "true"
+
+  deploy-gist:
+    name: Deploy to GitHub Gist
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
+      - name: Deploy to Gist
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_TOKEN }}
+          gist_id: ${{ vars.GIST_ID }}
+          file_path: dist/index.user.js
+          gist_file_name: ados-helper.user.js
