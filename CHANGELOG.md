@@ -7,6 +7,24 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.12.1] - 2026-06-14
+
+### Changed
+
+- Unified release workflows and updated documentation.
+- Upgraded project dependencies, including upgrading pnpm to 11.6.0.
+- Updated various GitHub Actions dependencies.
+
+## [2.12.0] - 2026-06-11
+
+### Added
+
+- Original estimate and completed work calculations to WorkItem class, and updated related interfaces and reports.
+
+### Fixed
+
+- Resolved broken tests, package upgrades, and linting issues.
+
 ## [2.11.0] - 2026-04-21
 
 ### Added
