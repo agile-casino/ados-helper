@@ -93,10 +93,10 @@ function addWorkItemRows(rows: CellObject[][], workItems: WorkItem[], context: R
       new Cell(x.id).alignText(centerAlign).link(`${context.origin}/${context.collection}/${context.project}/_workitems/edit/${x.id}`).style(getExtraStyles(x, sprintStartDate)),
       new Cell(x.wiseNumber ?? "").alignText(centerAlign).link(x.wiseLink),
       new Cell(x.title).alignText({ horizontal: "left" }),
-      new Cell(x.effort || "").alignText(centerAlign),
+      new Cell(x.effort ?? "").alignText(centerAlign),
       new Cell(formatName(x.owner)).alignText(centerAlign),
-      new Cell(x.originalEstimate || "").alignText(centerAlign),
-      new Cell(x.completedWork || "").alignText(centerAlign)
+      new Cell(x.originalEstimate ?? "").alignText(centerAlign),
+      new Cell(x.completedWork ?? "").alignText(centerAlign)
     ]);
   });
 }
@@ -112,10 +112,10 @@ function addWorkItemSection(rows: CellObject[][], merges: Range[], title: string
       new Cell(x.id).alignText(centerAlign).link(`${context.origin}/${context.collection}/${context.project}/_workitems/edit/${x.id}`).style(getExtraStyles(x, sprintStartDate)),
       includeDoneWiseColumn ? new Cell(x.wiseNumber ?? "").alignText(centerAlign).link(x.wiseLink) : new Cell("").alignText(centerAlign),
       new Cell(x.title).alignText({ horizontal: "left" }),
-      new Cell(x.effort || "").alignText(centerAlign),
+      new Cell(x.effort ?? "").alignText(centerAlign),
       new Cell(formatName(x.owner)).alignText(centerAlign),
-      new Cell(x.originalEstimate || "").alignText(centerAlign),
-      new Cell(x.completedWork || "").alignText(centerAlign)
+      new Cell(x.originalEstimate ?? "").alignText(centerAlign),
+      new Cell(x.completedWork ?? "").alignText(centerAlign)
     ]);
   });
 

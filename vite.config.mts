@@ -35,7 +35,8 @@ export default defineConfig(({ mode }) => ({
     rolldownOptions: {
       input: "src/index.tsx",
       output: {
-        entryFileNames: "index.user.js"
+        entryFileNames: "index.user.js",
+        codeSplitting: false
       },
       onwarn(warning, warn) {
         if (warning.code === "MODULE_LEVEL_DIRECTIVE" && warning.message.includes("use client")) {
