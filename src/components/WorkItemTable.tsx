@@ -79,47 +79,48 @@ export function WorkItemTable({ origin, collection, project, workItems, sprintSt
   }
 
   const workItemCollection = new WorkItemCollection(workItems, sprintStartDate, sprintEndDate);
+  const showWiseColumn = workItems.some(x => x.wiseNumber !== undefined);
 
   return (
     <div className={styles.workItemTable}>
       <StatisticsSummary collection={workItemCollection} />
       <Table>
         <If condition={!!workItemCollection.done.length}>
-          <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} sprintStartDate={sprintStartDate} />
+          <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
         </If>
         <If condition={!!workItemCollection.inProgress.length}>
-          <WorkItemTableHeader title={`In Progress - ${sumBy(workItemCollection.inProgress, x => x.effort)} points`} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} sprintStartDate={sprintStartDate} />
+          <WorkItemTableHeader title={`In Progress - ${sumBy(workItemCollection.inProgress, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
         </If>
         <If condition={!!workItemCollection.notStarted.length}>
-          <WorkItemTableHeader title={`Not Started - ${sumBy(workItemCollection.notStarted, x => x.effort)} points`} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} sprintStartDate={sprintStartDate} />
+          <WorkItemTableHeader title={`Not Started - ${sumBy(workItemCollection.notStarted, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
         </If>
         <If condition={!!workItemCollection.removed.length}>
-          <WorkItemTableHeader title={`Removed - ${sumBy(workItemCollection.removed, x => x.effort)} points`} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} sprintStartDate={sprintStartDate} />
+          <WorkItemTableHeader title={`Removed - ${sumBy(workItemCollection.removed, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
         </If>
         <If condition={!!workItemCollection.studyTime.length}>
-          <WorkItemTableHeader title={"Study Time"} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} sprintStartDate={sprintStartDate} />
+          <WorkItemTableHeader title={"Study Time"} showWiseColumn={showWiseColumn} />
+          <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
         </If>
       </Table>
     </div>
   );
 }
 
-function WorkItemTableHeader({ title }: { title: string }) {
+function WorkItemTableHeader({ title, showWiseColumn }: { title: string; showWiseColumn: boolean }) {
   return (
     <Table.Thead>
       <Table.Tr>
-        <Table.Th className={styles.section} colSpan={7}>
+        <Table.Th className={styles.section} colSpan={showWiseColumn ? 7 : 6}>
           {title}
         </Table.Th>
       </Table.Tr>
       <Table.Tr>
         <Table.Th style={{ textAlign: "center" }}>PBI</Table.Th>
-        <Table.Th style={{ textAlign: "center" }}>WISE</Table.Th>
+        {showWiseColumn && <Table.Th style={{ textAlign: "center" }}>WISE</Table.Th>}
         <Table.Th style={{ textAlign: "left" }}>Tags</Table.Th>
         <Table.Th style={{ textAlign: "left" }}>Description</Table.Th>
         <Table.Th style={{ textAlign: "left" }}>Assignee</Table.Th>
@@ -130,7 +131,7 @@ function WorkItemTableHeader({ title }: { title: string }) {
   );
 }
 
-function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date | undefined }) {
+function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate, showWiseColumn }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date | undefined; showWiseColumn: boolean }) {
   return (
     <Table.Tbody>
       {workItems.length ? (
@@ -171,7 +172,7 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
               <Table.Td style={style}>
                 <a href={`${origin}/${collection}/${project}/_workitems/edit/${x.id}`}>{x.id}</a>
               </Table.Td>
-              <Table.Td>{x.wiseNumber ? <a href={x.wiseLink}>{x.wiseNumber}</a> : null}</Table.Td>
+              {showWiseColumn && <Table.Td>{x.wiseNumber ? <a href={x.wiseLink}>{x.wiseNumber}</a> : null}</Table.Td>}
               <Table.Td>{description.tags}</Table.Td>
               <Table.Td>{description.title}</Table.Td>
               <Table.Td>{formatName(x.owner)}</Table.Td>
@@ -182,7 +183,7 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
         })
       ) : (
         <Table.Tr>
-          <Table.Td colSpan={5}>No work items found</Table.Td>
+          <Table.Td colSpan={showWiseColumn ? 7 : 6}>No work items found</Table.Td>
         </Table.Tr>
       )}
     </Table.Tbody>

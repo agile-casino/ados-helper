@@ -84,21 +84,32 @@ export class ApiClient {
 
     const workItemDtos = await this.queryClient.runQuery(collection, project, team, query);
 
+    let filteredWorkItemDtos = workItemDtos;
     const ids = workItemDtos.map(x => x.System.Id);
     if (ids.length) {
       const relations = await this.workItemClient.getRelations(collection, project, ids);
+      const idsToExclude = new Set<number>();
       relations.value.forEach(r => {
         const workItem = workItemDtos.find(workItem => workItem.System.Id === r.id);
         if (workItem) {
           workItem.links = r.relations?.map(l => l.url) ?? [];
+          if (workItem.System.WorkItemType === "Task") {
+            const hasParent = r.relations?.some(l => l.rel === "System.LinkTypes.Hierarchy-Reverse");
+            if (hasParent) {
+              idsToExclude.add(r.id);
+            }
+          }
         }
       });
+      if (idsToExclude.size > 0) {
+        filteredWorkItemDtos = workItemDtos.filter(x => !idsToExclude.has(x.System.Id));
+      }
     }
 
     const dates = await this.getIterationDates(collection, project, team, iteration);
 
     return {
-      workItems: workItemDtos.map(x => new WorkItem(x)),
+      workItems: filteredWorkItemDtos.map(x => new WorkItem(x)),
       sprintStartDate: dates.startDate,
       sprintEndDate: dates.finishDate
     };
@@ -154,21 +165,32 @@ export class ApiClient {
 
     const workItemDtos = await this.queryClient.runQuery(collection, project, team, query);
 
+    let filteredWorkItemDtos = workItemDtos;
     const ids = workItemDtos.map(x => x.System.Id);
     if (ids.length) {
       const relations = await this.workItemClient.getRelations(collection, project, ids);
+      const idsToExclude = new Set<number>();
       relations.value.forEach(r => {
         const workItem = workItemDtos.find(workItem => workItem.System.Id === r.id);
         if (workItem) {
           workItem.links = r.relations?.map(l => l.url) ?? [];
+          if (workItem.System.WorkItemType === "Task") {
+            const hasParent = r.relations?.some(l => l.rel === "System.LinkTypes.Hierarchy-Reverse");
+            if (hasParent) {
+              idsToExclude.add(r.id);
+            }
+          }
         }
       });
+      if (idsToExclude.size > 0) {
+        filteredWorkItemDtos = workItemDtos.filter(x => !idsToExclude.has(x.System.Id));
+      }
     }
 
     const dates = await this.getIterationDates(collection, project, team, sprintName);
 
     return {
-      workItems: workItemDtos.map(x => new WorkItem(x)),
+      workItems: filteredWorkItemDtos.map(x => new WorkItem(x)),
       sprintStartDate: dates.startDate,
       sprintEndDate: dates.finishDate
     };

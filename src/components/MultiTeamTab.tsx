@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { QueryClient } from "../api/query/QueryClient";
 import { WorkItemClient } from "../api/workItems/WorkItemClient";
+import { generateMultiTeamPdfReport } from "../domain/reports/PdfGenerator";
 import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemTable } from "./WorkItemTable";
@@ -18,6 +19,28 @@ const DEFAULT_TEAM_COLORS: Record<string, string> = {
 function getDefaultTeamColor(teamName: string): string | undefined {
   return DEFAULT_TEAM_COLORS[teamName];
 }
+
+const ExcelIcon = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <title>Excel Icon</title>
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+    <polyline points="14 2 14 8 20 8" />
+    <path d="M8 13h2v5H8z" />
+    <path d="M12 15h2v3h-2z" />
+    <path d="M16 12h2v6h-2z" />
+  </svg>
+);
+
+const PdfIcon = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <title>PDF Icon</title>
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+    <polyline points="14 2 14 8 20 8" />
+    <path d="M9 15h6" />
+    <path d="M9 11h6" />
+    <path d="M9 18h6" />
+  </svg>
+);
 
 interface MultiTeamTabProps {
   origin: string;
@@ -207,6 +230,23 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
     generateMultiTeamReport(props.origin, props.collection, props.project, props.sprint, teamWorkItems);
   };
 
+  const handleGenerateCombinedPdfReport = () => {
+    const validTeamData = teamData.filter(t => t.workItems.length > 0 && !t.error);
+    if (validTeamData.length === 0) return;
+
+    const teamWorkItems: TeamWorkItems[] = validTeamData.map(t => {
+      const teamSelection = teams.find(ts => ts.name === t.team);
+      return {
+        team: t.team,
+        workItems: t.workItems,
+        backgroundColor: teamSelection?.backgroundColor,
+        sprintStartDate: t.sprintStartDate
+      };
+    });
+
+    generateMultiTeamPdfReport(props.origin, props.collection, props.project, props.sprint, teamWorkItems);
+  };
+
   const selectedTeamsCount = teams.filter(t => t.selected).length;
   const hasLoadedData = teamData.length > 0;
   const canGenerateReport = teamData.some(t => t.workItems.length > 0 && !t.error);
@@ -289,9 +329,14 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
             Load Data ({selectedTeamsCount} team{selectedTeamsCount !== 1 ? "s" : ""})
           </Button>
           {hasLoadedData && (
-            <Button onClick={handleGenerateCombinedReport} disabled={!canGenerateReport}>
-              Generate Combined Report
-            </Button>
+            <>
+              <Button leftSection={ExcelIcon} onClick={handleGenerateCombinedReport} disabled={!canGenerateReport}>
+                Export Excel
+              </Button>
+              <Button leftSection={PdfIcon} onClick={handleGenerateCombinedPdfReport} disabled={!canGenerateReport}>
+                Export PDF
+              </Button>
+            </>
           )}
         </Group>
 
