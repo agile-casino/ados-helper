@@ -22,7 +22,11 @@ const banner = `
 export default defineConfig(({ mode }) => ({
   plugins: [
     checkerPlugin({
-      biome: { command: "check", flags: "src" },
+      biome: {
+        command: "check",
+        flags: "src",
+        watchPath: "src"
+      },
       typescript: true
     }),
     bannerPlugin({ content: banner, verify: false }),
@@ -49,6 +53,7 @@ export default defineConfig(({ mode }) => ({
     sourcemap: mode === "production" ? true : "inline"
   },
   test: {
-    setupFiles: "tests/setup.ts"
+    setupFiles: "tests/setup.ts",
+    pool: "threads"
   }
 }));

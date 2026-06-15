@@ -8,6 +8,7 @@
     "build:dev": "vite build --mode development",
     "build:watch": "vite build --watch --mode development",
     "check": "pnpm build && pnpm test && pnpm lint",
+    "dev": "vite",
     "lint": "npx prettier **/*.{md,yml} && biome check && knip",
     "lint:fix": "npx prettier --write **/*.{md,yml} && biome check --write && knip --fix",
     "tcm": "tcm src",
