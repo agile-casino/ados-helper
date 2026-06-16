@@ -7,6 +7,24 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.13.0] - 2026-06-16
+
+### Added
+
+- Enhanced report generation with PDF and Excel export options in `CurrentTeamTab` and `MultiTeamTab`.
+- Implemented PDF report generation in `PdfGenerator` with support for multi-team reports.
+- Implemented an interactive local development sandbox.
+
+### Changed
+
+- Updated `ApiClient` to filter out tasks with parent work items in the work item queries.
+- Enhanced `WorkItemTable` to conditionally display the WISE column based on work item data.
+- Updated Vite configuration to disable code splitting for the user script output.
+
+### Fixed
+
+- Resolved testing pool configuration issues.
+
 ## [2.12.1] - 2026-06-14
 
 ### Changed
