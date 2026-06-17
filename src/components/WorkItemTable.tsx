@@ -1,4 +1,5 @@
-import { Badge, Table } from "@mantine/core";
+import { Badge, Paper, Table, Text, useMantineColorScheme } from "@mantine/core";
+import { useColorScheme } from "@mantine/hooks";
 import sumBy from "lodash/sumBy";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
@@ -28,12 +29,11 @@ function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
   };
 
   return (
-    <div
+    <Paper
+      withBorder
+      p="md"
+      mb="md"
       style={{
-        padding: "1rem",
-        marginBottom: "1rem",
-        backgroundColor: "#f8f9fa",
-        borderRadius: "4px",
         display: "flex",
         gap: "2rem",
         alignItems: "center",
@@ -41,35 +41,43 @@ function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
       }}
     >
       <div>
-        <strong>Sprint Statistics</strong>
+        <Text fw={700}>Sprint Statistics</Text>
       </div>
       <div>
-        <div style={{ fontSize: "0.875rem", color: "#666" }}>Completed Items</div>
-        <div style={{ fontSize: "1.25rem", fontWeight: 600 }}>
+        <Text size="sm" c="dimmed">
+          Completed Items
+        </Text>
+        <Text size="lg" fw={600}>
           {completedCommitted.length} / {committedItems.length}
-        </div>
+        </Text>
       </div>
       <div>
-        <div style={{ fontSize: "0.875rem", color: "#666" }}>Completed Points</div>
-        <div style={{ fontSize: "1.25rem", fontWeight: 600 }}>
+        <Text size="sm" c="dimmed">
+          Completed Points
+        </Text>
+        <Text size="lg" fw={600}>
           {collection.completedCommittedEffort} / {collection.committedEffort}
-        </div>
+        </Text>
       </div>
       <div>
-        <div style={{ fontSize: "0.875rem", color: "#666" }}>Achievement</div>
+        <Text size="sm" c="dimmed">
+          Achievement
+        </Text>
         <Badge size="xl" color={getColor(percentage)} style={{ fontSize: "1.25rem" }}>
           {percentage}%
         </Badge>
       </div>
       <If condition={pulledInItems.length > 0}>
         <div>
-          <div style={{ fontSize: "0.875rem", color: "#666" }}>Pulled In Later</div>
-          <div style={{ fontSize: "1rem" }}>
+          <Text size="sm" c="dimmed">
+            Pulled In Later
+          </Text>
+          <Text size="md">
             {pulledInItems.length} items ({collection.pulledInEffort} pts)
-          </div>
+          </Text>
         </div>
       </If>
-    </div>
+    </Paper>
   );
 }
 
@@ -132,6 +140,14 @@ function WorkItemTableHeader({ title, showWiseColumn }: { title: string; showWis
 }
 
 function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate, showWiseColumn }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date | undefined; showWiseColumn: boolean }) {
+  const { colorScheme } = useMantineColorScheme();
+  const systemColorScheme = useColorScheme();
+  const isDark = colorScheme === "auto" ? systemColorScheme === "dark" : colorScheme === "dark";
+
+  const bgYellow = isDark ? "rgba(230, 200, 50, 0.18)" : "#eeece1";
+  const bgOrange = isDark ? "rgba(255, 150, 0, 0.28)" : "#FFCC66";
+  const bgPink = isDark ? "rgba(240, 100, 100, 0.22)" : "#f2dcdb";
+
   return (
     <Table.Tbody>
       {workItems.length ? (
@@ -141,11 +157,11 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
           // Tag-based color coding for yellow and orange
           if (x.sprint?.sprintNumber && x.sprintTag?.sprintNumber) {
             if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "+") {
-              style.backgroundColor = "#eeece1";
+              style.backgroundColor = bgYellow;
             } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "!") {
-              style.backgroundColor = "#FFCC66";
+              style.backgroundColor = bgOrange;
             } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber - 1 && x.sprintTag.sprintSuffix !== "+") {
-              style.backgroundColor = "#f2dcdb";
+              style.backgroundColor = bgPink;
             }
           }
 
@@ -153,11 +169,11 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
           if (!style.backgroundColor && sprintStartDate) {
             // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
             if (x.isPulledInLate(sprintStartDate)) {
-              style.backgroundColor = "#eeece1";
+              style.backgroundColor = bgYellow;
             }
-            // Pink for PBIs activated before sprint start
-            else if (x.activatedDate && x.activatedDate < sprintStartDate) {
-              style.backgroundColor = "#f2dcdb";
+            // Pink for PBIs activated > 2 days before sprint start
+            else if (x.isActivatedEarly(sprintStartDate)) {
+              style.backgroundColor = bgPink;
             }
           }
 

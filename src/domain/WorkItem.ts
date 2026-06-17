@@ -30,6 +30,13 @@ export class WorkItem {
     return this.activatedDate > twoDaysAfterStart;
   }
 
+  public isActivatedEarly(sprintStartDate: Date): boolean {
+    // If item was activated more than 2 days before sprint start, consider it activated early / pink
+    if (!this.activatedDate) return false;
+    const twoDaysBeforeStart = new Date(sprintStartDate.getTime() - 2 * 24 * 60 * 60 * 1000);
+    return this.activatedDate < twoDaysBeforeStart;
+  }
+
   public get id(): number {
     return this.dto.System.Id;
   }

@@ -22,6 +22,12 @@ export class WorkItemClient {
       body: JSON.stringify(body)
     });
 
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`Fetch work items failed with status ${response.status}:`, text);
+      throw new Error(`Fetch work items failed: HTTP ${response.status} - ${text}`);
+    }
+
     return (await response.json()) as WorkItemResponseDto;
   }
 }

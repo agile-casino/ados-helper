@@ -8,11 +8,13 @@ function createWorkItemDto(
     state: string;
     title: string;
     children: WorkItemDto[];
+    activatedDate: string;
   }> = {}
 ): WorkItemDto {
   return {
     Microsoft: {
       VSTS: {
+        ...(overrides.activatedDate ? { Common: { ActivatedDate: overrides.activatedDate } } : {}),
         Scheduling: {
           Effort: 3,
           RemainingWork: 0,
@@ -101,5 +103,47 @@ describe("WorkItem", () => {
     const workItem = new WorkItem(dto);
 
     expect(workItem.remainingWork).toBe(5);
+  });
+
+  describe("isPulledInLate", () => {
+    test("returns false when there is no activated date", () => {
+      const workItem = new WorkItem(createWorkItemDto());
+      expect(workItem.isPulledInLate(new Date("2026-06-17T00:00:00Z"))).toBe(false);
+    });
+
+    test("returns false when activated <= 2 days after sprint start", () => {
+      const sprintStart = new Date("2026-06-17T00:00:00Z");
+      // exactly 2 days after
+      const workItem = new WorkItem(createWorkItemDto({ activatedDate: "2026-06-19T00:00:00Z" }));
+      expect(workItem.isPulledInLate(sprintStart)).toBe(false);
+    });
+
+    test("returns true when activated > 2 days after sprint start", () => {
+      const sprintStart = new Date("2026-06-17T00:00:00Z");
+      // 2 days and 1 second after
+      const workItem = new WorkItem(createWorkItemDto({ activatedDate: "2026-06-19T00:00:01Z" }));
+      expect(workItem.isPulledInLate(sprintStart)).toBe(true);
+    });
+  });
+
+  describe("isActivatedEarly", () => {
+    test("returns false when there is no activated date", () => {
+      const workItem = new WorkItem(createWorkItemDto());
+      expect(workItem.isActivatedEarly(new Date("2026-06-17T00:00:00Z"))).toBe(false);
+    });
+
+    test("returns false when activated >= 2 days before sprint start", () => {
+      const sprintStart = new Date("2026-06-17T00:00:00Z");
+      // exactly 2 days before
+      const workItem = new WorkItem(createWorkItemDto({ activatedDate: "2026-06-15T00:00:00Z" }));
+      expect(workItem.isActivatedEarly(sprintStart)).toBe(false);
+    });
+
+    test("returns true when activated > 2 days before sprint start", () => {
+      const sprintStart = new Date("2026-06-17T00:00:00Z");
+      // more than 2 days before (e.g., 2 days and 1 second before)
+      const workItem = new WorkItem(createWorkItemDto({ activatedDate: "2026-06-14T23:59:59Z" }));
+      expect(workItem.isActivatedEarly(sprintStart)).toBe(true);
+    });
   });
 });

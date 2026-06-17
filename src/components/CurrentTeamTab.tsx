@@ -47,8 +47,8 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
   useEffect(() => {
     async function updateIteration() {
       if (props.collection && props.project && props.team && props.sprint) {
-        const workItemClient = new WorkItemClient(origin);
-        const queryClient = new QueryClient(origin, workItemClient);
+        const workItemClient = new WorkItemClient(props.origin);
+        const queryClient = new QueryClient(props.origin, workItemClient);
         const apiClient = new ApiClient(props.origin, queryClient, workItemClient);
 
         const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, props.team, props.sprint) : await apiClient.getIteration2(props.collection, props.project, props.team, props.iterationPath);
@@ -63,12 +63,12 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
 
   return (
     <div style={{ height: "100%", overflowY: "scroll" }}>
-      <div style={{ float: "left" }}>
-        <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={workItems} sprintStartDate={sprintStartDate} sprintEndDate={sprintEndDate} />
-        <Button leftSection={ExcelIcon} style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generateReport(origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
+      <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={workItems} sprintStartDate={sprintStartDate} sprintEndDate={sprintEndDate} />
+      <div style={{ display: "flex", gap: "1em", marginLeft: "1em", marginBottom: "1em" }}>
+        <Button leftSection={ExcelIcon} onClick={() => generateReport(props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
           Export Excel
         </Button>
-        <Button leftSection={PdfIcon} style={{ marginLeft: "1em", marginBottom: "1em" }} onClick={() => generatePdfReport(origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
+        <Button leftSection={PdfIcon} onClick={() => generatePdfReport(props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
           Export PDF
         </Button>
       </div>

@@ -1,0 +1,36 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "ados-helper",
+  "version": "2.13.0",
+  "identifier": "com.archerax.ados-helper",
+  "build": {
+    "frontendDist": "../dist-desktop",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "pnpm vite --config vite.tauri.config.mts --port 5173",
+    "beforeBuildCommand": "pnpm vite build --config vite.tauri.config.mts"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Sprint Report Generator",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "url": "desktop.html"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' https://dev.azure.com https://vssps.dev.azure.com; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
+    }
+  }
+}

@@ -26,7 +26,14 @@ export class QueryClient implements IQueryClient {
       body: JSON.stringify(body)
     });
 
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`Query failed with status ${response.status}:`, text);
+      throw new Error(`Query failed: HTTP ${response.status} - ${text}`);
+    }
+
     const responseDto = (await response.json()) as QueryResponseDto;
+    console.log("Query Response DTO:", responseDto);
 
     const result: WorkItemDto[] = [];
 
