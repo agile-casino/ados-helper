@@ -67,4 +67,4 @@ Built output is placed in the `dist/` folder.
 
 ## License
 
-UNLICENSED
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

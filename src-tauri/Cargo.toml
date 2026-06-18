@@ -2,9 +2,9 @@
 name = "app"
 version = "0.1.0"
 description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+authors = ["archerax"]
+license = "MIT"
+repository = "https://github.com/agile-casino/ados-helper"
 edition = "2021"
 rust-version = "1.77.2"
 

@@ -23,7 +23,7 @@
     "url": "git+https://github.com/archerax/ados-helper.git"
   },
   "author": "archerax",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/archerax/ados-helper/issues"
   },
