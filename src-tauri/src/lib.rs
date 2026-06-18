@@ -27,10 +27,36 @@ async fn check_auth_state(window: tauri::WebviewWindow) -> Result<bool, String> 
 }
 
 #[tauri::command]
-async fn trigger_login(app: tauri::AppHandle, _window: tauri::WebviewWindow, org: String) -> Result<(), String> {
+async fn trigger_login(app: tauri::AppHandle, window: tauri::WebviewWindow, org: String) -> Result<(), String> {
     if let Some(login_win) = app.get_webview_window("login") {
         let _ = login_win.set_focus();
         return Ok(());
+    }
+
+    // Clear stale cookies for dev.azure.com and vssps.dev.azure.com (including path-scoped cookies)
+    // to prevent the login window closing prematurely.
+    let domains = [
+        format!("https://dev.azure.com/{}", org),
+        format!("https://vssps.dev.azure.com/{}", org),
+        "https://dev.azure.com".to_string(),
+        "https://vssps.dev.azure.com".to_string(),
+    ];
+    for domain in &domains {
+        if let Ok(url) = tauri::Url::parse(domain) {
+            if let Ok(cookies) = window.cookies_for_url(url) {
+                for cookie in cookies {
+                    let name = cookie.name().to_string();
+                    if name == "UserAuthentication"
+                        || name == "AadAuthentication"
+                        || name == "FedAuth"
+                        || name == "VstsSession"
+                    {
+                        let delete_res = window.delete_cookie(cookie);
+                        println!("Deleted stale ADO cookie '{}' from {}: {:?}", name, domain, delete_res);
+                    }
+                }
+            }
+        }
     }
 
     let target_url = format!("https://dev.azure.com/{}", org);
@@ -38,6 +64,9 @@ async fn trigger_login(app: tauri::AppHandle, _window: tauri::WebviewWindow, org
         Ok(u) => u,
         Err(e) => return Err(e.to_string()),
     };
+
+    let visited_login = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let visited_login_clone = visited_login.clone();
 
     let app_handle = app.clone();
     let _login_win = tauri::webview::WebviewWindowBuilder::new(
@@ -50,23 +79,41 @@ async fn trigger_login(app: tauri::AppHandle, _window: tauri::WebviewWindow, org
     .resizable(true)
     .on_navigation(move |url| {
         let app_handle = app_handle.clone();
-        let url_str = url.as_str();
+        let url_str = url.as_str().to_string();
+        let visited_login_clone = visited_login_clone.clone();
+
+        if url_str.contains("login.microsoftonline.com")
+            || url_str.contains("login.microsoft.com")
+            || url_str.contains("live.com")
+            || url_str.contains("/signin")
+            || url_str.contains("oauth2")
+        {
+            visited_login_clone.store(true, std::sync::atomic::Ordering::SeqCst);
+        }
+
         if url_str.starts_with("https://dev.azure.com") {
-            let url_clone = url.clone();
-            tauri::async_runtime::spawn(async move {
-                if let Some(login_win) = app_handle.get_webview_window("login") {
-                    if let Ok(cookies) = login_win.cookies_for_url(url_clone) {
-                        let has_auth = cookies.iter().any(|c| {
-                            let name = c.name();
-                            name == "UserAuthentication" || name == "AadAuthentication" || name == "FedAuth" || name == "VstsSession"
-                        });
-                        if has_auth {
-                            let _ = login_win.close();
-                            let _ = app_handle.emit("login-status-changed", true);
+            if visited_login_clone.load(std::sync::atomic::Ordering::SeqCst) {
+                let url_clone = url.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Some(login_win) = app_handle.get_webview_window("login") {
+                        if let Ok(cookies) = login_win.cookies_for_url(url_clone) {
+                            println!("on_navigation: URL = {}, found {} cookies:", url_str, cookies.len());
+                            for c in &cookies {
+                                println!("  Cookie name={}, domain={}, path={}", c.name(), c.domain().unwrap_or(""), c.path().unwrap_or(""));
+                            }
+                            let has_auth = cookies.iter().any(|c| {
+                                let name = c.name();
+                                name == "UserAuthentication" || name == "AadAuthentication" || name == "FedAuth" || name == "VstsSession"
+                            });
+                            if has_auth {
+                                println!("on_navigation: has_auth is true, closing window!");
+                                let _ = login_win.close();
+                                let _ = app_handle.emit("login-status-changed", true);
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
         true
     })
@@ -205,6 +252,21 @@ async fn fetch_from_ado(
     })
 }
 
+#[tauri::command]
+async fn save_file(filename: String, bytes: Vec<u8>) -> Result<String, String> {
+    let file_path = rfd::AsyncFileDialog::new()
+        .set_file_name(&filename)
+        .save_file()
+        .await;
+
+    if let Some(path) = file_path {
+        std::fs::write(path.path(), bytes).map_err(|e| e.to_string())?;
+        Ok(path.path().to_string_lossy().to_string())
+    } else {
+        Err("Save cancelled".to_string())
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -222,7 +284,8 @@ pub fn run() {
         check_auth_state,
         trigger_login,
         clear_session,
-        fetch_from_ado
+        fetch_from_ado,
+        save_file
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

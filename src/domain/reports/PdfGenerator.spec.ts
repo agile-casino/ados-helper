@@ -18,6 +18,7 @@ const mockSetTextColor = vi.fn();
 const mockSetFillColor = vi.fn();
 const mockRect = vi.fn();
 const mockLink = vi.fn();
+const mockOutput = vi.fn().mockReturnValue(new ArrayBuffer(0));
 
 vi.mock("jspdf", () => {
   return {
@@ -39,6 +40,7 @@ vi.mock("jspdf", () => {
         setFillColor = mockSetFillColor;
         rect = mockRect;
         link = mockLink;
+        output = mockOutput;
         getNumberOfPages = () => 1;
         lastAutoTable = { finalY: 100 };
       } as unknown as (...args: unknown[]) => unknown

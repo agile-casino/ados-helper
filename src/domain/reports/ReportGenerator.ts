@@ -1,5 +1,6 @@
-import { type CellObject, type CellStyle, utils, writeFile } from "xlsx-js-style";
+import { type CellObject, type CellStyle, utils, write } from "xlsx-js-style";
 import { formatName } from "../../utils/formatName";
+import { saveFile } from "../../utils/saveFile";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 import { type BorderStyle, Cell, type FontStyle, type TextAlignStyle } from "./Cell";
@@ -156,7 +157,8 @@ export function generateReport(origin: string, collection: string, project: stri
 
   utils.book_append_sheet(workbook, worksheet, sprint);
 
-  writeFile(workbook, `${team} - ${sprint}.xlsx`);
+  const wbout = write(workbook, { bookType: "xlsx", type: "array" });
+  saveFile(new Uint8Array(wbout), `${team} - ${sprint}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 }
 
 export function generateMultiTeamReport(origin: string, collection: string, project: string, sprint: string, teamWorkItems: TeamWorkItems[]) {
@@ -200,5 +202,6 @@ export function generateMultiTeamReport(origin: string, collection: string, proj
   utils.book_append_sheet(workbook, worksheet, sprint);
 
   const teamNames = teamWorkItems.map(t => t.team).join(", ");
-  writeFile(workbook, `Multi-Team (${teamNames}) - ${sprint}.xlsx`);
+  const wbout = write(workbook, { bookType: "xlsx", type: "array" });
+  saveFile(new Uint8Array(wbout), `Multi-Team (${teamNames}) - ${sprint}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 }

@@ -28,6 +28,9 @@ export class ApiClient {
     try {
       const url = `${this.origin}/${collection}/${project}/${team}/_apis/work/teamsettings/iterations?api-version=6.0`;
       const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch iteration dates: ${response.status} ${response.statusText}`);
+      }
       const data = await response.json();
 
       const sprint = data.value.find((iter: AzureDevOpsIteration) => iter.name === iteration || iter.path.endsWith(iteration));

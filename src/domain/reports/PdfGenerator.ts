@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { saveFile } from "../../utils/saveFile";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 
@@ -224,7 +225,8 @@ export function generatePdfReport(origin: string, collection: string, project: s
   renderTeamContent(doc, team, workItems, context, sprintStartDate);
   addPageNumbers(doc);
 
-  doc.save(`${team} - ${sprint}.pdf`);
+  const pdfOutput = doc.output("arraybuffer");
+  saveFile(new Uint8Array(pdfOutput), `${team} - ${sprint}.pdf`, "application/pdf");
 }
 
 export function generateMultiTeamPdfReport(origin: string, collection: string, project: string, sprint: string, teamWorkItems: TeamWorkItems[]) {
@@ -241,5 +243,6 @@ export function generateMultiTeamPdfReport(origin: string, collection: string, p
   const teamNames = teamWorkItems.map(t => t.team).join(", ");
   addPageNumbers(doc);
 
-  doc.save(`Multi-Team (${teamNames}) - ${sprint}.pdf`);
+  const pdfOutput = doc.output("arraybuffer");
+  saveFile(new Uint8Array(pdfOutput), `Multi-Team (${teamNames}) - ${sprint}.pdf`, "application/pdf");
 }

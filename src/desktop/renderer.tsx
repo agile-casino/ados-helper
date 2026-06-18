@@ -49,6 +49,9 @@ if (isTauri && !window.electronAPI) {
       try {
         const profileUrl = "https://vssps.dev.azure.com/_apis/profile/profiles/me?api-version=6.0";
         const profileRes = await fetch(profileUrl);
+        if (!profileRes.ok) {
+          throw new Error(`Profile fetch failed: ${profileRes.status} ${profileRes.statusText}`);
+        }
         const profile = await profileRes.json();
         if (!profile?.id) {
           throw new Error("Failed to retrieve profile ID");
@@ -56,6 +59,9 @@ if (isTauri && !window.electronAPI) {
 
         const accountsUrl = `https://vssps.dev.azure.com/_apis/accounts?memberId=${profile.id}&api-version=6.0`;
         const accountsRes = await fetch(accountsUrl);
+        if (!accountsRes.ok) {
+          throw new Error(`Accounts fetch failed: ${accountsRes.status} ${accountsRes.statusText}`);
+        }
         const accountsData = await accountsRes.json();
 
         if (accountsData?.value) {
@@ -133,6 +139,11 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
       if (isAuthError) {
         console.warn("Authentication expiration detected via fetch to:", url);
         window.dispatchEvent(new CustomEvent("ados-auth-expired"));
+        return new Response(JSON.stringify({ error: "Unauthorized", message: "Azure DevOps session expired" }), {
+          status: 401,
+          statusText: "Unauthorized",
+          headers: new Headers({ "Content-Type": "application/json" })
+        });
       }
 
       return response;
@@ -163,6 +174,11 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
       if (isAuthError) {
         console.warn("Authentication expiration detected via fetch to:", url);
         window.dispatchEvent(new CustomEvent("ados-auth-expired"));
+        return new Response(JSON.stringify({ error: "Unauthorized", message: "Azure DevOps session expired" }), {
+          status: 401,
+          statusText: "Unauthorized",
+          headers: new Headers({ "Content-Type": "application/json" })
+        });
       }
     }
     return response;
@@ -296,6 +312,9 @@ const DesktopAppContent = () => {
       setLoadingProjects(true);
       try {
         const response = await fetch(`https://dev.azure.com/${org}/_apis/projects?api-version=6.0`);
+        if (!response.ok) {
+          throw new Error(`Failed to load projects: ${response.status} ${response.statusText}`);
+        }
         const data = await response.json();
         const projectList: string[] = data.value?.map((p: { name: string }) => p.name) || [];
         setProjects(projectList);
@@ -327,6 +346,9 @@ const DesktopAppContent = () => {
       setLoadingTeams(true);
       try {
         const response = await fetch(`https://dev.azure.com/${org}/_apis/projects/${selectedProject}/teams?api-version=6.0`);
+        if (!response.ok) {
+          throw new Error(`Failed to load teams: ${response.status} ${response.statusText}`);
+        }
         const data = await response.json();
         const teamList: string[] = data.value?.map((t: { name: string }) => t.name) || [];
         setTeams(teamList);
@@ -358,6 +380,9 @@ const DesktopAppContent = () => {
       setLoadingSprints(true);
       try {
         const response = await fetch(`https://dev.azure.com/${org}/${selectedProject}/${selectedTeam}/_apis/work/teamsettings/iterations?api-version=6.0`);
+        if (!response.ok) {
+          throw new Error(`Failed to load sprints: ${response.status} ${response.statusText}`);
+        }
         const data = await response.json();
         const sprintList =
           data.value?.map((i: { name: string; path: string }) => {
