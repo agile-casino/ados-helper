@@ -7,6 +7,26 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.14.0] - 2026-06-19
+
+### Added
+
+- Added `save_file` command to Tauri backend for saving files.
+- Implemented file saving in PDF and Excel report generation.
+- Implemented `open_url` command to open URLs in the default browser.
+- Added auto-update functionality in `renderer.tsx` with a notification for available updates.
+- Added updater and process plugins to Tauri configuration.
+- Added utility functions for sanitizing text for PDF generation and opening external links.
+
+### Changed
+
+- Enhanced error handling in API calls to provide clearer feedback on failures.
+- Improved cookie management during login to prevent premature window closure.
+- Refactored `WorkItemTable` to use `openExternalLink` for opening work item URLs.
+- Updated PDF generation logic to sanitize descriptions and flag PBIs based on activation dates.
+- Relocated review report, added auto-update plan, and licensed project under MIT.
+- Restricted standard Renovate updates to weekends, prioritizing vulnerability updates.
+
 ## [2.13.0] - 2026-06-16
 
 ### Added
