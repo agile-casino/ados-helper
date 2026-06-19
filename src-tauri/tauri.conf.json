@@ -47,7 +47,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE4Njg0QTkyMzFFRTQ5Q0MKUldUTVNlNHhra3BvR0ZrL2s5dFRQQ3F4ZTM3VGloMS9kNW9SRGdKZERESWNTamJ3SHZHLytySDAK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY4MEY3OUJFNEZFRjkwQUUKUldTdWtPOVB2bmtQK0dBcTFvVlk5cDBsT0ZkMVdGaEM3Umt4VThLR3Y4UVY4RmExU25RN2MvRkcK",
       "endpoints": [
         "https://github.com/archerax/ados-helper/releases/latest/download/latest.json"
       ]
