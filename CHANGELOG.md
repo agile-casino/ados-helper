@@ -7,6 +7,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.14.2] - 2026-06-19
+
+### Fixed
+
+- Fixed the automated release GitHub workflow by correcting the `tauri-apps/tauri-action` version reference.
+
+## [2.14.1] - 2026-06-19
+
+### Changed
+
+- Updated the Tauri updater public key verification configuration.
+
 ## [2.14.0] - 2026-06-19
 
 ### Added
