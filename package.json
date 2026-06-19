@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "knip": "knip",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "version": "node -e \"const fs = require('fs'); const tauri = JSON.parse(fs.readFileSync('./src-tauri/tauri.conf.json')); tauri.version = require('./package.json').version; fs.writeFileSync('./src-tauri/tauri.conf.json', JSON.stringify(tauri, null, 2) + '\\n');\" && git add src-tauri/tauri.conf.json"
   },
   "repository": {
     "type": "git",
