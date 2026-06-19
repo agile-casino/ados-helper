@@ -45,8 +45,8 @@ function getExtraStyles(workItem: WorkItem, sprintStartDate?: Date): CellStyle {
     if (workItem.isPulledInLate(sprintStartDate)) {
       result.fill = { fgColor: { rgb: "eeece1" } };
     }
-    // Pink for PBIs activated before sprint start
-    else if (workItem.activatedDate && workItem.activatedDate < sprintStartDate) {
+    // Pink for PBIs activated > 2 days before sprint start
+    else if (workItem.isActivatedEarly(sprintStartDate)) {
       result.fill = { fgColor: { rgb: "f2dcdb" } };
     }
   }

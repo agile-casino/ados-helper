@@ -18,6 +18,25 @@ interface PdfReportContext {
   sprint: string;
 }
 
+function cleanTextForPdf(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/→/g, "->")
+    .replace(/←/g, "<-")
+    .replace(/↔/g, "<->")
+    .replace(/⇒/g, "=>")
+    .replace(/⇐/g, "<=")
+    .replace(/⇔/g, "<=>")
+    .replace(/–/g, "-") // en-dash
+    .replace(/—/g, "--") // em-dash
+    .replace(/[‘’]/g, "'") // curly single quotes
+    .replace(/[“”]/g, '"') // curly double quotes
+    .replace(/…/g, "...")
+    .replace(/™/g, "(TM)")
+    .replace(/©/g, "(C)")
+    .replace(/®/g, "(R)");
+}
+
 function getRowStyles(workItem: WorkItem, sprintStartDate?: Date) {
   let bgColor: string | null = null;
   let isBold = false;
@@ -39,8 +58,8 @@ function getRowStyles(workItem: WorkItem, sprintStartDate?: Date) {
     if (workItem.isPulledInLate(sprintStartDate)) {
       bgColor = "#eeece1";
     }
-    // Pink for PBIs activated before sprint start
-    else if (workItem.activatedDate && workItem.activatedDate < sprintStartDate) {
+    // Pink for PBIs activated > 2 days before sprint start
+    else if (workItem.isActivatedEarly(sprintStartDate)) {
       bgColor = "#f2dcdb";
     }
   }
@@ -67,7 +86,7 @@ function drawTeamHeaderBanner(doc: jsPDF, teamName: string, sprintName: string, 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor("#1e293b"); // dark slate
-  doc.text(`${teamName} - ${sprintName}`, marginX + 4, startY + 11);
+  doc.text(cleanTextForPdf(`${teamName} - ${sprintName}`), marginX + 4, startY + 11);
 
   // Commitment
   doc.text(`${commitment}% Commitment`, width - marginX - 4, startY + 11, { align: "right" });
@@ -101,7 +120,7 @@ function addWorkItemSection(doc: jsPDF, title: string, workItems: WorkItem[], co
     return {
       id: String(x.id),
       wise: includeDoneWiseColumn ? (x.wiseNumber ?? "") : "",
-      description: x.title,
+      description: cleanTextForPdf(x.title),
       size: String(x.effort ?? ""),
       meta: {
         idLink: `${context.origin}/${context.collection}/${context.project}/_workitems/edit/${x.id}`,

@@ -8,5 +8,6 @@ allow = [
   "trigger_login",
   "clear_session",
   "fetch_from_ado",
-  "save_file"
+  "save_file",
+  "open_url"
 ]

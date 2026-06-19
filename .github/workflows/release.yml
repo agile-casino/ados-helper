@@ -93,3 +93,45 @@ jobs:
           gist_id: ${{ vars.GIST_ID }}
           file_path: dist/index.user.js
           gist_file_name: ados-helper.user.js
+
+  deploy-tauri:
+    name: Deploy Tauri App
+    needs: [build, deploy-github]
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Packages
+        run: |
+          npm i -g corepack@latest
+          corepack enable
+          pnpm install
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Build and Publish Tauri App
+        uses: tauri-apps/tauri-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: "Release v__VERSION__"
+          releaseBody: "Automated release of ADOS Helper"
+          releaseDraft: false
+          prerelease: false

@@ -4,6 +4,7 @@ import sumBy from "lodash/sumBy";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
 import { formatName } from "../utils/formatName";
+import { openExternalLink } from "../utils/openExternalLink";
 import { If } from "./If";
 import styles from "./WorkItemTable.module.css";
 
@@ -186,9 +187,19 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
           return (
             <Table.Tr key={x.id}>
               <Table.Td style={style}>
-                <a href={`${origin}/${collection}/${project}/_workitems/edit/${x.id}`}>{x.id}</a>
+                <a href={`${origin}/${collection}/${project}/_workitems/edit/${x.id}`} target="_blank" rel="noopener noreferrer" onClick={e => openExternalLink(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`, e)}>
+                  {x.id}
+                </a>
               </Table.Td>
-              {showWiseColumn && <Table.Td>{x.wiseNumber ? <a href={x.wiseLink}>{x.wiseNumber}</a> : null}</Table.Td>}
+              {showWiseColumn && (
+                <Table.Td>
+                  {x.wiseNumber ? (
+                    <a href={x.wiseLink} target="_blank" rel="noopener noreferrer" onClick={e => x.wiseLink && openExternalLink(x.wiseLink, e)}>
+                      {x.wiseNumber}
+                    </a>
+                  ) : null}
+                </Table.Td>
+              )}
               <Table.Td>{description.tags}</Table.Td>
               <Table.Td>{description.title}</Table.Td>
               <Table.Td>{formatName(x.owner)}</Table.Td>

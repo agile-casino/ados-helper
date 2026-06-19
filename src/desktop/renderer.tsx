@@ -1,10 +1,14 @@
 import { ActionIcon, Alert, Box, Button, Card, Group, MantineProvider, Select, Stack, Tabs, Text, TextInput, Title, useMantineColorScheme } from "@mantine/core";
+import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { check } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { CurrentTeamTab } from "../components/CurrentTeamTab";
 import { MultiTeamTab } from "../components/MultiTeamTab";
+import { isTauri } from "../utils/isTauri";
 
 // @ts-expect-error
 import "@mantine/core/styles.css";
@@ -18,10 +22,10 @@ interface TauriFetchResponse {
   url: string;
 }
 
-// Declare global type for electronAPI context bridge
+// Declare global type for desktopAPI context bridge
 declare global {
   interface Window {
-    electronAPI: {
+    desktopAPI: {
       triggerLogin: (organization: string) => Promise<void>;
       checkAuthState: () => Promise<boolean>;
       clearSession: () => Promise<boolean>;
@@ -31,10 +35,8 @@ declare global {
   }
 }
 
-const isTauri = typeof window !== "undefined" && (window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined;
-
-if (isTauri && !window.electronAPI) {
-  window.electronAPI = {
+if (isTauri && !window.desktopAPI) {
+  window.desktopAPI = {
     triggerLogin: async (organization: string) => {
       await invoke("trigger_login", { org: organization });
     },
@@ -188,8 +190,56 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
   }
 };
 
+const useAutoUpdater = () => {
+  const [updateReady, setUpdateReady] = useState(false);
+  const [newVersion, setNewVersion] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    if (!isTauri) return;
+
+    async function checkForUpdates() {
+      try {
+        const update = await check();
+        if (update) {
+          setNewVersion(update.version);
+          setIsUpdating(true);
+          // Download and install silently in the background
+          await update.downloadAndInstall();
+          setUpdateReady(true);
+        }
+      } catch (err) {
+        console.error("Failed checking or downloading updates:", err);
+      } finally {
+        setIsUpdating(false);
+      }
+    }
+    checkForUpdates();
+  }, []);
+
+  const handleRelaunch = async () => {
+    try {
+      await relaunch();
+    } catch (err) {
+      console.error("Failed to relaunch application:", err);
+    }
+  };
+
+  return { updateReady, newVersion, isUpdating, handleRelaunch };
+};
+
 const DesktopAppContent = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const { updateReady, newVersion, handleRelaunch } = useAutoUpdater();
+  const [appVersion, setAppVersion] = useState<string>("");
+
+  useEffect(() => {
+    if (isTauri) {
+      getVersion()
+        .then(setAppVersion)
+        .catch(err => console.error("Failed to get app version:", err));
+    }
+  }, []);
 
   const cycleColorScheme = () => {
     if (colorScheme === "light") {
@@ -222,7 +272,7 @@ const DesktopAppContent = () => {
 
   const loadOrgs = useCallback(async () => {
     try {
-      const orgList = await window.electronAPI.getOrganizations();
+      const orgList = await window.desktopAPI.getOrganizations();
       if (orgList && orgList.length > 0) {
         const orgNames = orgList.map(o => o.name);
         setOrganizations(orgNames);
@@ -250,8 +300,8 @@ const DesktopAppContent = () => {
 
   // Check authentication status on startup
   useEffect(() => {
-    if (typeof window === "undefined" || !window.electronAPI) {
-      console.error("Electron API is not available.");
+    if (typeof window === "undefined" || !window.desktopAPI) {
+      console.error("Desktop API is not available.");
       setIsAuthenticated(false);
       return;
     }
@@ -263,7 +313,7 @@ const DesktopAppContent = () => {
 
     async function checkAuth() {
       try {
-        const loggedIn = await window.electronAPI.checkAuthState();
+        const loggedIn = await window.desktopAPI.checkAuthState();
         setIsAuthenticated(loggedIn);
         if (loggedIn) {
           loadOrgs();
@@ -283,7 +333,7 @@ const DesktopAppContent = () => {
 
     window.addEventListener("ados-auth-expired", handleAuthExpired);
 
-    const unsubscribe = window.electronAPI.onLoginStatusChanged(status => {
+    const unsubscribe = window.desktopAPI.onLoginStatusChanged(status => {
       setIsAuthenticated(status);
       if (status) {
         setAuthError(null);
@@ -445,11 +495,11 @@ const DesktopAppContent = () => {
   const handleSignIn = async () => {
     if (!org) return;
     setAuthError(null);
-    await window.electronAPI.triggerLogin(org);
+    await window.desktopAPI.triggerLogin(org);
   };
 
   const handleSignOut = async () => {
-    await window.electronAPI.clearSession();
+    await window.desktopAPI.clearSession();
     setAuthError(null);
     setIsAuthenticated(false);
   };
@@ -458,6 +508,18 @@ const DesktopAppContent = () => {
 
   return (
     <Stack gap={0} style={{ height: "100vh", overflow: "hidden" }}>
+      {updateReady && (
+        <Alert color="teal" title="✨ Update Available" withCloseButton={false} styles={{ root: { flexShrink: 0, borderRadius: 0 } }}>
+          <Group justify="space-between">
+            <Text size="sm">
+              Version <b>{newVersion}</b> has been downloaded in the background. Restart the app to apply.
+            </Text>
+            <Button size="xs" color="teal" onClick={handleRelaunch}>
+              Restart Now
+            </Button>
+          </Group>
+        </Alert>
+      )}
       {/* Header Bar */}
       <Group
         px="md"
@@ -470,10 +532,15 @@ const DesktopAppContent = () => {
           flexShrink: 0
         }}
       >
-        <Group gap="xs">
+        <Group gap="xs" align="baseline">
           <Text fw={700} size="md" style={{ letterSpacing: "-0.2px" }}>
             Sprint Report Generator
           </Text>
+          {appVersion && (
+            <Text size="xs" c="dimmed">
+              v{appVersion}
+            </Text>
+          )}
         </Group>
 
         <Group gap="sm">

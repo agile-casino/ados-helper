@@ -54,11 +54,13 @@ function createWorkItemDto(
     state: string;
     title: string;
     links: string[];
+    activatedDate: string;
   }>
 ): WorkItemDto {
   return {
     Microsoft: {
       VSTS: {
+        ...(overrides.activatedDate ? { Common: { ActivatedDate: overrides.activatedDate } } : {}),
         Scheduling: {
           Effort: 3,
           RemainingWork: 0
@@ -127,5 +129,79 @@ describe("PdfGenerator", () => {
       expect(options.columns).toContainEqual(expect.objectContaining({ dataKey: "wise" }));
       expect(options.columnStyles["wise"]).toEqual({ cellWidth: 25, halign: "center" });
     }
+  });
+
+  test("sanitizes special unicode symbols (like arrows) in descriptions", () => {
+    const workItems = [
+      new WorkItem(
+        createWorkItemDto({
+          id: 1,
+          state: "Done",
+          title: "PBI with arrow → and curly quotes ‘hello’"
+        })
+      )
+    ];
+    generatePdfReport("http://origin", "collection", "project", "team", "sprint", workItems);
+
+    expect(mockAutoTable).toHaveBeenCalled();
+    const calls = mockAutoTable.mock.calls;
+    // Find the call for the Done (Completed) section
+    const completedCall = calls.find(call => {
+      const options = call[1] as { body: { description: string }[] };
+      return options.body.some(b => b.description.startsWith("PBI with arrow"));
+    });
+    expect(completedCall).toBeDefined();
+    const body = completedCall?.[1]?.body;
+    expect(body?.[0]?.description).toBe("PBI with arrow -> and curly quotes 'hello'");
+  });
+
+  test("flags PBIs activated > 2 days before sprint start as pink, and does not flag those activated < 2 days before", () => {
+    const sprintStartDate = new Date("2026-06-17T00:00:00Z");
+    const workItems = [
+      // Activated 1 day before sprint start (< 2 days before) -> should NOT be pink (bgColor should be null)
+      new WorkItem(
+        createWorkItemDto({
+          id: 101,
+          state: "Done",
+          title: "PBI Activated 1 day before",
+          activatedDate: "2026-06-16T00:00:00Z"
+        })
+      ),
+      // Activated 3 days before sprint start (> 2 days before) -> should be pink (#f2dcdb)
+      new WorkItem(
+        createWorkItemDto({
+          id: 102,
+          state: "Done",
+          title: "PBI Activated 3 days before",
+          activatedDate: "2026-06-14T00:00:00Z"
+        })
+      )
+    ];
+
+    generatePdfReport("http://origin", "collection", "project", "team", "sprint", workItems, sprintStartDate);
+
+    expect(mockAutoTable).toHaveBeenCalled();
+    const calls = mockAutoTable.mock.calls;
+
+    // Find the call for the Done (Completed) section
+    const completedCall = calls.find(call => {
+      const options = call[1] as { body: { description: string }[] };
+      return options.body.some(b => b.description.includes("PBI Activated"));
+    });
+
+    expect(completedCall).toBeDefined();
+    const body = completedCall?.[1]?.body as { id: string; meta: { bgColor: string | null } }[];
+
+    const pbi101 = body.find(b => b.id === "101");
+    const pbi102 = body.find(b => b.id === "102");
+
+    expect(pbi101).toBeDefined();
+    expect(pbi102).toBeDefined();
+
+    // PBI 101 is not early activated (< 2 days before start) -> no background color
+    expect(pbi101?.meta.bgColor).toBeNull();
+
+    // PBI 102 is early activated (> 2 days before start) -> pink background color
+    expect(pbi102?.meta.bgColor).toBe("#f2dcdb");
   });
 });
