@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => ({
     target: "chrome118",
     chunkSizeWarningLimit: 1024,
     rolldownOptions: {
-      input: "src/index.tsx",
+      input: "src/userscript/index.tsx",
       output: {
         entryFileNames: "index.user.js",
         codeSplitting: false

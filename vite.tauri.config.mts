@@ -15,9 +15,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "../api/": path.resolve(__dirname, "src/api/"),
-      "../components/": path.resolve(__dirname, "src/components/"),
-      "../domain/": path.resolve(__dirname, "src/domain/")
+      "../api/": path.resolve(__dirname, "src/shared/api/"),
+      "../components/": path.resolve(__dirname, "src/shared/components/"),
+      "../domain/": path.resolve(__dirname, "src/shared/domain/")
     }
   }
 });

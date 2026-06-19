@@ -2,7 +2,7 @@
   "name": "ados-helper",
   "version": "2.14.4",
   "description": "ados-helper",
-  "main": "src/index.tsx",
+  "main": "src/userscript/index.tsx",
   "scripts": {
     "build": "vite build",
     "build:dev": "vite build --mode development",

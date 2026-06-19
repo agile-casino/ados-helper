@@ -6,9 +6,9 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
-import { CurrentTeamTab } from "../components/CurrentTeamTab";
-import { MultiTeamTab } from "../components/MultiTeamTab";
-import { isTauri } from "../utils/isTauri";
+import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
+import { MultiTeamTab } from "../shared/components/MultiTeamTab";
+import { isTauri } from "../shared/utils/isTauri";
 
 // @ts-expect-error
 import "@mantine/core/styles.css";

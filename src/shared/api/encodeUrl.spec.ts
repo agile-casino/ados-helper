@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { encodeUrl } from "../../src/api/encodeUrl";
+import { encodeUrl } from "./encodeUrl";
 
 test("encodeUrl_WithOneParameter_ReturnsEncodedUrl", () => {
   const result = encodeUrl("/foo/{0}", ["bar"]);

@@ -2,7 +2,7 @@
 
 import { render } from "@testing-library/react";
 import { expect, test } from "vitest";
-import { If } from "../../src/components/If";
+import { If } from "./If";
 
 test("If_WhenConditionIsFalse_DoesNotRenderChild", () => {
   const result = render(

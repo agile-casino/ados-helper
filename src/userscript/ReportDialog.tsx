@@ -1,6 +1,6 @@
 import { Dialog, Tabs, Title } from "@mantine/core";
-import { CurrentTeamTab } from "./CurrentTeamTab";
-import { MultiTeamTab } from "./MultiTeamTab";
+import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
+import { MultiTeamTab } from "../shared/components/MultiTeamTab";
 
 interface ReportDialogProps {
   origin: string;
