@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.14.4] - 2026-06-19
+
+### Changed
+
+- Renamed the userscript file uploaded to GitHub Releases to `ados-helper.user.js` while keeping the original file names for Azure and Gist deploys.
+
 ## [2.14.3] - 2026-06-19
 
 ### Changed

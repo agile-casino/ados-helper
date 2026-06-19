@@ -49,11 +49,14 @@ jobs:
           name: dist-artifacts
           path: dist/
 
+      - name: Rename userscript for GitHub Release
+        run: cp dist/index.user.js dist/ados-helper.user.js
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            dist/index.user.js
+            dist/ados-helper.user.js
 
   deploy-azure:
     name: Deploy to Azure
