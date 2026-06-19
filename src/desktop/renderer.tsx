@@ -8,7 +8,11 @@ import { useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
+import { PlatformProvider } from "../shared/context/PlatformContext";
 import { isTauri } from "../shared/utils/isTauri";
+import { TauriPlatformService } from "./TauriPlatformService";
+
+const platformService = new TauriPlatformService();
 
 // @ts-expect-error
 import "@mantine/core/styles.css";
@@ -709,9 +713,11 @@ const DesktopAppContent = () => {
 
 export const DesktopApp = () => {
   return (
-    <MantineProvider defaultColorScheme="auto">
-      <DesktopAppContent />
-    </MantineProvider>
+    <PlatformProvider value={platformService}>
+      <MantineProvider defaultColorScheme="auto">
+        <DesktopAppContent />
+      </MantineProvider>
+    </PlatformProvider>
   );
 };
 

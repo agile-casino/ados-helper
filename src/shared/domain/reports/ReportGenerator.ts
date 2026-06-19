@@ -1,6 +1,5 @@
 import { type CellObject, type CellStyle, utils, write } from "xlsx-js-style";
 import { formatName } from "../../utils/formatName";
-import { saveFile } from "../../utils/saveFile";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 import { type BorderStyle, Cell, type FontStyle, type TextAlignStyle } from "./Cell";
@@ -140,7 +139,7 @@ function addTeamWorkItems(rows: CellObject[][], merges: Range[], workItems: Work
   }
 }
 
-export function generateReport(origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[], sprintStartDate?: Date) {
+export function generateReport(saveFile: (data: Uint8Array, filename: string, mimeType: string) => Promise<void>, origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[], sprintStartDate?: Date) {
   const workbook = utils.book_new();
 
   const rows: CellObject[][] = [];
@@ -161,7 +160,7 @@ export function generateReport(origin: string, collection: string, project: stri
   saveFile(new Uint8Array(wbout), `${team} - ${sprint}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 }
 
-export function generateMultiTeamReport(origin: string, collection: string, project: string, sprint: string, teamWorkItems: TeamWorkItems[]) {
+export function generateMultiTeamReport(saveFile: (data: Uint8Array, filename: string, mimeType: string) => Promise<void>, origin: string, collection: string, project: string, sprint: string, teamWorkItems: TeamWorkItems[]) {
   const workbook = utils.book_new();
 
   const rows: CellObject[][] = [];

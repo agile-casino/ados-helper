@@ -1,10 +1,10 @@
 import { Badge, Paper, Table, Text, useMantineColorScheme } from "@mantine/core";
 import { useColorScheme } from "@mantine/hooks";
 import sumBy from "lodash/sumBy";
+import { usePlatform } from "../context/PlatformContext";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
 import { formatName } from "../utils/formatName";
-import { openExternalLink } from "../utils/openExternalLink";
 import { If } from "./If";
 import styles from "./WorkItemTable.module.css";
 
@@ -143,6 +143,7 @@ function WorkItemTableHeader({ title, showWiseColumn }: { title: string; showWis
 function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate, showWiseColumn }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date | undefined; showWiseColumn: boolean }) {
   const { colorScheme } = useMantineColorScheme();
   const systemColorScheme = useColorScheme();
+  const platform = usePlatform();
   const isDark = colorScheme === "auto" ? systemColorScheme === "dark" : colorScheme === "dark";
 
   const bgYellow = isDark ? "rgba(230, 200, 50, 0.18)" : "#eeece1";
@@ -187,14 +188,14 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
           return (
             <Table.Tr key={x.id}>
               <Table.Td style={style}>
-                <a href={`${origin}/${collection}/${project}/_workitems/edit/${x.id}`} target="_blank" rel="noopener noreferrer" onClick={e => openExternalLink(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`, e)}>
+                <a href={`${origin}/${collection}/${project}/_workitems/edit/${x.id}`} target="_blank" rel="noopener noreferrer" onClick={e => platform.openExternalLink(`${origin}/${collection}/${project}/_workitems/edit/${x.id}`, e)}>
                   {x.id}
                 </a>
               </Table.Td>
               {showWiseColumn && (
                 <Table.Td>
                   {x.wiseNumber ? (
-                    <a href={x.wiseLink} target="_blank" rel="noopener noreferrer" onClick={e => x.wiseLink && openExternalLink(x.wiseLink, e)}>
+                    <a href={x.wiseLink} target="_blank" rel="noopener noreferrer" onClick={e => x.wiseLink && platform.openExternalLink(x.wiseLink, e)}>
                       {x.wiseNumber}
                     </a>
                   ) : null}

@@ -1,7 +1,11 @@
 import { MantineProvider } from "@mantine/core";
 import { useColorScheme } from "@mantine/hooks";
 import { useCallback, useEffect, useState } from "react";
+import { PlatformProvider } from "../shared/context/PlatformContext";
+import { BrowserPlatformService } from "./BrowserPlatformService";
 import { ReportDialog } from "./ReportDialog";
+
+const platformService = new BrowserPlatformService();
 
 export const App = () => {
   const [url, setUrl] = useState(window.location.href);
@@ -39,12 +43,14 @@ export const App = () => {
     const iterationSegments = iterationPath.split("/");
     const sprint = iterationSegments[iterationSegments.length - 1] ?? iterationPath;
     return (
-      <MantineProvider defaultColorScheme={colorScheme}>
-        <button type="button" onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", margin: "auto 8px", background: "none", border: "1px solid rgb(234,234,234)" }}>
-          Reports
-        </button>
-        <ReportDialog origin={origin} collection={collection} project={project} team={team} sprint={sprint} iterationPath={iterationPath} open={dialogOpen} onCloseClicked={() => setDialogOpen(!dialogOpen)} />
-      </MantineProvider>
+      <PlatformProvider value={platformService}>
+        <MantineProvider defaultColorScheme={colorScheme}>
+          <button type="button" onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", margin: "auto 8px", background: "none", border: "1px solid rgb(234,234,234)" }}>
+            Reports
+          </button>
+          <ReportDialog origin={origin} collection={collection} project={project} team={team} sprint={sprint} iterationPath={iterationPath} open={dialogOpen} onCloseClicked={() => setDialogOpen(!dialogOpen)} />
+        </MantineProvider>
+      </PlatformProvider>
     );
   } else {
     return null;

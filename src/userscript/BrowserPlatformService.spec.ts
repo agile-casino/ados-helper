@@ -1,14 +1,17 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import * as isTauriModule from "./isTauri";
-import { openExternalLink } from "./openExternalLink";
 
-describe("openExternalLink", () => {
+import type React from "react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { BrowserPlatformService } from "./BrowserPlatformService";
+
+describe("BrowserPlatformService", () => {
   let originalWindowOpen: typeof window.open;
+  let service: BrowserPlatformService;
 
   beforeEach(() => {
     originalWindowOpen = window.open;
     window.open = vi.fn();
+    service = new BrowserPlatformService();
   });
 
   afterEach(() => {
@@ -16,11 +19,10 @@ describe("openExternalLink", () => {
     vi.restoreAllMocks();
   });
 
-  test("opens in new tab when not in Tauri", async () => {
-    vi.spyOn(isTauriModule, "isTauri", "get").mockReturnValue(false);
+  test("openExternalLink opens in new tab and calls preventDefault", async () => {
     const mockEvent = { preventDefault: vi.fn() } as unknown as React.MouseEvent;
 
-    await openExternalLink("https://example.com", mockEvent);
+    await service.openExternalLink("https://example.com", mockEvent);
 
     expect(mockEvent.preventDefault).toHaveBeenCalled();
     expect(window.open).toHaveBeenCalledWith("https://example.com", "_blank", "noopener,noreferrer");

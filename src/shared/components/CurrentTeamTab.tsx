@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { QueryClient } from "../api/query/QueryClient";
 import { WorkItemClient } from "../api/workItems/WorkItemClient";
+import { usePlatform } from "../context/PlatformContext";
 import { generatePdfReport } from "../domain/reports/PdfGenerator";
 import { generateReport } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
@@ -43,6 +44,7 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
   const [sprintStartDate, setSprintStartDate] = useState<Date | undefined>();
   const [sprintEndDate, setSprintEndDate] = useState<Date | undefined>();
+  const platform = usePlatform();
 
   useEffect(() => {
     async function updateIteration() {
@@ -65,10 +67,10 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
     <div style={{ height: "100%", overflowY: "scroll" }}>
       <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={workItems} sprintStartDate={sprintStartDate} sprintEndDate={sprintEndDate} />
       <div style={{ display: "flex", gap: "1em", marginLeft: "1em", marginBottom: "1em" }}>
-        <Button leftSection={ExcelIcon} onClick={() => generateReport(props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
+        <Button leftSection={ExcelIcon} onClick={() => generateReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
           Export Excel
         </Button>
-        <Button leftSection={PdfIcon} onClick={() => generatePdfReport(props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
+        <Button leftSection={PdfIcon} onClick={() => generatePdfReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
           Export PDF
         </Button>
       </div>

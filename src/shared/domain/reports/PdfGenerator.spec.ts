@@ -9,6 +9,7 @@ vi.mock("jspdf-autotable", () => ({
 }));
 
 const mockSave = vi.fn();
+const mockSaveFile = vi.fn();
 const mockText = vi.fn();
 const mockAddPage = vi.fn();
 const mockSetPage = vi.fn();
@@ -88,11 +89,12 @@ describe("PdfGenerator", () => {
   beforeEach(() => {
     mockAutoTable.mockClear();
     mockSave.mockClear();
+    mockSaveFile.mockClear();
   });
 
   test("hides WQ/SDR column if no work item has a WQ/SDR", () => {
     const workItems = [new WorkItem(createWorkItemDto({ id: 1, state: "Done", title: "PBI 1" }))];
-    generatePdfReport("http://origin", "collection", "project", "team", "sprint", workItems);
+    generatePdfReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
 
     expect(mockAutoTable).toHaveBeenCalled();
     const calls = mockAutoTable.mock.calls;
@@ -117,7 +119,7 @@ describe("PdfGenerator", () => {
         })
       )
     ];
-    generatePdfReport("http://origin", "collection", "project", "team", "sprint", workItems);
+    generatePdfReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
 
     expect(mockAutoTable).toHaveBeenCalled();
     const calls = mockAutoTable.mock.calls;
@@ -141,7 +143,7 @@ describe("PdfGenerator", () => {
         })
       )
     ];
-    generatePdfReport("http://origin", "collection", "project", "team", "sprint", workItems);
+    generatePdfReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
 
     expect(mockAutoTable).toHaveBeenCalled();
     const calls = mockAutoTable.mock.calls;
@@ -178,7 +180,7 @@ describe("PdfGenerator", () => {
       )
     ];
 
-    generatePdfReport("http://origin", "collection", "project", "team", "sprint", workItems, sprintStartDate);
+    generatePdfReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems, sprintStartDate);
 
     expect(mockAutoTable).toHaveBeenCalled();
     const calls = mockAutoTable.mock.calls;

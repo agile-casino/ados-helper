@@ -1,6 +1,5 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { saveFile } from "../../utils/saveFile";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 
@@ -237,7 +236,7 @@ function addPageNumbers(doc: jsPDF) {
   }
 }
 
-export function generatePdfReport(origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[], sprintStartDate?: Date) {
+export function generatePdfReport(saveFile: (data: Uint8Array, filename: string, mimeType: string) => Promise<void>, origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[], sprintStartDate?: Date) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const context: PdfReportContext = { origin, collection, project, sprint };
 
@@ -248,7 +247,7 @@ export function generatePdfReport(origin: string, collection: string, project: s
   saveFile(new Uint8Array(pdfOutput), `${team} - ${sprint}.pdf`, "application/pdf");
 }
 
-export function generateMultiTeamPdfReport(origin: string, collection: string, project: string, sprint: string, teamWorkItems: TeamWorkItems[]) {
+export function generateMultiTeamPdfReport(saveFile: (data: Uint8Array, filename: string, mimeType: string) => Promise<void>, origin: string, collection: string, project: string, sprint: string, teamWorkItems: TeamWorkItems[]) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const context: PdfReportContext = { origin, collection, project, sprint };
 

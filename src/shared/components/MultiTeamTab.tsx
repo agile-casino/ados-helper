@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { QueryClient } from "../api/query/QueryClient";
 import { WorkItemClient } from "../api/workItems/WorkItemClient";
+import { usePlatform } from "../context/PlatformContext";
 import { generateMultiTeamPdfReport } from "../domain/reports/PdfGenerator";
 import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
@@ -97,6 +98,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
   const [teams, setTeams] = useState<TeamSelection[]>([]);
   const [teamData, setTeamData] = useState<TeamData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const platform = usePlatform();
   const [initialized, setInitialized] = useState(false);
 
   // Load teams from localStorage on mount, or fallback to current team
@@ -227,7 +229,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
       };
     });
 
-    generateMultiTeamReport(props.origin, props.collection, props.project, props.sprint, teamWorkItems);
+    generateMultiTeamReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, teamWorkItems);
   };
 
   const handleGenerateCombinedPdfReport = () => {
@@ -244,7 +246,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
       };
     });
 
-    generateMultiTeamPdfReport(props.origin, props.collection, props.project, props.sprint, teamWorkItems);
+    generateMultiTeamPdfReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, teamWorkItems);
   };
 
   const selectedTeamsCount = teams.filter(t => t.selected).length;

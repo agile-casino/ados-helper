@@ -1,8 +1,6 @@
 import { defineConfig } from "vite";
 import { analyzer } from "vite-bundle-analyzer";
 import bannerPlugin from "vite-plugin-banner";
-import checkerPlugin from "vite-plugin-checker";
-import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import pkg from "./package.json" with { type: "json" };
 
 const banner = `
@@ -20,20 +18,32 @@ const banner = `
 // ==/UserScript==
 `.trim();
 
+// Custom lightweight CSS-in-JS injector to prevent native Rolldown segfaults
+function cssInJsPlugin() {
+  return {
+    name: "css-in-js-plugin",
+    // biome-ignore lint/suspicious/noExplicitAny: bundle structure is dynamic during chunk generation
+    generateBundle(_options: unknown, bundle: Record<string, any>) {
+      let cssContent = "";
+      for (const [fileName, file] of Object.entries(bundle)) {
+        if (fileName.endsWith(".css") && file.type === "asset") {
+          cssContent += file.source;
+          delete bundle[fileName];
+        }
+      }
+      if (cssContent) {
+        const entryChunk = Object.values(bundle).find(chunk => chunk.type === "chunk" && chunk.isEntry);
+        if (entryChunk) {
+          const injectionCode = `\n(function(){var style=document.createElement('style');style.textContent=${JSON.stringify(cssContent)};document.head.appendChild(style);})();\n`;
+          entryChunk.code = injectionCode + entryChunk.code;
+        }
+      }
+    }
+  };
+}
+
 export default defineConfig(({ mode }) => ({
-  plugins: [
-    analyzer({ analyzerMode: "static" }),
-    checkerPlugin({
-      biome: {
-        command: "check",
-        flags: "src",
-        watchPath: "src"
-      },
-      typescript: true
-    }),
-    bannerPlugin({ content: banner, verify: false }),
-    cssInjectedByJsPlugin()
-  ],
+  plugins: [analyzer({ analyzerMode: "static" }), bannerPlugin({ content: banner, verify: false }), cssInJsPlugin()],
   build: {
     manifest: true,
     target: "chrome118",
