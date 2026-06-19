@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.14.3] - 2026-06-19
+
+### Changed
+
+- Configured Tauri bundle targets to build only the NSIS (`.exe`) installer, removing the MSI installer package.
+
 ## [2.14.2] - 2026-06-19
 
 ### Fixed
