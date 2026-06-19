@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "ados-helper",
-  "version": "2.13.1",
+  "version": "2.14.0",
   "identifier": "com.archerax.ados-helper",
   "build": {
     "frontendDist": "../dist-desktop",
@@ -29,7 +29,13 @@
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": "all",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
     },
@@ -42,7 +48,9 @@
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE4Njg0QTkyMzFFRTQ5Q0MKUldUTVNlNHhra3BvR0ZrL2s5dFRQQ3F4ZTM3VGloMS9kNW9SRGdKZERESWNTamJ3SHZHLytySDAK",
-      "endpoints": ["https://github.com/archerax/ados-helper/releases/latest/download/latest.json"]
+      "endpoints": [
+        "https://github.com/archerax/ados-helper/releases/latest/download/latest.json"
+      ]
     }
   }
 }
