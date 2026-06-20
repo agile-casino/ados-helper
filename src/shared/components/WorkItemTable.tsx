@@ -5,7 +5,6 @@ import { usePlatform } from "../context/PlatformContext";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
 import { formatName } from "../utils/formatName";
-import { If } from "./If";
 import styles from "./WorkItemTable.module.css";
 
 interface WorkItemTableProps {
@@ -68,7 +67,7 @@ function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
           {percentage}%
         </Badge>
       </div>
-      <If condition={pulledInItems.length > 0}>
+      {pulledInItems.length > 0 && (
         <div>
           <Text size="sm" c="dimmed">
             Pulled In Later
@@ -77,7 +76,7 @@ function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
             {pulledInItems.length} items ({collection.pulledInEffort} pts)
           </Text>
         </div>
-      </If>
+      )}
     </Paper>
   );
 }
@@ -94,26 +93,36 @@ export function WorkItemTable({ origin, collection, project, workItems, sprintSt
     <div className={styles.workItemTable}>
       <StatisticsSummary collection={workItemCollection} />
       <Table>
-        <If condition={!!workItemCollection.done.length}>
-          <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-        </If>
-        <If condition={!!workItemCollection.inProgress.length}>
-          <WorkItemTableHeader title={`In Progress - ${sumBy(workItemCollection.inProgress, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-        </If>
-        <If condition={!!workItemCollection.notStarted.length}>
-          <WorkItemTableHeader title={`Not Started - ${sumBy(workItemCollection.notStarted, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-        </If>
-        <If condition={!!workItemCollection.removed.length}>
-          <WorkItemTableHeader title={`Removed - ${sumBy(workItemCollection.removed, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-        </If>
-        <If condition={!!workItemCollection.studyTime.length}>
-          <WorkItemTableHeader title={"Study Time"} showWiseColumn={showWiseColumn} />
-          <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-        </If>
+        {workItemCollection.done.length > 0 && (
+          <>
+            <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+        {workItemCollection.inProgress.length > 0 && (
+          <>
+            <WorkItemTableHeader title={`In Progress - ${sumBy(workItemCollection.inProgress, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+        {workItemCollection.notStarted.length > 0 && (
+          <>
+            <WorkItemTableHeader title={`Not Started - ${sumBy(workItemCollection.notStarted, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+        {workItemCollection.removed.length > 0 && (
+          <>
+            <WorkItemTableHeader title={`Removed - ${sumBy(workItemCollection.removed, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+        {workItemCollection.studyTime.length > 0 && (
+          <>
+            <WorkItemTableHeader title={"Study Time"} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
       </Table>
     </div>
   );
