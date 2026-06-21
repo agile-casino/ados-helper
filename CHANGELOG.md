@@ -7,6 +7,27 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.15.0] - 2026-06-21
+
+### Added
+
+- Added platform-specific capability abstraction with `PlatformService` (using Adapter/DI pattern), supporting distinct browser (`BrowserPlatformService`) and Tauri desktop (`TauriPlatformService`) implementations.
+- Added developer guidelines and constraints in `.agents/AGENTS.md`.
+
+### Changed
+
+- Reorganized project directory layout into distinct folders: `src/shared/` (platform-agnostic), `src/userscript/` (userscript-specific), and `src/desktop/` (desktop/Tauri).
+- Restored original TS checking and `css-injected-by-js` build plugins.
+- Moved local development sandbox and page code to its own `src/dev/` directory.
+
+### Removed
+
+- Removed custom `<If>` React component and replaced usages in `WorkItemTable.tsx` with standard React conditional rendering.
+
+### Fixed
+
+- Disabled Tauri updater signing during validation builds in GitHub Actions workflows to speed up CI checking.
+
 ## [2.14.4] - 2026-06-19
 
 ### Changed
