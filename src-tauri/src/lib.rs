@@ -293,6 +293,29 @@ async fn open_url(url: String) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+async fn is_portable() -> Result<bool, String> {
+    let current_exe = std::env::current_exe().map_err(|e| e.to_string())?;
+
+    // On Windows, check if the executable is outside of LOCALAPPDATA
+    #[cfg(target_os = "windows")]
+    {
+        if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") {
+            let local_app_data_path = std::path::Path::new(&local_app_data);
+            if current_exe.starts_with(local_app_data_path) {
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    }
+
+    // On other platforms, default to false
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(false)
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -317,7 +340,8 @@ pub fn run() {
         clear_session,
         fetch_from_ado,
         save_file,
-        open_url
+        open_url,
+        is_portable
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

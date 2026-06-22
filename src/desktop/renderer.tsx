@@ -198,6 +198,7 @@ const useAutoUpdater = () => {
   const [updateReady, setUpdateReady] = useState(false);
   const [newVersion, setNewVersion] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isPortableApp, setIsPortableApp] = useState(false);
 
   useEffect(() => {
     if (!isTauri) return;
@@ -207,10 +208,20 @@ const useAutoUpdater = () => {
         const update = await check();
         if (update) {
           setNewVersion(update.version);
-          setIsUpdating(true);
-          // Download and install silently in the background
-          await update.downloadAndInstall();
-          setUpdateReady(true);
+
+          // Check if running as a portable/bare .exe outside AppData
+          const portable = await invoke<boolean>("is_portable");
+          setIsPortableApp(portable);
+
+          if (portable) {
+            // For portable app, notify the user without downloading in the background
+            setUpdateReady(true);
+          } else {
+            setIsUpdating(true);
+            // Download and install silently in the background for installed app
+            await update.downloadAndInstall();
+            setUpdateReady(true);
+          }
         }
       } catch (err) {
         console.error("Failed checking or downloading updates:", err);
@@ -229,12 +240,20 @@ const useAutoUpdater = () => {
     }
   };
 
-  return { updateReady, newVersion, isUpdating, handleRelaunch };
+  const handleOpenReleasePage = async () => {
+    try {
+      await invoke("open_url", { url: "https://github.com/archerax/ados-helper/releases" });
+    } catch (err) {
+      console.error("Failed to open release page:", err);
+    }
+  };
+
+  return { updateReady, newVersion, isUpdating, isPortableApp, handleRelaunch, handleOpenReleasePage };
 };
 
 const DesktopAppContent = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const { updateReady, newVersion, handleRelaunch } = useAutoUpdater();
+  const { updateReady, newVersion, isPortableApp, handleRelaunch, handleOpenReleasePage } = useAutoUpdater();
   const [appVersion, setAppVersion] = useState<string>("");
 
   useEffect(() => {
@@ -515,12 +534,25 @@ const DesktopAppContent = () => {
       {updateReady && (
         <Alert color="teal" title="✨ Update Available" withCloseButton={false} styles={{ root: { flexShrink: 0, borderRadius: 0 } }}>
           <Group justify="space-between">
-            <Text size="sm">
-              Version <b>{newVersion}</b> has been downloaded in the background. Restart the app to apply.
-            </Text>
-            <Button size="xs" color="teal" onClick={handleRelaunch}>
-              Restart Now
-            </Button>
+            {isPortableApp ? (
+              <>
+                <Text size="sm">
+                  Version <b>{newVersion}</b> is now available. Click to download the latest release from GitHub.
+                </Text>
+                <Button size="xs" color="teal" onClick={handleOpenReleasePage}>
+                  Go to Downloads
+                </Button>
+              </>
+            ) : (
+              <>
+                <Text size="sm">
+                  Version <b>{newVersion}</b> has been downloaded in the background. Restart the app to apply.
+                </Text>
+                <Button size="xs" color="teal" onClick={handleRelaunch}>
+                  Restart Now
+                </Button>
+              </>
+            )}
           </Group>
         </Alert>
       )}
