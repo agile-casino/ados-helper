@@ -7,6 +7,19 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.15.1] - 2026-06-22
+
+### Added
+
+- Added portable/bare `.exe` detection (`is_portable` command in Rust backend).
+- Configured GitHub release workflow to package and upload the bare unbundled `ados-helper.exe` binary.
+
+### Changed
+
+- Configured NSIS installer to run fully silently by default and auto-launch the application on first-time double-click.
+- Configured Tauri auto-updater to run in `passive` mode for background updates of the installed app.
+- Updated the desktop auto-updater UI to redirect portable users to the GitHub Releases page on update, while preserving background auto-updates for installed users.
+
 ## [2.15.0] - 2026-06-21
 
 ### Added
