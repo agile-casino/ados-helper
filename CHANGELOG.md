@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.15.2] - 2026-06-22
+
+### Fixed
+
+- Fixed the GitHub Release workflow to correctly locate, rename, and package the compiled executable (`app.exe`) to the product name (`ados-helper.exe`) before uploading it to release assets.
+
 ## [2.15.1] - 2026-06-22
 
 ### Added
