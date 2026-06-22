@@ -139,6 +139,15 @@ jobs:
           releaseDraft: false
           prerelease: false
 
+      - name: Rename and Prepare Bare Executable
+        run: |
+          $exe = Get-ChildItem -Path "src-tauri/target" -Filter "app.exe" -Recurse | Where-Object { $_.FullName -like "*release*" } | Select-Object -First 1
+          if ($exe) {
+            New-Item -ItemType Directory -Force -Path "src-tauri/target/release"
+            Copy-Item $exe.FullName "src-tauri/target/release/ados-helper.exe" -Force
+          }
+        shell: pwsh
+
       - name: Upload Bare Executable to Release
         uses: softprops/action-gh-release@v3
         env:
