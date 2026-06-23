@@ -7,6 +7,16 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.15.3] - 2026-06-23
+
+### Added
+
+- Added `useAdoState` React hook for managing Azure DevOps state.
+
+### Changed
+
+- Updated development dependencies (`@tauri-apps/cli`, `@types/node`, and `knip`) and formatted `tauri.conf.json`.
+
 ## [2.15.2] - 2026-06-22
 
 ### Fixed
