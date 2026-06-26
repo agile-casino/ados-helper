@@ -29,7 +29,7 @@
     "url": "https://github.com/archerax/ados-helper/issues"
   },
   "homepage": "https://github.com/archerax/ados-helper#readme",
-  "packageManager": "pnpm@11.6.0",
+  "packageManager": "pnpm@11.9.0",
   "devDependencies": {
     "@biomejs/biome": "2.5.0",
     "@tauri-apps/cli": "^2.11.3",
