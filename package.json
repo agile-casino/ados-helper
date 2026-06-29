@@ -1,6 +1,6 @@
 {
   "name": "ados-helper",
-  "version": "2.15.3",
+  "version": "2.15.4",
   "description": "ados-helper",
   "main": "src/userscript/index.tsx",
   "scripts": {
