@@ -22,7 +22,7 @@ const banner = `
 
 export default defineConfig(({ mode }) => ({
   plugins: [
-    ...(process.env["ANALYZE"] ? [analyzer({ analyzerMode: "static" })] : []),
+    analyzer({ analyzerMode: "static" }),
     checkerPlugin({
       biome: {
         command: "check",

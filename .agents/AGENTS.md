@@ -11,6 +11,13 @@ This project is a hybrid application that operates as:
 1. A **Tampermonkey userscript** to inject productivity features directly into Azure DevOps (ADOS) pages.
 2. A **Tauri desktop application** (`src-tauri/`) that wraps the extension logic in a native desktop container.
 
+### Codebase Architecture
+
+- **[src/userscript/](file:///root/ados-helper/src/userscript)**: Entry point and environment-specific logic for the Tampermonkey userscript.
+- **[src/desktop/](file:///root/ados-helper/src/desktop)**: Entry point and frontend logic for the Tauri desktop application.
+- **[src/shared/](file:///root/ados-helper/src/shared)**: Core APIs, components, context, domain models, services, and utils shared between userscript and desktop modes.
+- **[src/dev/](file:///root/ados-helper/src/dev)**: Local development sandbox simulating ADOS and intercepting REST APIs.
+
 ### Technologies
 
 - **Core:** TypeScript, React (v19)
@@ -40,7 +47,7 @@ This project is a hybrid application that operates as:
 ### 2. Styling Style Guide
 
 - Prefer **CSS Modules** (e.g., `ComponentName.module.css`) for component styling.
-- `typed-css-modules` generates TypeScript type definitions for CSS modules (`.module.css.d.ts`). Run `pnpm tcm` to regenerate CSS module types if styling classes change.
+- **CSS Type Generation:** `typed-css-modules` generates TypeScript type definitions for CSS modules (`.module.css.d.ts`). Run `pnpm tcm` to regenerate CSS module types whenever styling classes change. If styling classes are added or deleted, this script MUST be run to avoid TypeScript compilation errors.
 - Use **Mantine UI** components where appropriate for UI layout, grids, and pre-built components.
 
 ### 3. Imports and File Names
@@ -83,3 +90,24 @@ When preparing and performing a release, strictly follow the process outlined in
 4. **Push Release:**
    - Push tags and branches to origin.
    - _Note:_ If tests fail during push checks due to vitest configuration issues unrelated to your change, push with `--no-verify`.
+
+---
+
+## 🖥️ Local Sandbox Development
+
+For testing and verifying UI features:
+
+1. Run the interactive dev server using `pnpm dev`.
+2. Navigate to `http://localhost:5173/` to view the simulated ADOS Shell.
+3. Intercepted ADOS REST APIs and mock responses are defined in [src/dev/sandbox.ts](file:///root/ados-helper/src/dev/sandbox.ts). Update this file to add mock handlers or custom UI states if needed.
+4. Verify changes in both Light and Dark mode options.
+
+---
+
+## 🧠 Self-Improvement & Reflection Protocol
+
+To ensure continuous improvement of the agentic setup, agents must follow this reflection protocol before completing any task:
+
+1. **Reflect on Hurdles:** Did you encounter any configuration quirks, build/test issues, dependency resolutions, or lint challenges during this task?
+2. **Document Findings:** If you resolved a unique issue (e.g., Vitest configuration glitches, Knip errors, package conflicts), update the "Troubleshooting" sections or add guidelines in this file (`AGENTS.md`) or in the relevant skill files.
+3. **Collective Memory:** Keeping instructions fresh ensures subsequent agent runs do not hit the same friction points.
