@@ -2,6 +2,11 @@ import type React from "react";
 import type { PlatformService } from "../shared/services/PlatformService";
 
 export class BrowserPlatformService implements PlatformService {
+  constructor() {
+    this.saveFile = this.saveFile.bind(this);
+    this.openExternalLink = this.openExternalLink.bind(this);
+  }
+
   async saveFile(data: Uint8Array, filename: string, mimeType: string): Promise<void> {
     const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
     if (!isBrowser) return;

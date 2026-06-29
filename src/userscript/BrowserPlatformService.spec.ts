@@ -27,4 +27,28 @@ describe("BrowserPlatformService", () => {
     expect(mockEvent.preventDefault).toHaveBeenCalled();
     expect(window.open).toHaveBeenCalledWith("https://example.com", "_blank", "noopener,noreferrer");
   });
+
+  test("saveFile falls back to fallbackBrowserDownload if GM_download fails when called unbound", async () => {
+    const mockGMDownload = vi.fn((options: { url: string; name: string; onload: () => void; onerror: (err: unknown) => void }) => {
+      options.onerror(new Error("GM_download simulated error"));
+    });
+    vi.stubGlobal("GM_download", mockGMDownload);
+
+    const appendSpy = vi.spyOn(document.body, "appendChild").mockImplementation(() => {
+      return {} as unknown as Node;
+    });
+    const removeSpy = vi.spyOn(document.body, "removeChild").mockImplementation(() => {
+      return {} as unknown as Node;
+    });
+
+    const data = new Uint8Array([1, 2, 3]);
+    const saveFile = service.saveFile;
+    await saveFile(data, "test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+    expect(mockGMDownload).toHaveBeenCalled();
+    expect(appendSpy).toHaveBeenCalled();
+    expect(removeSpy).toHaveBeenCalled();
+
+    vi.unstubAllGlobals();
+  });
 });
