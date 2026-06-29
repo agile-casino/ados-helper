@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.15.4] - 2026-06-29
+
+### Fixed
+
+- Bound methods in `TauriPlatformService` and `BrowserPlatformService` constructors to allow calling them unbound safely.
+
 ## [2.15.3] - 2026-06-23
 
 ### Added
