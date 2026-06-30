@@ -20,7 +20,8 @@
     "knip": "knip",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "version": "node scripts/update-versions.js"
+    "version": "node scripts/update-versions.js",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -44,6 +45,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "knip": "^6.23.0",
+    "husky": "^9.1.7",
     "postcss-preset-mantine": "^1.18.0",
     "prettier": "^3.9.3",
     "tfx-cli": "^0.23.3",
