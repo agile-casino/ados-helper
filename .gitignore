@@ -352,5 +352,6 @@ MigrationBackup/
 # Javascript
 dist/
 dist-desktop/
+dist-extension/
 dist-packaged/
 .antigravitycli/

@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
-import { analyzer } from "vite-bundle-analyzer";
+// import { analyzer } from "vite-bundle-analyzer";
 import bannerPlugin from "vite-plugin-banner";
-import checkerPlugin from "vite-plugin-checker";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import pkg from "./package.json" with { type: "json" };
 
@@ -17,20 +16,12 @@ const banner = `
 // @match        https://dev.azure.com/WFRD-RDE-DWC-Software/ProdEng/*
 // @icon         https://cdn.vsassets.io/content/icons/favicon.ico
 // @grant        GM_download
-// ==/UserScript==
+// ==UserScript==
 `.trim();
 
 export default defineConfig(({ mode }) => ({
   plugins: [
-    analyzer({ analyzerMode: "static" }),
-    checkerPlugin({
-      biome: {
-        command: "check",
-        flags: "src",
-        watchPath: "src"
-      },
-      typescript: true
-    }),
+    // analyzer({ analyzerMode: "static" }),
     bannerPlugin({ content: banner, verify: false }),
     cssInjectedByJsPlugin()
   ],
