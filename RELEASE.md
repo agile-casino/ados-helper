@@ -240,9 +240,9 @@ Prefer creating new releases to maintain version history integrity.
 
 GitHub Actions automates the release steps:
 
-1. **Build & Test**: Compiles the code and runs verification tests.
-2. **Deploy to GitHub Releases**: Uploads `index.user.js` to the GitHub release.
-3. **Deploy to Azure**: Uploads the entire build to Azure Blob Storage.
+1. **Build & Test**: Compiles the code (both the userscript and the ADO extension), packages the ADO extension as a `.vsix` bundle, and runs verification tests.
+2. **Deploy to GitHub Releases**: Uploads the userscript (`index.user.js` renamed to `ados-helper.user.js`) and the packaged ADO extension (`*.vsix`) to the GitHub release.
+3. **Deploy to Azure**: Uploads the entire userscript build to Azure Blob Storage.
 4. **Deploy to GitHub Gist**: Deploys `index.user.js` to a specified Gist.
 
 Check [.github/workflows/release.yml](file:///root/ados-helper/.github/workflows/release.yml) for the full CI/CD configuration.
