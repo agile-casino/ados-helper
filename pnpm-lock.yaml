@@ -40,7 +40,7 @@ importers:
         version: 4.18.1
       postcss:
         specifier: ^8.5.15
-        version: 8.5.15
+        version: 8.5.16
       react:
         specifier: ^19.2.7
         version: 19.2.7
@@ -86,7 +86,7 @@ importers:
         version: 6.17.2
       postcss-preset-mantine:
         specifier: ^1.18.0
-        version: 1.18.0(postcss@8.5.15)
+        version: 1.18.0(postcss@8.5.16)
       prettier:
         specifier: ^3.8.4
         version: 3.8.4
@@ -101,16 +101,16 @@ importers:
         version: 6.0.3
       vite:
         specifier: ^8.0.16
-        version: 8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0)
+        version: 8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0)
       vite-plugin-banner:
         specifier: ^0.8.1
         version: 0.8.1
       vite-plugin-css-injected-by-js:
         specifier: ^5.0.1
-        version: 5.0.1(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0))
+        version: 5.0.1(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0))
       vitest:
         specifier: ^4.1.9
-        version: 4.1.9(@types/node@25.9.4)(happy-dom@20.10.6)(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0))
+        version: 4.1.9(@types/node@25.9.4)(happy-dom@20.10.6)(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0))
 
 packages:
 
@@ -1615,8 +1615,8 @@ packages:
   immediate@3.0.6:
     resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
 
-  immutable@5.1.6:
-    resolution: {integrity: sha512-q1swsS8K7L8usSHuOqF2TAoCCkonYz0SG38wLAggaa4Wml70zixIvt2ql4coQ2C2B3hTjltJry4r6bULwgAXLQ==}
+  immutable@5.1.8:
+    resolution: {integrity: sha512-TM5YqrGeTsVIPPpILzeqZ8D2Zc2TvNgSDi88zPF2a4cyqQdWV/wVWBDRDbNzzrLeRWScrFcOX9lW2iX6GOtUDw==}
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
@@ -2247,8 +2247,8 @@ packages:
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
-  postcss@8.5.15:
-    resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
+  postcss@8.5.16:
+    resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==}
     engines: {node: ^10 || ^12 || >=14}
 
   prettier@3.8.4:
@@ -3542,11 +3542,11 @@ snapshots:
 
   '@types/postcss-modules-local-by-default@4.0.2':
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
 
   '@types/postcss-modules-scope@3.0.4':
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
 
   '@types/raf@3.4.3':
     optional: true
@@ -3585,13 +3585,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0))':
+  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0))':
     dependencies:
       '@vitest/spy': 4.1.9
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0)
+      vite: 8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0)
 
   '@vitest/pretty-format@4.1.9':
     dependencies:
@@ -4375,9 +4375,9 @@ snapshots:
 
   icss-replace-symbols@1.1.0: {}
 
-  icss-utils@5.1.0(postcss@8.5.15):
+  icss-utils@5.1.0(postcss@8.5.16):
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
 
   ieee754@1.2.1: {}
 
@@ -4386,7 +4386,7 @@ snapshots:
 
   immediate@3.0.6: {}
 
-  immutable@5.1.6: {}
+  immutable@5.1.8: {}
 
   inflight@1.0.6:
     dependencies:
@@ -4953,70 +4953,70 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  postcss-js@4.1.0(postcss@8.5.15):
+  postcss-js@4.1.0(postcss@8.5.16):
     dependencies:
       camelcase-css: 2.0.1
-      postcss: 8.5.15
+      postcss: 8.5.16
 
-  postcss-load-config@3.1.4(postcss@8.5.15):
+  postcss-load-config@3.1.4(postcss@8.5.16):
     dependencies:
       lilconfig: 2.1.0
       yaml: 1.10.3
     optionalDependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
 
-  postcss-mixins@12.1.2(postcss@8.5.15):
+  postcss-mixins@12.1.2(postcss@8.5.16):
     dependencies:
-      postcss: 8.5.15
-      postcss-js: 4.1.0(postcss@8.5.15)
-      postcss-simple-vars: 7.0.1(postcss@8.5.15)
-      sugarss: 5.0.1(postcss@8.5.15)
+      postcss: 8.5.16
+      postcss-js: 4.1.0(postcss@8.5.16)
+      postcss-simple-vars: 7.0.1(postcss@8.5.16)
+      sugarss: 5.0.1(postcss@8.5.16)
       tinyglobby: 0.2.17
 
-  postcss-modules-extract-imports@3.1.0(postcss@8.5.15):
+  postcss-modules-extract-imports@3.1.0(postcss@8.5.16):
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
 
-  postcss-modules-local-by-default@4.2.0(postcss@8.5.15):
+  postcss-modules-local-by-default@4.2.0(postcss@8.5.16):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.5.15)
-      postcss: 8.5.15
+      icss-utils: 5.1.0(postcss@8.5.16)
+      postcss: 8.5.16
       postcss-selector-parser: 7.1.4
       postcss-value-parser: 4.2.0
 
-  postcss-modules-scope@3.2.1(postcss@8.5.15):
+  postcss-modules-scope@3.2.1(postcss@8.5.16):
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
       postcss-selector-parser: 7.1.4
 
-  postcss-modules-values@4.0.0(postcss@8.5.15):
+  postcss-modules-values@4.0.0(postcss@8.5.16):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.5.15)
-      postcss: 8.5.15
+      icss-utils: 5.1.0(postcss@8.5.16)
+      postcss: 8.5.16
 
-  postcss-nested@7.0.2(postcss@8.5.15):
+  postcss-nested@7.0.2(postcss@8.5.16):
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
       postcss-selector-parser: 7.1.4
 
-  postcss-preset-mantine@1.18.0(postcss@8.5.15):
+  postcss-preset-mantine@1.18.0(postcss@8.5.16):
     dependencies:
-      postcss: 8.5.15
-      postcss-mixins: 12.1.2(postcss@8.5.15)
-      postcss-nested: 7.0.2(postcss@8.5.15)
+      postcss: 8.5.16
+      postcss-mixins: 12.1.2(postcss@8.5.16)
+      postcss-nested: 7.0.2(postcss@8.5.16)
 
   postcss-selector-parser@7.1.4:
     dependencies:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
 
-  postcss-simple-vars@7.0.1(postcss@8.5.15):
+  postcss-simple-vars@7.0.1(postcss@8.5.16):
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
 
   postcss-value-parser@4.2.0: {}
 
-  postcss@8.5.15:
+  postcss@8.5.16:
     dependencies:
       nanoid: 3.3.15
       picocolors: 1.1.1
@@ -5233,7 +5233,7 @@ snapshots:
   sass@1.101.0:
     dependencies:
       chokidar: 5.0.0
-      immutable: 5.1.6
+      immutable: 5.1.8
       source-map-js: 1.2.1
     optionalDependencies:
       '@parcel/watcher': 2.5.6
@@ -5428,9 +5428,9 @@ snapshots:
       - supports-color
     optional: true
 
-  sugarss@5.0.1(postcss@8.5.15):
+  sugarss@5.0.1(postcss@8.5.16):
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.16
 
   supports-color@7.2.0:
     dependencies:
@@ -5586,11 +5586,11 @@ snapshots:
       icss-replace-symbols: 1.1.0
       is-there: 4.5.2
       mkdirp: 3.0.1
-      postcss: 8.5.15
-      postcss-modules-extract-imports: 3.1.0(postcss@8.5.15)
-      postcss-modules-local-by-default: 4.2.0(postcss@8.5.15)
-      postcss-modules-scope: 3.2.1(postcss@8.5.15)
-      postcss-modules-values: 4.0.0(postcss@8.5.15)
+      postcss: 8.5.16
+      postcss-modules-extract-imports: 3.1.0(postcss@8.5.16)
+      postcss-modules-local-by-default: 4.2.0(postcss@8.5.16)
+      postcss-modules-scope: 3.2.1(postcss@8.5.16)
+      postcss-modules-values: 4.0.0(postcss@8.5.16)
       yargs: 17.7.3
 
   typed-rest-client@2.1.0:
@@ -5606,14 +5606,14 @@ snapshots:
       '@types/postcss-modules-local-by-default': 4.0.2
       '@types/postcss-modules-scope': 3.0.4
       dotenv: 16.6.1
-      icss-utils: 5.1.0(postcss@8.5.15)
+      icss-utils: 5.1.0(postcss@8.5.16)
       less: 4.6.6
       lodash.camelcase: 4.3.0
-      postcss: 8.5.15
-      postcss-load-config: 3.1.4(postcss@8.5.15)
-      postcss-modules-extract-imports: 3.1.0(postcss@8.5.15)
-      postcss-modules-local-by-default: 4.2.0(postcss@8.5.15)
-      postcss-modules-scope: 3.2.1(postcss@8.5.15)
+      postcss: 8.5.16
+      postcss-load-config: 3.1.4(postcss@8.5.16)
+      postcss-modules-extract-imports: 3.1.0(postcss@8.5.16)
+      postcss-modules-local-by-default: 4.2.0(postcss@8.5.16)
+      postcss-modules-scope: 3.2.1(postcss@8.5.16)
       reserved-words: 0.1.2
       sass: 1.101.0
       source-map-js: 1.2.1
@@ -5683,15 +5683,15 @@ snapshots:
 
   vite-plugin-banner@0.8.1: {}
 
-  vite-plugin-css-injected-by-js@5.0.1(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0)):
+  vite-plugin-css-injected-by-js@5.0.1(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0)):
     dependencies:
-      vite: 8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0)
+      vite: 8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0)
 
-  vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0):
+  vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
-      postcss: 8.5.15
+      postcss: 8.5.16
       rolldown: 1.0.3
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -5701,13 +5701,13 @@ snapshots:
       less: 4.6.6
       sass: 1.101.0
       stylus: 0.62.0
-      sugarss: 5.0.1(postcss@8.5.15)
+      sugarss: 5.0.1(postcss@8.5.16)
       yaml: 2.9.0
 
-  vitest@4.1.9(@types/node@25.9.4)(happy-dom@20.10.6)(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0)):
+  vitest@4.1.9(@types/node@25.9.4)(happy-dom@20.10.6)(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.9
-      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0))
+      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0))
       '@vitest/pretty-format': 4.1.9
       '@vitest/runner': 4.1.9
       '@vitest/snapshot': 4.1.9
@@ -5724,7 +5724,7 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.15))(yaml@2.9.0)
+      vite: 8.0.16(@types/node@25.9.4)(jiti@2.7.0)(less@4.6.6)(sass@1.101.0)(stylus@0.62.0)(sugarss@5.0.1(postcss@8.5.16))(yaml@2.9.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.9.4
