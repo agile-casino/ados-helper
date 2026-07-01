@@ -1,6 +1,6 @@
 {
   "name": "ados-helper",
-  "version": "2.15.4",
+  "version": "2.16.0",
   "description": "ados-helper",
   "main": "src/userscript/index.tsx",
   "scripts": {
@@ -44,8 +44,8 @@
     "@types/node": "^25.9.4",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "knip": "^6.23.0",
     "husky": "^9.1.7",
+    "knip": "^6.23.0",
     "postcss-preset-mantine": "^1.18.0",
     "prettier": "^3.9.3",
     "tfx-cli": "^0.23.3",
