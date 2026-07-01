@@ -7,6 +7,23 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.16.0] - 2026-07-01
+
+### Added
+
+- Scaffolded and implemented native ADOS extension iframe integration.
+- Introduced standalone `pnpm typecheck` script to separate TypeScript compilation from bundling.
+- Added Husky and a pre-push git hook.
+- Added design/integration plans for Zod, Git hooks, and Merge Mentor.
+
+### Changed
+
+- Optimized the `pnpm check` validation suite to decouple checking from build/bundling.
+- Removed redundant `vite-plugin-checker` to avoid duplicate lints and speed up builds.
+- Removed `vite-bundle-analyzer` from devDependencies to resolve segmentation faults during local chunk rendering.
+- Aligned validation and lint scripts, and resolved formatting issues.
+- Updated dependencies (Rust crates `reqwest` to 0.13, `log` to v0.4.33, `tauri-build` to v2.6.3, `tauri` to v2.11.3, and package upgrades).
+
 ## [2.15.4] - 2026-06-29
 
 ### Fixed
