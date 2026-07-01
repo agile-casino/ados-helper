@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.16.1] - 2026-07-01
+
+### Fixed
+
+- Added missing `categories` field to extension manifests (`vss-extension.json` and `vss-extension-dev.json`) to fix `tfx-cli` packaging failure.
+
 ## [2.16.0] - 2026-07-01
 
 ### Added
