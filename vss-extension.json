@@ -5,6 +5,7 @@
   "name": "ADOS Helper",
   "description": "Reports and metrics helper for Azure DevOps",
   "publisher": "ados-helper-publisher",
+  "categories": ["Azure Boards"],
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"

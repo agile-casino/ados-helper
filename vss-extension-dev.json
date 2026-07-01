@@ -5,6 +5,7 @@
   "name": "ADOS Helper (Dev)",
   "description": "Local development version of ADOS Helper",
   "publisher": "ados-helper-publisher",
+  "categories": ["Azure Boards"],
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
