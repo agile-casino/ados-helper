@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => ({
       input: "src/userscript/index.tsx",
       output: {
         entryFileNames: "index.user.js",
+        format: "iife",
         codeSplitting: false
       },
       onwarn(warning, warn) {

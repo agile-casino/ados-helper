@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.16.2] - 2026-07-02
+
+### Fixed
+
+- Build the Tampermonkey userscript as an IIFE to ensure scoped execution and prevent global namespace contamination.
+
 ## [2.16.1] - 2026-07-01
 
 ### Fixed
