@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "id": "ados-helper",
-  "version": "2.16.2",
+  "version": "2.16.3",
   "name": "ADOS Helper",
   "description": "Reports and metrics helper for Azure DevOps",
   "publisher": "ados-helper-publisher",
