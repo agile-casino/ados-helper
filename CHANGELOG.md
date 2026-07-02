@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.16.3] - 2026-07-02
+
+### Fixed
+
+- Corrected userscript metadata closing tag to `// ==/UserScript==` so Tampermonkey can successfully parse and install the script.
+
 ## [2.16.2] - 2026-07-02
 
 ### Fixed

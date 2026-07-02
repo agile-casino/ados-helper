@@ -16,7 +16,7 @@ const banner = `
 // @match        https://dev.azure.com/WFRD-RDE-DWC-Software/ProdEng/*
 // @icon         https://cdn.vsassets.io/content/icons/favicon.ico
 // @grant        GM_download
-// ==UserScript==
+// ==/UserScript==
 `.trim();
 
 export default defineConfig(({ mode }) => ({
