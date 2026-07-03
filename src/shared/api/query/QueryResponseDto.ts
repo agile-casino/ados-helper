@@ -3,5 +3,5 @@ export interface QueryResponseDto {
     columns: string[];
     rows: (string | number)[][];
   };
-  sourceIds: number[];
+  sourceIds?: number[];
 }

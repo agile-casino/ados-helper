@@ -4,6 +4,7 @@ import * as SDK from "azure-devops-extension-sdk";
 import * as React from "react";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
+import { SprintStatsTab } from "../shared/components/SprintStatsTab";
 import { PlatformProvider } from "../shared/context/PlatformContext";
 import { ExtensionPlatformService } from "./ExtensionPlatformService";
 
@@ -121,6 +122,7 @@ export const ExtensionApp = () => {
             <Tabs.List>
               <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
               <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
+              <Tabs.Tab value="sprint-stats">Sprint Stats</Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="current-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
@@ -129,6 +131,10 @@ export const ExtensionApp = () => {
 
             <Tabs.Panel value="multi-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
               <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="sprint-stats" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
+              <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} />
             </Tabs.Panel>
           </Tabs>
         </div>

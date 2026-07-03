@@ -269,7 +269,8 @@ function flattenMockWorkItems(
   mockItems: MockWorkItem[],
   project: string,
   team: string,
-  sprint: string
+  sprint?: string,
+  asOfDate?: Date
 ): {
   payload: {
     columns: string[];
@@ -295,9 +296,31 @@ function flattenMockWorkItems(
   const rows: (string | number | null)[][] = [];
   const sourceIds: number[] = [];
 
-  const iterationPathValue = `${project}\\${team}\\${sprint}`;
+  const sprintNameStr = sprint || "Sprint 13";
+  const iterationPathValue = `${project}\\${team}\\${sprintNameStr}`;
+
+  // If there's an ASOF date, we might want to simulate historical changes.
+  // We calculate the sprint's start date dynamically relative to Sprint 13.
+  const sprintMatch = sprintNameStr.match(/Sprint (\d+)/);
+  let sprintStartDate = new Date("2026-06-01T00:00:00Z");
+  if (sprintMatch) {
+    const num = parseInt(sprintMatch[1] || "13", 10);
+    sprintStartDate = new Date(new Date("2026-06-01T00:00:00Z").getTime() - (13 - num) * 14 * 24 * 60 * 60 * 1000);
+  }
+  const committedThreshold = new Date(sprintStartDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+  const isCommittedSnapshot = asOfDate && asOfDate.getTime() < committedThreshold.getTime();
 
   function traverse(item: MockWorkItem, parentId: number) {
+    if (isCommittedSnapshot) {
+      // Exclude items pulled in late (activated after Day 2, or tagged with '+')
+      if (item.tags?.includes("+") || item.title.includes("[Plus]") || item.title.includes("[Late]")) {
+        return;
+      }
+      if (item.activatedDate && new Date(item.activatedDate).getTime() > asOfDate.getTime()) {
+        return;
+      }
+    }
+
     const row = columns.map(col => {
       switch (col) {
         case "System.Id":
@@ -311,13 +334,31 @@ function flattenMockWorkItems(
         case "System.AssignedTo":
           return item.assignedTo;
         case "System.State":
+          if (isCommittedSnapshot) {
+            // On Day 2, items were not Done yet, they were Committed/In Progress
+            if (item.tags?.includes("-") || item.title.includes("[Minus]")) {
+              return "Committed"; // Override Removed to Committed
+            }
+            if (item.state === "Done" || item.state === "Staging" || item.state === "Released") {
+              return "Committed";
+            }
+          }
           return item.state;
         case "System.Tags":
           return item.tags || "";
         case "Microsoft.VSTS.Common.ActivatedDate":
           return item.activatedDate || null;
-        case "Microsoft.VSTS.Scheduling.Effort":
-          return item.effort ?? 0;
+        case "Microsoft.VSTS.Scheduling.Effort": {
+          let itemEffort = item.effort ?? 0;
+          if (itemEffort > 0) {
+            const sprintMatch = sprintNameStr.match(/Sprint (\d+)/);
+            if (sprintMatch) {
+              const num = parseInt(sprintMatch[1] || "13", 10);
+              itemEffort = Math.max(1, itemEffort + ((item.id + num) % 5) - 2);
+            }
+          }
+          return itemEffort;
+        }
         case "Microsoft.VSTS.Scheduling.RemainingWork":
           return item.remainingWork ?? null;
         case "Microsoft.VSTS.Scheduling.OriginalEstimate":
@@ -339,7 +380,31 @@ function flattenMockWorkItems(
     }
   }
 
-  for (const item of mockItems) {
+  // Under standard scenario, if it is committed snapshot, artificially add a removed item to demonstrate Dropped items!
+  let scenarioKey = "standard";
+  try {
+    const saved = localStorage.getItem("ados-helper-sandbox-state");
+    if (saved) {
+      scenarioKey = JSON.parse(saved).currentScenario || "standard";
+    }
+  } catch {}
+
+  const updatedMockItems = [...mockItems];
+  if (isCommittedSnapshot && scenarioKey === "standard") {
+    // Add artificial removed item
+    updatedMockItems.push({
+      id: 199,
+      type: "Product Backlog Item",
+      title: "[Core] Legacy cleanup and refactoring",
+      state: "Committed",
+      assignedTo: "Bob Miller",
+      tags: "Sprint 13",
+      effort: 3,
+      children: []
+    });
+  }
+
+  for (const item of updatedMockItems) {
     traverse(item, 0);
   }
 
@@ -353,6 +418,39 @@ function flattenMockWorkItems(
 const originalFetch = window.fetch;
 window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const urlStr = input.toString();
+
+  // Intercept Team Field Values API
+  if (urlStr.includes("/_apis/work/teamsettings/teamfieldvalues")) {
+    state.addLog("GET", urlStr, 200);
+
+    const parts = urlStr.split("/_apis/work/teamsettings/teamfieldvalues");
+    let project = state.currentUrlParams.project;
+    let team = state.currentUrlParams.team;
+
+    if (parts[0]) {
+      const segments = parts[0].split("/");
+      if (segments.length >= 3) {
+        team = decodeURIComponent(segments.pop() || team);
+        project = decodeURIComponent(segments.pop() || project);
+      }
+    }
+
+    const areaPath = `${project}\\Engineering\\${team}`.replace("Pixel_Perfect", "PixelPerfect");
+    const res = {
+      defaultValue: areaPath,
+      values: [
+        {
+          value: areaPath,
+          includeChildren: true
+        }
+      ]
+    };
+
+    return new Response(JSON.stringify(res), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
 
   // 1. Intercept Iterations API
   if (urlStr.includes("/_apis/work/teamsettings/iterations")) {
@@ -380,26 +478,38 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
       }
     }
 
-    const res = {
-      value: [
-        {
-          name: sprintName,
-          path: `${project}\\${team}\\${sprintName}`,
+    const sprintNameSafe = sprintName || "Sprint 13";
+    const match = sprintNameSafe.match(/Sprint (\d+)/);
+    const value = [];
+    if (match) {
+      const currentNum = parseInt(match[1] || "13", 10);
+      for (let i = 7; i >= 0; i--) {
+        const num = currentNum - i;
+        if (num <= 0) continue;
+        const name = `Sprint ${num}`;
+        const start = new Date(new Date("2026-06-01T00:00:00Z").getTime() - i * 14 * 24 * 60 * 60 * 1000);
+        const finish = new Date(start.getTime() + 13 * 24 * 60 * 60 * 1000 + 23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000);
+        value.push({
+          name,
+          path: `${project}\\${team}\\${name}`,
           attributes: {
-            startDate: "2026-06-01T00:00:00Z",
-            finishDate: "2026-06-14T23:59:59Z"
+            startDate: start.toISOString(),
+            finishDate: finish.toISOString()
           }
-        },
-        {
-          name: "Sprint 12",
-          path: `${project}\\${team}\\Sprint 12`,
-          attributes: {
-            startDate: "2026-05-18T00:00:00Z",
-            finishDate: "2026-05-31T23:59:59Z"
-          }
+        });
+      }
+    } else {
+      value.push({
+        name: sprintNameSafe,
+        path: `${project}\\${team}\\${sprintNameSafe}`,
+        attributes: {
+          startDate: "2026-06-01T00:00:00Z",
+          finishDate: "2026-06-14T23:59:59Z"
         }
-      ]
-    };
+      });
+    }
+
+    const res = { value };
 
     return new Response(JSON.stringify(res), {
       status: 200,
@@ -431,8 +541,32 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
       requestedProject = decodeURIComponent(pathSegments[apiIndex - 2] || requestedProject);
     }
 
+    // Try to get body to extract ASOF date if present
+    let wiql = "";
+    try {
+      if (init?.body) {
+        const bodyObj = JSON.parse(init.body.toString());
+        wiql = bodyObj.wiql || "";
+      }
+    } catch (e) {
+      console.warn("Failed to parse query body in sandbox", e);
+    }
+
+    let asOfDate: Date | undefined;
+    const asOfMatch = wiql.match(/ASOF\s+'([^']+)'/i);
+    if (asOfMatch?.[1]) {
+      asOfDate = new Date(asOfMatch[1]);
+    }
+
+    let querySprint = state.currentUrlParams.sprint;
+    const iterationPathMatch = wiql.match(/\[System\.IterationPath\]\s+UNDER\s+'([^']+)'/i);
+    if (iterationPathMatch?.[1]) {
+      const parts = iterationPathMatch[1].split("\\");
+      querySprint = parts[parts.length - 1] || querySprint;
+    }
+
     const itemsForTeam = state.mockData[requestedTeam] || [];
-    const flattened = flattenMockWorkItems(itemsForTeam, requestedProject, requestedTeam, state.currentUrlParams.sprint);
+    const flattened = flattenMockWorkItems(itemsForTeam, requestedProject, requestedTeam, querySprint, asOfDate);
 
     return new Response(JSON.stringify(flattened), {
       status: 200,
@@ -489,6 +623,131 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
     });
 
     return new Response(JSON.stringify({ value: valuePayload }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
+  // Intercept WorkItem Updates API
+  if (urlStr.includes("/_apis/wit/workitems/") && urlStr.includes("/updates")) {
+    state.addLog("GET", urlStr, 200);
+
+    const match = urlStr.match(/_apis\/wit\/workitems\/(\d+)\/updates/i);
+    const id = match?.[1] ? parseInt(match[1], 10) : 0;
+
+    let value: unknown[] = [];
+    if (id === 199) {
+      value = [
+        {
+          id: 1,
+          rev: 1,
+          revisedDate: "2026-05-15T09:00:00Z",
+          fields: {
+            "System.IterationPath": {
+              newValue: "WirelineRnD\\Sprint 13"
+            }
+          }
+        },
+        {
+          id: 2,
+          rev: 2,
+          revisedDate: "2026-06-08T10:00:00Z",
+          fields: {
+            "System.IterationPath": {
+              oldValue: "WirelineRnD\\Sprint 13",
+              newValue: "WirelineRnD\\Backlog"
+            }
+          }
+        }
+      ];
+    } else if (id === 501) {
+      value = [
+        {
+          id: 1,
+          rev: 1,
+          revisedDate: "2026-05-10T09:00:00Z",
+          fields: {
+            "System.IterationPath": {
+              newValue: "WirelineRnD\\Sprint 12"
+            }
+          }
+        },
+        {
+          id: 2,
+          rev: 2,
+          revisedDate: "2026-06-05T09:00:00Z",
+          fields: {
+            "System.IterationPath": {
+              oldValue: "WirelineRnD\\Sprint 12",
+              newValue: "WirelineRnD\\Sprint 13"
+            }
+          }
+        }
+      ];
+    } else if (id === 503) {
+      value = [
+        {
+          id: 1,
+          rev: 1,
+          revisedDate: "2026-05-12T09:00:00Z",
+          fields: {
+            "System.IterationPath": {
+              newValue: "WirelineRnD\\Sprint 12"
+            }
+          }
+        },
+        {
+          id: 2,
+          rev: 2,
+          revisedDate: "2026-06-03T10:00:00Z",
+          fields: {
+            "System.IterationPath": {
+              oldValue: "WirelineRnD\\Sprint 12",
+              newValue: "WirelineRnD\\Sprint 13"
+            }
+          }
+        }
+      ];
+    } else if (id === 506) {
+      value = [
+        {
+          id: 1,
+          rev: 1,
+          revisedDate: "2026-05-14T09:00:00Z",
+          fields: {
+            "System.IterationPath": {
+              newValue: "WirelineRnD\\Sprint 13"
+            }
+          }
+        },
+        {
+          id: 2,
+          rev: 2,
+          revisedDate: "2026-06-07T14:30:00Z",
+          fields: {
+            "System.State": {
+              oldValue: "Committed",
+              newValue: "Removed"
+            }
+          }
+        }
+      ];
+    } else {
+      value = [
+        {
+          id: 1,
+          rev: 1,
+          revisedDate: "2026-06-01T09:00:00Z",
+          fields: {
+            "System.IterationPath": {
+              newValue: "WirelineRnD\\Sprint 13"
+            }
+          }
+        }
+      ];
+    }
+
+    return new Response(JSON.stringify({ count: value.length, value }), {
       status: 200,
       headers: { "Content-Type": "application/json" }
     });

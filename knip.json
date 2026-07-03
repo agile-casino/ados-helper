@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["src/desktop/renderer.tsx"],
-  "ignore": ["vite.tauri.config.mts", "src/shared/components/WorkItemTable.module.css.d.ts"],
+  "ignore": ["vite.tauri.config.mts", ".husky/*"],
   "ignoreDependencies": ["tfx-cli"]
 }
