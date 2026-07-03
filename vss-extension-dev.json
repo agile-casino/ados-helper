@@ -1,9 +1,9 @@
 {
   "manifestVersion": 1,
-  "id": "ados-helper-dev",
+  "id": "sprint-report-generator-dev",
   "version": "2.17.0",
-  "name": "ADOS Helper (Dev)",
-  "description": "Local development version of ADOS Helper",
+  "name": "Sprint Report Generator (Dev)",
+  "description": "Local development version of Sprint Report Generator",
   "publisher": "agile-tools",
   "categories": ["Azure Boards"],
   "branding": {

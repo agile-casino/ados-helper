@@ -217,7 +217,7 @@ class SandboxState {
   }
 
   public loadState() {
-    const saved = localStorage.getItem("ados-helper-sandbox-state");
+    const saved = localStorage.getItem("sprint-report-generator-sandbox-state") || localStorage.getItem("ados-helper-sandbox-state");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -233,7 +233,7 @@ class SandboxState {
 
   public saveState() {
     localStorage.setItem(
-      "ados-helper-sandbox-state",
+      "sprint-report-generator-sandbox-state",
       JSON.stringify({
         currentScenario: this.currentScenario,
         mockData: this.mockData,
@@ -383,7 +383,7 @@ function flattenMockWorkItems(
   // Under standard scenario, if it is committed snapshot, artificially add a removed item to demonstrate Dropped items!
   let scenarioKey = "standard";
   try {
-    const saved = localStorage.getItem("ados-helper-sandbox-state");
+    const saved = localStorage.getItem("sprint-report-generator-sandbox-state") || localStorage.getItem("ados-helper-sandbox-state");
     if (saved) {
       scenarioKey = JSON.parse(saved).currentScenario || "standard";
     }
@@ -866,7 +866,7 @@ window.addEventListener("DOMContentLoaded", () => {
   mockContent.innerHTML = `
     <div style="font-size: 1.25rem; font-weight: 500; margin-bottom: 8px; color: #333;">Taskboard Mock View</div>
     <div style="font-size: 0.9rem; color: #666; margin-bottom: 24px; text-align: center; max-width: 450px;">
-      The ADOS Helper app mounts a button right next to the search bar. Click "Reports" in the header below to open the dialog.
+      The Sprint Report Generator app mounts a button right next to the search bar. Click "Reports" in the header below to open the dialog.
     </div>
     
     <div style="border: 1px solid #ccc; width: 100%; max-width: 700px; border-radius: 4px; padding: 12px; display: flex; align-items: center; justify-content: space-between; background-color: #f3f2f1;">

@@ -1,7 +1,7 @@
 {
-  "name": "ados-helper",
+  "name": "sprint-report-generator",
   "version": "2.17.0",
-  "description": "ados-helper",
+  "description": "Sprint Report Generator",
   "main": "src/userscript/index.tsx",
   "scripts": {
     "build": "rm -rf node_modules/.vite && vite build",

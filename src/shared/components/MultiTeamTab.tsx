@@ -67,7 +67,7 @@ interface TeamData {
   error: string | null;
 }
 
-const STORAGE_KEY_PREFIX = "ados-helper-multi-team-";
+const STORAGE_KEY_PREFIX = "sprint-report-generator-multi-team-";
 
 const getStorageKey = (collection: string, project: string): string => {
   return `${STORAGE_KEY_PREFIX}${collection}-${project}`;
@@ -75,7 +75,12 @@ const getStorageKey = (collection: string, project: string): string => {
 
 const loadTeamsFromStorage = (collection: string, project: string): TeamSelection[] | null => {
   try {
-    const stored = localStorage.getItem(getStorageKey(collection, project));
+    const key = getStorageKey(collection, project);
+    let stored = localStorage.getItem(key);
+    if (!stored) {
+      // Fallback to old storage key prefix
+      stored = localStorage.getItem(`ados-helper-multi-team-${collection}-${project}`);
+    }
     if (stored) {
       return JSON.parse(stored) as TeamSelection[];
     }

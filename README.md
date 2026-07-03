@@ -1,12 +1,12 @@
-# ADOS Helper
+# Sprint Report Generator
 
-ADOS Helper is a multi-target productivity tool designed to enhance the Azure DevOps (ADOS) sprint boards, work item forms, and reporting capabilities. It provides visual indicators, sprint metrics, pull request helpers, and high-fidelity PDF/Excel metrics reports.
+Sprint Report Generator is a multi-target productivity tool designed to enhance the Azure DevOps (ADOS) sprint boards, work item forms, and reporting capabilities. It provides visual indicators, sprint metrics, pull request helpers, and high-fidelity PDF/Excel metrics reports.
 
 The repository uses a **hybrid codebase architecture** where core components, business logic, client APIs, and styles are shared, but built and packaged into three distinct target formats:
 
 - 🌐 **[Browser Userscript](file:///root/ados-helper/src/userscript/README.md)** — Inject productivity metrics directly into existing ADOS pages in any browser using a userscript manager (like Tampermonkey).
-- 🖥️ **[Tauri Desktop Application](file:///root/ados-helper/src/desktop/README.md)** — Run ADOS Helper in a dedicated, isolated native desktop app container powered by Rust and Tauri.
-- 🧩 **[Azure DevOps Extension](file:///root/ados-helper/src/extension/README.md)** — Embed ADOS Helper as an official Azure DevOps extension, adding a dedicated "Reports" tab to the Sprint Backlog views.
+- 🖥️ **[Tauri Desktop Application](file:///root/ados-helper/src/desktop/README.md)** — Run Sprint Report Generator in a dedicated, isolated native desktop app container powered by Rust and Tauri.
+- 🧩 **[Azure DevOps Extension](file:///root/ados-helper/src/extension/README.md)** — Embed Sprint Report Generator as an official Azure DevOps extension, adding a dedicated "Reports" tab to the Sprint Backlog views.
 
 ---
 

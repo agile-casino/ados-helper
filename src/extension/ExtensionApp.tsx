@@ -103,7 +103,7 @@ export const ExtensionApp = () => {
   }, []);
 
   if (loading) {
-    return <div style={{ padding: "20px", fontFamily: "sans-serif" }}>Loading ADOS Helper context...</div>;
+    return <div style={{ padding: "20px", fontFamily: "sans-serif" }}>Loading Sprint Report Generator context...</div>;
   }
 
   if (!context) {

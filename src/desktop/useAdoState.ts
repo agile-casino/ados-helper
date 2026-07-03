@@ -42,16 +42,16 @@ export const useAdoState = () => {
         setOrganizations(orgNames);
 
         // If our current org is in the list, keep it. Otherwise default to first list item
-        const savedOrg = localStorage.getItem("ados-helper-org") || org;
+        const savedOrg = localStorage.getItem("sprint-report-generator-org") || localStorage.getItem("ados-helper-org") || org;
         const match = orgNames.find(name => name.toLowerCase() === savedOrg.toLowerCase());
         if (match) {
           setOrg(match);
           setUseCustomOrg(false);
-          localStorage.setItem("ados-helper-org", match);
+          localStorage.setItem("sprint-report-generator-org", match);
         } else if (orgNames[0]) {
           setOrg(orgNames[0]);
           setUseCustomOrg(false);
-          localStorage.setItem("ados-helper-org", orgNames[0]);
+          localStorage.setItem("sprint-report-generator-org", orgNames[0]);
         }
       } else {
         setUseCustomOrg(true);
@@ -70,7 +70,7 @@ export const useAdoState = () => {
       return;
     }
 
-    const savedOrg = localStorage.getItem("ados-helper-org");
+    const savedOrg = localStorage.getItem("sprint-report-generator-org") || localStorage.getItem("ados-helper-org");
     if (savedOrg) {
       setOrg(savedOrg);
     }
@@ -134,7 +134,7 @@ export const useAdoState = () => {
         setProjects(projectList);
 
         // Restore saved project
-        const savedProject = localStorage.getItem(`ados-helper-project-${org}`);
+        const savedProject = localStorage.getItem(`sprint-report-generator-project-${org}`) || localStorage.getItem(`ados-helper-project-${org}`);
         if (savedProject && projectList.includes(savedProject)) {
           setSelectedProject(savedProject);
         } else {
@@ -168,7 +168,7 @@ export const useAdoState = () => {
         setTeams(teamList);
 
         // Restore saved team
-        const savedTeam = localStorage.getItem(`ados-helper-team-${org}-${selectedProject}`);
+        const savedTeam = localStorage.getItem(`sprint-report-generator-team-${org}-${selectedProject}`) || localStorage.getItem(`ados-helper-team-${org}-${selectedProject}`);
         if (savedTeam && teamList.includes(savedTeam)) {
           setSelectedTeam(savedTeam);
         } else {
@@ -211,7 +211,7 @@ export const useAdoState = () => {
         setSprints(sprintList);
 
         // Restore saved sprint
-        const savedSprint = localStorage.getItem(`ados-helper-sprint-${org}-${selectedProject}-${selectedTeam}`);
+        const savedSprint = localStorage.getItem(`sprint-report-generator-sprint-${org}-${selectedProject}-${selectedTeam}`) || localStorage.getItem(`ados-helper-sprint-${org}-${selectedProject}-${selectedTeam}`);
         if (savedSprint && sprintList.some((s: { name: string }) => s.name === savedSprint)) {
           setSelectedSprint(savedSprint);
         } else {
@@ -232,7 +232,7 @@ export const useAdoState = () => {
       setCustomOrg("");
     } else if (value) {
       setOrg(value);
-      localStorage.setItem("ados-helper-org", value);
+      localStorage.setItem("sprint-report-generator-org", value);
       setUseCustomOrg(false);
       setSelectedProject(null);
       setSelectedTeam(null);
@@ -243,13 +243,13 @@ export const useAdoState = () => {
   const handleCustomOrgChange = (value: string) => {
     setCustomOrg(value);
     setOrg(value);
-    localStorage.setItem("ados-helper-org", value);
+    localStorage.setItem("sprint-report-generator-org", value);
   };
 
   const handleOrgChange = (value: string | null) => {
     if (value) {
       setOrg(value);
-      localStorage.setItem("ados-helper-org", value);
+      localStorage.setItem("sprint-report-generator-org", value);
       setSelectedProject(null);
       setSelectedTeam(null);
       setSelectedSprint(null);

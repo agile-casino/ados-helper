@@ -52,13 +52,13 @@ jobs:
           path: dist/
 
       - name: Rename userscript for GitHub Release
-        run: cp dist/index.user.js dist/ados-helper.user.js
+        run: cp dist/index.user.js dist/sprint-report-generator.user.js
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            dist/ados-helper.user.js
+            dist/sprint-report-generator.user.js
             dist/*.vsix
 
   deploy-azure:
@@ -77,7 +77,7 @@ jobs:
         with:
           source_dir: dist
           container_name: apps
-          extra_args: "--destination-path ados-helper"
+          extra_args: "--destination-path sprint-report-generator"
           connection_string: ${{ secrets.BLOB_CONNECTION_STRING }}
           overwrite: "true"
 
@@ -98,7 +98,7 @@ jobs:
           token: ${{ secrets.GIST_TOKEN }}
           gist_id: ${{ vars.GIST_ID }}
           file_path: dist/index.user.js
-          gist_file_name: ados-helper.user.js
+          gist_file_name: sprint-report-generator.user.js
 
   deploy-tauri:
     name: Deploy Tauri App
@@ -138,7 +138,7 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: "Release v__VERSION__"
-          releaseBody: "Automated release of ADOS Helper"
+          releaseBody: "Automated release of Sprint Report Generator"
           releaseDraft: false
           prerelease: false
 
@@ -147,7 +147,7 @@ jobs:
           $exe = Get-ChildItem -Path "src-tauri/target" -Filter "app.exe" -Recurse | Where-Object { $_.FullName -like "*release*" } | Select-Object -First 1
           if ($exe) {
             New-Item -ItemType Directory -Force -Path "src-tauri/target/release"
-            Copy-Item $exe.FullName "src-tauri/target/release/ados-helper.exe" -Force
+            Copy-Item $exe.FullName "src-tauri/target/release/sprint-report-generator.exe" -Force
           }
         shell: pwsh
 
@@ -158,4 +158,4 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           files: |
-            src-tauri/target/release/ados-helper.exe
+            src-tauri/target/release/sprint-report-generator.exe

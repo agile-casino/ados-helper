@@ -6,14 +6,13 @@ import pkg from "./package.json" with { type: "json" };
 
 const banner = `
 // ==UserScript==
-// @name         ADOS Helper
+// @name         Sprint Report Generator
 // @namespace    https://ados/
 // @version      ${pkg.version}
-// @description  ADOS Helper
+// @description  Sprint Report Generator
 // @author       archerax
-// @match        https://ados/WirelineRnD_Collection/WirelineRnD*
-// @match        https://dev.azure.com/Weatherford-ADOS-WirelineRnD/WirelineRnD*
-// @match        https://dev.azure.com/WFRD-RDE-DWC-Software/ProdEng/*
+// @match        https://dev.azure.com/*
+// @match        https://*.visualstudio.com/*
 // @icon         https://cdn.vsassets.io/content/icons/favicon.ico
 // @grant        GM_download
 // ==/UserScript==

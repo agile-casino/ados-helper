@@ -1,4 +1,4 @@
-# ADOS Helper — Browser Userscript
+# Sprint Report Generator — Browser Userscript
 
 Inject productivity enhancements, report tools, and visual improvements directly into Azure DevOps (ADOS) using a browser userscript manager.
 
@@ -6,7 +6,7 @@ Inject productivity enhancements, report tools, and visual improvements directly
 
 ## 🚀 Overview
 
-The **Userscript** target runs ADOS Helper directly on top of your existing Azure DevOps web pages. Once installed in your browser's userscript manager, it matches specific ADOS Board and Work Item URLs to inject rich metrics, PDF/Excel export controls, and inline styling improvements.
+The **Userscript** target runs Sprint Report Generator directly on top of your existing Azure DevOps web pages. Once installed in your browser's userscript manager, it matches specific ADOS Board and Work Item URLs to inject rich metrics, PDF/Excel export controls, and inline styling improvements.
 
 ### 🌟 Key Features
 

@@ -420,7 +420,7 @@ const DesktopAppContent = () => {
                           handleCustomOrgChange(val);
                         } else {
                           setOrg(val);
-                          localStorage.setItem("ados-helper-org", val);
+                          localStorage.setItem("sprint-report-generator-org", val);
                         }
                       }}
                     />
@@ -452,8 +452,9 @@ const DesktopAppContent = () => {
                   setSelectedTeam(null);
                   setSelectedSprint(null);
                   if (val) {
-                    localStorage.setItem(`ados-helper-project-${org}`, val);
+                    localStorage.setItem(`sprint-report-generator-project-${org}`, val);
                   } else {
+                    localStorage.removeItem(`sprint-report-generator-project-${org}`);
                     localStorage.removeItem(`ados-helper-project-${org}`);
                   }
                 }}
@@ -468,8 +469,9 @@ const DesktopAppContent = () => {
                   setSelectedTeam(val);
                   setSelectedSprint(null);
                   if (val) {
-                    localStorage.setItem(`ados-helper-team-${org}-${selectedProject}`, val);
+                    localStorage.setItem(`sprint-report-generator-team-${org}-${selectedProject}`, val);
                   } else {
+                    localStorage.removeItem(`sprint-report-generator-team-${org}-${selectedProject}`);
                     localStorage.removeItem(`ados-helper-team-${org}-${selectedProject}`);
                   }
                 }}
@@ -483,8 +485,9 @@ const DesktopAppContent = () => {
                 onChange={val => {
                   setSelectedSprint(val);
                   if (val) {
-                    localStorage.setItem(`ados-helper-sprint-${org}-${selectedProject}-${selectedTeam}`, val);
+                    localStorage.setItem(`sprint-report-generator-sprint-${org}-${selectedProject}-${selectedTeam}`, val);
                   } else {
+                    localStorage.removeItem(`sprint-report-generator-sprint-${org}-${selectedProject}-${selectedTeam}`);
                     localStorage.removeItem(`ados-helper-sprint-${org}-${selectedProject}-${selectedTeam}`);
                   }
                 }}

@@ -1,12 +1,12 @@
-# ADOS Helper — Tauri Desktop App
+# Sprint Report Generator — Tauri Desktop App
 
-A native desktop container wrapper for ADOS Helper, providing a dedicated, distraction-free environment for managing your Azure DevOps metrics and boards.
+A native desktop container wrapper for Sprint Report Generator, providing a dedicated, distraction-free environment for managing your Azure DevOps metrics and boards.
 
 ---
 
 ## 🚀 Overview
 
-The **Desktop App** wraps the ADOS Helper interface in a native lightweight desktop container. By separating Azure DevOps activities from your browser tabs, it offers a fast, isolated environment with native OS integration.
+The **Desktop App** wraps the Sprint Report Generator interface in a native lightweight desktop container. By separating Azure DevOps activities from your browser tabs, it offers a fast, isolated environment with native OS integration.
 
 ### 🌟 Key Features
 

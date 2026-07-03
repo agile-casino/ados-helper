@@ -1,4 +1,4 @@
-# ADOS Helper — Azure DevOps Extension
+# Sprint Report Generator — Azure DevOps Extension
 
 Enhance your Azure Boards iteration backlog with custom reporting panels, sprint metrics, pull request summaries, and high-fidelity PDF/Excel exports.
 
@@ -6,7 +6,7 @@ Enhance your Azure Boards iteration backlog with custom reporting panels, sprint
 
 ## 🚀 Overview
 
-The **ADOS Helper Extension** integrates directly into your organization's Azure DevOps portal. It contributes a dedicated **Reports** tab to the Sprint Backlog / Iteration view, placing critical charts, velocity metrics, and export controls right alongside native boards.
+The **Sprint Report Generator Extension** integrates directly into your organization's Azure DevOps portal. It contributes a dedicated **Reports** tab to the Sprint Backlog / Iteration view, placing critical charts, velocity metrics, and export controls right alongside native boards.
 
 ### 🌟 Key Features
 
@@ -31,7 +31,7 @@ We take data security seriously:
 
 Organization administrators can install this extension directly into their Azure DevOps organization:
 
-1. Locate the **ADOS Helper** extension in the Visual Studio Marketplace.
+1. Locate the **Sprint Report Generator** extension in the Visual Studio Marketplace.
 2. Click **Get it free** and select your Azure DevOps organization.
 3. Click **Install**.
 4. Once installed, navigate to any project's **Boards ➔ Sprints** view. The new **Reports** tab will appear next to the _Taskboard_, _Backlog_, and _Capacity_ tabs.
