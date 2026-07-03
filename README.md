@@ -1,70 +1,110 @@
 # ADOS Helper
 
-A Tampermonkey script that enhances Azure DevOps (ADOS) with additional productivity features.
+ADOS Helper is a multi-target productivity tool designed to enhance the Azure DevOps (ADOS) sprint boards, work item forms, and reporting capabilities. It provides visual indicators, sprint metrics, pull request helpers, and high-fidelity PDF/Excel metrics reports.
 
-## Features
+The repository uses a **hybrid codebase architecture** where core components, business logic, client APIs, and styles are shared, but built and packaged into three distinct target formats:
 
-- **Work Item Enhancements** – Adds extra functionality to work item pages
-- **Board Enhancements** – Improves the Kanban/sprint board experience
-- **Query Enhancements** – Extends the work item query interface
-- **Pull Request Enhancements** – Adds helpers to PR pages
-- **Settings Page** – Configure extension behaviour via a dedicated options page
+- 🌐 **[Browser Userscript](file:///root/ados-helper/src/userscript/README.md)** — Inject productivity metrics directly into existing ADOS pages in any browser using a userscript manager (like Tampermonkey).
+- 🖥️ **[Tauri Desktop Application](file:///root/ados-helper/src/desktop/README.md)** — Run ADOS Helper in a dedicated, isolated native desktop app container powered by Rust and Tauri.
+- 🧩 **[Azure DevOps Extension](file:///root/ados-helper/src/extension/README.md)** — Embed ADOS Helper as an official Azure DevOps extension, adding a dedicated "Reports" tab to the Sprint Backlog views.
 
-## Installation
+---
 
-1. Clone or download this repository
-2. Open Chrome and navigate to `chrome://extensions`
-3. Enable **Developer mode**
-4. Click **Load unpacked** and select the project folder
+## 📂 Repository Layout
 
-## Development
+```
+.
+├── src/
+│   ├── shared/         # Core logic, React components, CSS modules, APIs, and models
+│   ├── userscript/     # Entry points and setup for the Tampermonkey target
+│   ├── desktop/        # Frontend renderer for the Tauri desktop target
+│   ├── extension/      # Entry points and contributions for the ADOS extension
+│   └── dev/            # Local developer sandbox shell and REST mock interception
+├── src-tauri/          # Tauri Rust main process and native desktop capabilities config
+├── vss-extension.json  # Production manifest for the Azure DevOps Extension
+├── vss-extension-dev.json # Local dev manifest for the Azure DevOps Extension
+└── package.json        # Main build and developer scripts
+```
 
-### Prerequisites
+---
 
-- [Node.js](https://nodejs.org/)
-- [pnpm](https://pnpm.io/)
+## 🛠️ Getting Started & Local Sandbox
 
-### Setup
+To check changes quickly without deploying to real ADOS environments, run the interactive local development sandbox:
 
 ```bash
 pnpm install
-```
-
-### Development Sandbox (Recommended)
-
-To test changes quickly without loading real data or reloading real ADOS pages, run the interactive local development sandbox:
-
-```bash
 pnpm dev
 ```
 
-Then open [http://localhost:5173/](http://localhost:5173/) in your browser. The sandbox provides:
+Open **[http://localhost:5173/](http://localhost:5173/)** to access the **ADOS Shell Simulation**, which includes:
 
-- **ADOS Shell Simulation:** Mounts the ADOS Helper app inside a simulated Azure DevOps interface.
-- **REST API Interception:** Automatically redirects all Azure DevOps REST requests to mock data.
-- **Scenario Control Panel:** Switch between standard sprint, multi-team config, edge cases (color coding for late items/special tags), empty sprints, or server error simulations.
-- **Live Data Editor:** Edit the mock JSON directly in the browser sidebar and apply changes instantly.
-- **Dark/Light Theme Toggle:** Instantly check UI styling in both dark and light modes.
-- **Hot Module Replacement (HMR):** Updates to files in the `src/` folder reload in real-time.
+- **Mock REST APIs:** Automatically intercepts and responds to ADOS REST calls (defined in `src/dev/sandbox.ts`).
+- **Interactive Control Panel:** Toggle light/dark modes, inject sprint errors, and configure teams/backlog items on-the-fly.
+- **Hot Module Replacement (HMR):** Updates to shared, userscript, desktop, or extension code are immediately reflected.
 
-### Production Build
+---
 
-To build the production userscript:
+## ⚙️ Building & Packaging the Targets
 
-```bash
-pnpm build
-```
+### 1. Browser Userscript
 
-### Watch (auto-rebuild on change)
+- **Build production script:**
+  ```bash
+  pnpm build
+  ```
+  This compiles the bundle into `dist/index.user.js`.
+- **Active watch mode:**
+  ```bash
+  pnpm build:watch
+  ```
+- _For details on syncing local file URLs to your browser's userscript manager, see the [Userscript Developer Note](file:///root/ados-helper/src/userscript/README.md#local-development)._
 
-For testing the compiled script directly in the browser (e.g., via Tampermonkey/Violentmonkey file-system requirements):
+### 2. Tauri Desktop App
 
-```bash
-pnpm build:watch
-```
+Make sure you have Rust and system dependencies installed (see [Desktop Guide](file:///root/ados-helper/src/desktop/README.md#tauri-prerequisites)).
 
-Built output is placed in the `dist/` folder.
+- **Run dev application:**
+  ```bash
+  pnpm tauri:dev
+  ```
+- **Compile native installers:**
+  ```bash
+  pnpm tauri:build
+  ```
+  Generates installer binaries (Debian, MSI, DMG, etc.) in `src-tauri/target/release/bundle/`.
 
-## License
+### 3. Azure DevOps Extension
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Compile static files:**
+  ```bash
+  pnpm build:extension
+  ```
+  This outputs compiled web assets to `dist-extension/`.
+- **Package for local/dev hot reloading:**
+  ```bash
+  npx tfx-cli extension create --manifest-globs vss-extension-dev.json
+  ```
+- **Package for production release:**
+  ```bash
+  npx tfx-cli extension create --manifest-globs vss-extension.json
+  ```
+
+---
+
+## 🧪 Testing & Verification
+
+We enforce linting, formatting, and unit testing via pnpm commands:
+
+- **Run unit tests** (powered by Vitest & Happy DOM):
+  ```bash
+  pnpm test
+  ```
+- **Run code formatting and lint checks** (powered by Biome and Prettier):
+  ```bash
+  pnpm lint
+  ```
+- **Run full codebase verification** (runs TypeScript compilation, lint, build, test):
+  ```bash
+  pnpm check
+  ```

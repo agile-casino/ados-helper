@@ -4,14 +4,42 @@
   "version": "2.17.0",
   "name": "ADOS Helper (Dev)",
   "description": "Local development version of ADOS Helper",
-  "publisher": "ados-helper-publisher",
+  "publisher": "agile-tools",
   "categories": ["Azure Boards"],
+  "branding": {
+    "color": "#0078d4",
+    "theme": "dark"
+  },
+  "icons": {
+    "default": "images/icon.png"
+  },
+  "tags": ["Azure DevOps", "Sprints", "Reports", "Metrics", "Boards"],
+  "links": {
+    "homepage": "https://github.com/archerax/ados-helper#readme",
+    "support": "https://github.com/archerax/ados-helper/issues",
+    "repository": "https://github.com/archerax/ados-helper"
+  },
+  "content": {
+    "details": {
+      "path": "src/extension/README.md"
+    }
+  },
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
   "scopes": ["vso.work", "vso.project"],
+  "files": [
+    {
+      "path": "images",
+      "addressable": true
+    },
+    {
+      "path": "src/extension/README.md",
+      "addressable": true
+    }
+  ],
   "baseUri": "http://localhost:5173",
   "contributions": [
     {
