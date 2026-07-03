@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.17.0] - 2026-07-03
+
+### Added
+
+- Added Sprint Stats tab showing detailed sprint statistics, including team capacity, work item distribution, and sprint burn down/velocity metrics.
+- Added support in `ApiClient` for retrieving iteration capacities, team members, and work items.
+
 ## [2.16.3] - 2026-07-02
 
 ### Fixed
