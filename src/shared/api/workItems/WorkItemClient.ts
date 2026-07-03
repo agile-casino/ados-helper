@@ -17,7 +17,7 @@ export class WorkItemClient {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "Accept: application/json;api-version=5.1"
+        "Accept": "application/json;api-version=5.1"
       },
       body: JSON.stringify(body)
     });

@@ -1,18 +1,20 @@
 export function formatName(name: string | null): string {
-  if (name) {
-    name = name.replace(/\s*<.+/, "");
-
-    const reverseMatch = name.match(/^(\w+), (\w+).*$/);
-
-    if (reverseMatch) {
-      return `${reverseMatch[2]}`;
-    }
-
-    const match = name.match(/^(\w+) (\w+).*$/);
-
-    if (match) {
-      return `${match[1]}`;
-    }
+  if (!name) {
+    return "";
   }
-  return name ?? "";
+  const cleanName = name.replace(/\s*<.+/, "");
+
+  const reverseMatch = cleanName.match(/^(\w+), (\w+).*$/);
+
+  if (reverseMatch) {
+    return reverseMatch[2] ?? cleanName;
+  }
+
+  const match = cleanName.match(/^(\w+) (\w+).*$/);
+
+  if (match) {
+    return match[1] ?? cleanName;
+  }
+
+  return cleanName;
 }

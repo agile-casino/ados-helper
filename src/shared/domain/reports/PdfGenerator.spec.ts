@@ -1,9 +1,42 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { WorkItemDto } from "../../api/query/WorkItemDto";
 import { WorkItem } from "../WorkItem";
-import { generatePdfReport } from "./PdfGenerator";
+import { generateMultiTeamPdfReport, generatePdfReport } from "./PdfGenerator";
 
-const mockAutoTable = vi.fn();
+const mockAutoTable = vi.fn().mockImplementation((_doc, options) => {
+  if (options && options.body && Array.isArray(options.body)) {
+    for (const [rowIndex, rowRaw] of options.body.entries()) {
+      const mockRow = { raw: rowRaw, index: rowIndex };
+
+      // Call didParseCell for each column
+      if (options.didParseCell) {
+        for (const col of options.columns || []) {
+          const mockCell = { styles: {} };
+          options.didParseCell({
+            section: "body",
+            row: mockRow,
+            column: col,
+            cell: mockCell
+          });
+        }
+      }
+
+      // Call didDrawCell for each column
+      if (options.didDrawCell) {
+        for (const col of options.columns || []) {
+          const mockCell = { x: 10, y: 10, width: 20, height: 10 };
+          options.didDrawCell({
+            section: "body",
+            row: mockRow,
+            column: col,
+            cell: mockCell
+          });
+        }
+      }
+    }
+  }
+});
+
 vi.mock("jspdf-autotable", () => ({
   default: (...args: unknown[]) => mockAutoTable(...args)
 }));
@@ -54,6 +87,8 @@ function createWorkItemDto(
     id: number;
     state: string;
     title: string;
+    tags: string;
+    iterationPath: string;
     links: string[];
     activatedDate: string;
   }>
@@ -73,11 +108,11 @@ function createWorkItemDto(
       WorkItemType: "User Story",
       TeamProject: "TestProject",
       Rev: 1,
-      Tags: "",
+      Tags: overrides.tags ?? "",
       State: overrides.state ?? "New",
       AssignedTo: null,
       Title: overrides.title ?? "Test Work Item",
-      IterationPath: "TestProject\\Sprint 1",
+      IterationPath: overrides.iterationPath ?? "TestProject\\Sprint 1",
       HyperLinkCount: 0
     },
     children: [],
@@ -205,5 +240,59 @@ describe("PdfGenerator", () => {
 
     // PBI 102 is early activated (> 2 days before start) -> pink background color
     expect(pbi102?.meta.bgColor).toBe("#f2dcdb");
+  });
+
+  test("applies tag-based color coding for sprint suffixes and carry overs", () => {
+    // Sprint suffix + -> #eeece1
+    const w1 = new WorkItem(createWorkItemDto({ id: 1, state: "Done", title: "PBI 1", tags: "Sprint 1+", iterationPath: "Project\\Sprint 1" }));
+
+    // Sprint suffix ! -> #FFCC66
+    const w2 = new WorkItem(createWorkItemDto({ id: 2, state: "Done", title: "PBI 2", tags: "Sprint 1!", iterationPath: "Project\\Sprint 1" }));
+
+    // Previous sprint (carry over) -> #f2dcdb
+    const w3 = new WorkItem(createWorkItemDto({ id: 3, state: "Done", title: "PBI 3", tags: "Sprint 1", iterationPath: "Project\\Sprint 2" }));
+
+    generatePdfReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", [w1, w2, w3]);
+
+    expect(mockAutoTable).toHaveBeenCalled();
+    const calls = mockAutoTable.mock.calls;
+    const completedCall = calls.find(call => {
+      const options = call[1] as { body: { id: string }[] };
+      return options.body.some(b => b.id === "1");
+    });
+    const body = completedCall?.[1]?.body as { id: string; meta: { bgColor: string | null } }[];
+
+    expect(body.find(b => b.id === "1")?.meta.bgColor).toBe("#eeece1");
+    expect(body.find(b => b.id === "2")?.meta.bgColor).toBe("#FFCC66");
+    expect(body.find(b => b.id === "3")?.meta.bgColor).toBe("#f2dcdb");
+  });
+
+  test("renders Study Time section", () => {
+    const w1 = new WorkItem(createWorkItemDto({ id: 1, title: "[Study Time] Learn vitest" }));
+    generatePdfReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", [w1]);
+
+    expect(mockAutoTable).toHaveBeenCalled();
+    // Verification that a section for Study Time was passed
+    const calls = mockAutoTable.mock.calls;
+    const studyTimeCall = calls.find(call => {
+      const options = call[1] as { body: { description: string }[] };
+      return options.body.some(b => b.description.includes("Learn vitest"));
+    });
+    expect(studyTimeCall).toBeDefined();
+  });
+
+  test("generates multi-team PDF report successfully", async () => {
+    const w1 = new WorkItem(createWorkItemDto({ id: 1, state: "Done", title: "PBI Team 1" }));
+    const w2 = new WorkItem(createWorkItemDto({ id: 2, state: "Done", title: "PBI Team 2" }));
+
+    const teamWorkItems = [
+      { team: "Team 1", workItems: [w1] },
+      { team: "Team 2", workItems: [w2], backgroundColor: "#00FF00" }
+    ];
+
+    await generateMultiTeamPdfReport(mockSaveFile, "http://origin", "collection", "project", "sprint", teamWorkItems);
+
+    expect(mockAddPage).toHaveBeenCalled();
+    expect(mockSaveFile).toHaveBeenCalled();
   });
 });

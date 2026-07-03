@@ -11,13 +11,14 @@ function createWorkItemDto(
     tags: string;
     assignedTo: string | null;
     children: WorkItemDto[];
-  }>
+    effort: number;
+  }> = {}
 ): WorkItemDto {
   return {
     Microsoft: {
       VSTS: {
         Scheduling: {
-          Effort: 3,
+          Effort: overrides.effort !== undefined ? overrides.effort : 3,
           RemainingWork: 0
         }
       }
@@ -198,6 +199,81 @@ describe("WorkItemCollection", () => {
 
       expect(collection.studyTime).toHaveLength(1);
       expect(collection.studyTime[0]?.title).toBe("[Study Time] Learn React");
+    });
+  });
+
+  describe("sprint metrics and commitment calculations", () => {
+    test("estimatedSprintStartDate calculates correctly", () => {
+      // No activated dates
+      const collection1 = new WorkItemCollection([new WorkItem(createWorkItemDto({ id: 1 })), new WorkItem(createWorkItemDto({ id: 2 }))]);
+      expect(collection1.estimatedSprintStartDate).toBeUndefined();
+
+      // One activated date
+      const w1 = createWorkItemDto({ id: 1 });
+      w1.Microsoft = {
+        VSTS: {
+          Common: { ActivatedDate: "2026-06-17T08:00:00Z" },
+          Scheduling: { Effort: 3, RemainingWork: 0 }
+        }
+      };
+      const collection2 = new WorkItemCollection([new WorkItem(w1)]);
+      expect(collection2.estimatedSprintStartDate?.toISOString()).toBe("2026-06-17T08:00:00.000Z");
+
+      // Multiple activated dates (returns 25th percentile)
+      const w2 = createWorkItemDto({ id: 2 });
+      w2.Microsoft = {
+        VSTS: {
+          Common: { ActivatedDate: "2026-06-18T08:00:00Z" },
+          Scheduling: { Effort: 3, RemainingWork: 0 }
+        }
+      };
+      const w3 = createWorkItemDto({ id: 3 });
+      w3.Microsoft = {
+        VSTS: {
+          Common: { ActivatedDate: "2026-06-19T08:00:00Z" },
+          Scheduling: { Effort: 3, RemainingWork: 0 }
+        }
+      };
+      const w4 = createWorkItemDto({ id: 4 });
+      w4.Microsoft = {
+        VSTS: {
+          Common: { ActivatedDate: "2026-06-20T08:00:00Z" },
+          Scheduling: { Effort: 3, RemainingWork: 0 }
+        }
+      };
+
+      const collection3 = new WorkItemCollection([new WorkItem(w1), new WorkItem(w2), new WorkItem(w3), new WorkItem(w4)]);
+      expect(collection3.estimatedSprintStartDate?.toISOString()).toBe("2026-06-18T08:00:00.000Z");
+    });
+
+    test("handles undefined sprint start date in committed/pulledIn items", () => {
+      const item = new WorkItem(createWorkItemDto({ id: 1, title: "Item 1" }));
+      const collection = new WorkItemCollection([item]);
+
+      expect(collection.committedWorkItems()).toHaveLength(1);
+      expect(collection.pulledInWorkItems()).toHaveLength(0);
+    });
+
+    test("commitmentPercentage returns 0 if committedEffort is 0", () => {
+      const item = new WorkItem(createWorkItemDto({ id: 1, effort: 0 }));
+      const collection = new WorkItemCollection([item]);
+      expect(collection.committedEffort).toBe(0);
+      expect(collection.commitmentPercentage).toBe(0);
+    });
+
+    test("calculates completedCommittedEffort and pulledInEffort", () => {
+      const sprintStart = new Date("2026-06-17T00:00:00Z");
+      // Committed & Done (effort 5)
+      const w1 = createWorkItemDto({ id: 1, state: "Done", effort: 5 });
+      w1.Microsoft.VSTS.Common = { ActivatedDate: "2026-06-17T08:00:00Z" };
+
+      // Pulled in late (activated on day 4) & Done (effort 8)
+      const w2 = createWorkItemDto({ id: 2, state: "Done", effort: 8 });
+      w2.Microsoft.VSTS.Common = { ActivatedDate: "2026-06-21T08:00:00Z" };
+
+      const collection = new WorkItemCollection([new WorkItem(w1), new WorkItem(w2)], sprintStart);
+      expect(collection.completedCommittedEffort).toBe(5);
+      expect(collection.pulledInEffort).toBe(8);
     });
   });
 });
