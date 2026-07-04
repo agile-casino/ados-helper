@@ -7,6 +7,27 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.0] - 2026-07-04
+
+### Added
+
+- Added comprehensive unit test suites for `encodeUrl`, `QueryClient`, `WorkItemClient`, `WorkItem`, `WorkItemCollection`, `PdfGenerator`, and `ReportGenerator`.
+- Added a refactoring `TODO.md` document outlining code consolidation opportunities and next steps.
+- Added a new high-quality `icon.png` icon asset.
+
+### Changed
+
+- Renamed package and local storage key prefix to `sprint-report-generator`.
+- Renamed userscript output file to `sprint-report-generator.user.js` and updated userscript metadata (download/update URLs).
+- Restructured and expanded target-specific documentation (`README.md` files) for userscript, desktop, and extension targets.
+- Refactored `formatName` utility to improve name formatting robustness.
+- Updated extension publisher identity and metadata in extension manifest files.
+- Improved the release checklist and procedure documentation.
+
+### Removed
+
+- Removed deprecated GitHub Gist deployment workflows and visualstudio.com match patterns.
+
 ## [2.17.0] - 2026-07-03
 
 ### Added
