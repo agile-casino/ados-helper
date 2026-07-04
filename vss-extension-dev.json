@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "id": "sprint-report-generator-dev",
-  "version": "2.17.0",
+  "version": "2.18.0",
   "name": "Sprint Report Generator (Dev)",
   "description": "Local development version of Sprint Report Generator",
   "publisher": "agile-tools",
