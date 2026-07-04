@@ -53,7 +53,7 @@ Open **[http://localhost:5173/](http://localhost:5173/)** to access the **ADOS S
   ```bash
   pnpm build
   ```
-  This compiles the bundle into `dist/index.user.js`.
+  This compiles the bundle into `dist/sprint-report-generator.user.js`.
 - **Active watch mode:**
   ```bash
   pnpm build:watch

@@ -51,9 +51,6 @@ jobs:
           name: dist-artifacts
           path: dist/
 
-      - name: Rename userscript for GitHub Release
-        run: cp dist/index.user.js dist/sprint-report-generator.user.js
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
@@ -80,25 +77,6 @@ jobs:
           extra_args: "--destination-path sprint-report-generator"
           connection_string: ${{ secrets.BLOB_CONNECTION_STRING }}
           overwrite: "true"
-
-  deploy-gist:
-    name: Deploy to GitHub Gist
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v8
-        with:
-          name: dist-artifacts
-          path: dist/
-
-      - name: Deploy to Gist
-        uses: exuanbo/actions-deploy-gist@v1
-        with:
-          token: ${{ secrets.GIST_TOKEN }}
-          gist_id: ${{ vars.GIST_ID }}
-          file_path: dist/index.user.js
-          gist_file_name: sprint-report-generator.user.js
 
   deploy-tauri:
     name: Deploy Tauri App

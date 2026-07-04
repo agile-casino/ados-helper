@@ -12,8 +12,9 @@ const banner = `
 // @description  Sprint Report Generator
 // @author       archerax
 // @match        https://dev.azure.com/*
-// @match        https://*.visualstudio.com/*
 // @icon         https://cdn.vsassets.io/content/icons/favicon.ico
+// @downloadURL  https://github.com/archerax/ados-helper/releases/latest/download/sprint-report-generator.user.js
+// @updateURL    https://github.com/archerax/ados-helper/releases/latest/download/sprint-report-generator.user.js
 // @grant        GM_download
 // ==/UserScript==
 `.trim();
@@ -31,7 +32,7 @@ export default defineConfig(({ mode }) => ({
     rolldownOptions: {
       input: "src/userscript/index.tsx",
       output: {
-        entryFileNames: "index.user.js",
+        entryFileNames: "sprint-report-generator.user.js",
         format: "iife",
         codeSplitting: false
       },

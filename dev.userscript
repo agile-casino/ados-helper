@@ -5,7 +5,6 @@
 // @description  Sprint Report Generator
 // @author       archerax
 // @match        https://dev.azure.com/*
-// @match        https://*.visualstudio.com/*
 // @icon         https://cdn.vsassets.io/content/icons/favicon.ico
 // @grant        none
 // @require      file:///<path goes here>

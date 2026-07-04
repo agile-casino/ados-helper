@@ -30,7 +30,7 @@ To run the userscript, you need a modern web browser equipped with a userscript 
 
 1. Open your userscript manager dashboard (e.g., Tampermonkey).
 2. Click **Create a new script** (or `+` icon).
-3. Copy the entire contents of the release bundle file (`dist/index.user.js` in this repository or from the releases tab).
+3. Copy the entire contents of the release bundle file (`dist/sprint-report-generator.user.js` in this repository or from the releases tab).
 4. Paste the code into the script editor, replacing any default template, and press **Save** (Ctrl+S / Cmd+S).
 5. Navigate to your organization's Azure DevOps portal; the helper will automatically load on matching URLs.
 

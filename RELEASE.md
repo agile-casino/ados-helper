@@ -241,9 +241,8 @@ Prefer creating new releases to maintain version history integrity.
 GitHub Actions automates the release steps:
 
 1. **Build & Test**: Compiles the code (both the userscript and the ADO extension), packages the ADO extension as a `.vsix` bundle, and runs verification tests.
-2. **Deploy to GitHub Releases**: Uploads the userscript (`index.user.js` renamed to `ados-helper.user.js`) and the packaged ADO extension (`*.vsix`) to the GitHub release.
+2. **Deploy to GitHub Releases**: Uploads the userscript (`sprint-report-generator.user.js`) and the packaged ADO extension (`*.vsix`) to the GitHub release.
 3. **Deploy to Azure**: Uploads the entire userscript build to Azure Blob Storage.
-4. **Deploy to GitHub Gist**: Deploys `index.user.js` to a specified Gist.
 
 Check [.github/workflows/release.yml](file:///root/ados-helper/.github/workflows/release.yml) for the full CI/CD configuration.
 
@@ -252,13 +251,6 @@ Check [.github/workflows/release.yml](file:///root/ados-helper/.github/workflows
 To enable these deployments, the following secrets must be set in the GitHub repository:
 
 - `BLOB_CONNECTION_STRING`: Connection string for the destination Azure Blob Storage container.
-- `GIST_TOKEN`: A GitHub Personal Access Token (PAT) with `gist` scope.
-
-### Required Repository Variables
-
-The following non-sensitive configurations can be configured as repository variables:
-
-- `GIST_ID`: The ID of the GitHub Gist where the userscript should be published.
 
 ## Questions?
 
