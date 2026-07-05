@@ -1,5 +1,4 @@
 import { MantineProvider, Tabs, Title } from "@mantine/core";
-import { useColorScheme } from "@mantine/hooks";
 import * as SDK from "azure-devops-extension-sdk";
 import * as React from "react";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
@@ -23,11 +22,82 @@ interface ExtensionContext {
   iterationPath: string;
 }
 
+const isColorDark = (color: string): boolean => {
+  if (!color) return false;
+  const cleanColor = color.trim().toLowerCase();
+
+  if (cleanColor.startsWith("#")) {
+    const hex = cleanColor.slice(1);
+    let r = 0,
+      g = 0,
+      b = 0;
+    if (hex.length === 3) {
+      const rChar = hex[0];
+      const gChar = hex[1];
+      const bChar = hex[2];
+      if (rChar && gChar && bChar) {
+        r = parseInt(rChar + rChar, 16);
+        g = parseInt(gChar + gChar, 16);
+        b = parseInt(bChar + bChar, 16);
+      }
+    } else if (hex.length === 6) {
+      r = parseInt(hex.slice(0, 2), 16);
+      g = parseInt(hex.slice(2, 4), 16);
+      b = parseInt(hex.slice(4, 6), 16);
+    } else {
+      return false;
+    }
+    const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+    return brightness < 128;
+  }
+
+  if (cleanColor.startsWith("rgb")) {
+    const matches = cleanColor.match(/\d+/g);
+    if (matches && matches.length >= 3) {
+      const rStr = matches[0];
+      const gStr = matches[1];
+      const bStr = matches[2];
+      if (rStr && gStr && bStr) {
+        const r = parseInt(rStr, 10);
+        const g = parseInt(gStr, 10);
+        const b = parseInt(bStr, 10);
+        const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+        return brightness < 128;
+      }
+    }
+  }
+
+  const darkNames = ["black", "dark", "navy", "purple", "indigo", "maroon", "blue", "grey", "gray"];
+  if (darkNames.some(name => cleanColor.includes(name))) {
+    return true;
+  }
+
+  return false;
+};
+
+const detectTheme = (): "light" | "dark" => {
+  const rootStyle = getComputedStyle(document.documentElement);
+  const bodyStyle = getComputedStyle(document.body);
+
+  const bgColor = rootStyle.getPropertyValue("--background-color").trim() || bodyStyle.getPropertyValue("--background-color").trim();
+
+  const textColor = rootStyle.getPropertyValue("--text-primary-color").trim() || bodyStyle.getPropertyValue("--text-primary-color").trim();
+
+  if (bgColor) {
+    return isColorDark(bgColor) ? "dark" : "light";
+  }
+
+  if (textColor) {
+    return isColorDark(textColor) ? "light" : "dark";
+  }
+
+  return "light";
+};
+
 export const ExtensionApp = () => {
   const [loading, setLoading] = React.useState(true);
   const [context, setContext] = React.useState<ExtensionContext | null>(null);
-
-  const colorScheme = useColorScheme();
+  const [colorScheme, setColorScheme] = React.useState<"light" | "dark">("light");
 
   React.useEffect(() => {
     async function initContext() {
@@ -90,6 +160,7 @@ export const ExtensionApp = () => {
         sprint,
         iterationPath
       });
+      setColorScheme(detectTheme());
       setLoading(false);
 
       // Notify ADOS host that extension page loaded successfully
@@ -100,6 +171,15 @@ export const ExtensionApp = () => {
       console.error("Failed to initialize extension context:", err);
       setLoading(false);
     });
+
+    const handleThemeApplied = () => {
+      setColorScheme(detectTheme());
+    };
+
+    window.addEventListener("themeApplied", handleThemeApplied);
+    return () => {
+      window.removeEventListener("themeApplied", handleThemeApplied);
+    };
   }, []);
 
   if (loading) {
@@ -112,7 +192,7 @@ export const ExtensionApp = () => {
 
   return (
     <PlatformProvider value={platformService}>
-      <MantineProvider defaultColorScheme={colorScheme}>
+      <MantineProvider forceColorScheme={colorScheme}>
         <div style={{ padding: "16px", height: "100vh", display: "flex", flexDirection: "column" }}>
           <Title order={3} fw={400} style={{ marginBottom: "1rem" }}>
             <span>{context.sprint} Reports</span>

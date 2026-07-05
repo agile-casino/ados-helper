@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.6] - 2026-07-05
+
+### Fixed
+
+- Fixed color theme detection in the Azure DevOps extension to match the Azure DevOps host theme instead of the user's OS/browser settings.
+
 ## [2.18.5] - 2026-07-05
 
 ### Added
