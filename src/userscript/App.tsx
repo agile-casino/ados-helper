@@ -33,7 +33,7 @@ export const App = () => {
   }, [onUrlChange]);
 
   // iterationPath captures everything after the team/PROJECT/ prefix, e.g. "Sprint 13" or "2W/Sprint 13"
-  const matches = /(?<collection>[\w\-%]+)\/(?<project>[\w\-%]+)\/_sprints\/taskboard\/(?<team>[\w\-%]+)\/[\w\-%]+\/(?<iterationPath>(?:.+\/)?Sprint[\w\-.%()]+)/.exec(url);
+  const matches = /(?<collection>[\w\-%]+)\/(?<project>[\w\-%]+)\/_sprints\/taskboard\/(?<team>[\w\-%]+)\/[\w\-%]+\/(?<iterationPath>(?:.+\/)?(?:Sprint|Iteration)[\w\-.%()]+)/i.exec(url);
 
   if (matches?.groups) {
     const collection = decodeURI(matches.groups["collection"] ?? "");

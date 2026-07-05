@@ -301,7 +301,7 @@ function flattenMockWorkItems(
 
   // If there's an ASOF date, we might want to simulate historical changes.
   // We calculate the sprint's start date dynamically relative to Sprint 13.
-  const sprintMatch = sprintNameStr.match(/Sprint (\d+)/);
+  const sprintMatch = sprintNameStr.match(/(?:Sprint|Iteration)(?:\s+|-|_|)(\d+)/i);
   let sprintStartDate = new Date("2026-06-01T00:00:00Z");
   if (sprintMatch) {
     const num = parseInt(sprintMatch[1] || "13", 10);
@@ -351,7 +351,7 @@ function flattenMockWorkItems(
         case "Microsoft.VSTS.Scheduling.Effort": {
           let itemEffort = item.effort ?? 0;
           if (itemEffort > 0) {
-            const sprintMatch = sprintNameStr.match(/Sprint (\d+)/);
+            const sprintMatch = sprintNameStr.match(/(?:Sprint|Iteration)(?:\s+|-|_|)(\d+)/i);
             if (sprintMatch) {
               const num = parseInt(sprintMatch[1] || "13", 10);
               itemEffort = Math.max(1, itemEffort + ((item.id + num) % 5) - 2);
@@ -479,14 +479,16 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
     }
 
     const sprintNameSafe = sprintName || "Sprint 13";
-    const match = sprintNameSafe.match(/Sprint (\d+)/);
+    const match = sprintNameSafe.match(/(Sprint|Iteration)(?:\s+|-|_|)(\d+)/i);
     const value = [];
     if (match) {
-      const currentNum = parseInt(match[1] || "13", 10);
+      const prefix = match[1] || "Sprint";
+      const formattedPrefix = prefix.charAt(0).toUpperCase() + prefix.slice(1).toLowerCase();
+      const currentNum = parseInt(match[2] || "13", 10);
       for (let i = 7; i >= 0; i--) {
         const num = currentNum - i;
         if (num <= 0) continue;
-        const name = `Sprint ${num}`;
+        const name = `${formattedPrefix} ${num}`;
         const start = new Date(new Date("2026-06-01T00:00:00Z").getTime() - i * 14 * 24 * 60 * 60 * 1000);
         const finish = new Date(start.getTime() + 13 * 24 * 60 * 60 * 1000 + 23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000);
         value.push({

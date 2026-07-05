@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.4] - 2026-07-05
+
+### Added
+
+- Support "Iteration" prefix (in addition to "Sprint") for ADOS sprint names case-insensitively, with space, hyphen, underscore, or no separator.
+
 ## [2.18.3] - 2026-07-05
 
 ### Changed

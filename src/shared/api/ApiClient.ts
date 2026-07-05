@@ -80,7 +80,7 @@ export class ApiClient {
 
   public async getSprintSnapshot(collection: string, project: string, team: string, iteration: string, iterationPath: string, asOfDate: Date): Promise<WorkItem[]> {
     const asOfStr = asOfDate.toISOString();
-    const sprintMatch = iteration.match(/(Sprint \d+)/);
+    const sprintMatch = iteration.match(/((?:Sprint|Iteration)(?:\s+|-|_|)\d+)/i);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
 
     let teamCondition = "";
@@ -140,7 +140,7 @@ export class ApiClient {
   }
 
   public async getIteration(collection: string, project: string, team: string, iteration: string): Promise<IterationData> {
-    const sprintMatch = iteration.match(/(Sprint \d+)/);
+    const sprintMatch = iteration.match(/((?:Sprint|Iteration)(?:\s+|-|_|)\d+)/i);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
     const query = `
             SELECT
@@ -214,7 +214,7 @@ export class ApiClient {
   public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<IterationData> {
     const iterationSegments = iteration.split("/");
     const sprintName = iterationSegments[iterationSegments.length - 1] ?? iteration;
-    const sprintMatch = sprintName.match(/(Sprint \d+)/);
+    const sprintMatch = sprintName.match(/((?:Sprint|Iteration)(?:\s+|-|_|)\d+)/i);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
     const areaPath = await this.getTeamAreaPath(collection, project, team);
     const adoIterationPath = `${project}\\${iteration.replace(/\//g, "\\")}`;
