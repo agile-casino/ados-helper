@@ -6,7 +6,7 @@ import pkg from "./package.json" with { type: "json" };
 
 const banner = `
 // ==UserScript==
-// @name         Sprint Report Generator
+// @name         ADOS Helper
 // @namespace    https://ados/
 // @version      ${pkg.version}
 // @description  Sprint Report Generator

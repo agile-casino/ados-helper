@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.3] - 2026-07-05
+
+### Changed
+
+- Renamed userscript and development userscript to "ADOS Helper".
+
 ## [2.18.2] - 2026-07-05
 
 ### Fixed
