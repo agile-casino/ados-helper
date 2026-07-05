@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.1] - 2026-07-05
+
+### Added
+
+- Temporarily output a copy of the userscript as `index.user.js` in the release assets.
+
 ## [2.18.0] - 2026-07-04
 
 ### Added

@@ -26,6 +26,7 @@ jobs:
       - name: Build and Test Code
         run: |
           pnpm run build
+          cp dist/sprint-report-generator.user.js dist/index.user.js
           pnpm run build:extension
           npx tfx-cli extension create --manifest-globs vss-extension.json --output-path dist/
           pnpm run test
@@ -56,6 +57,7 @@ jobs:
         with:
           files: |
             dist/sprint-report-generator.user.js
+            dist/index.user.js
             dist/*.vsix
 
   deploy-azure:
