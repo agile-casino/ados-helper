@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "sprint-report-generator",
-  "version": "2.18.0",
+  "version": "2.18.1",
   "identifier": "com.archerax.sprint-report-generator",
   "build": {
     "frontendDist": "../dist-desktop",

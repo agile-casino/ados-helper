@@ -1,6 +1,6 @@
 {
   "name": "sprint-report-generator",
-  "version": "2.18.0",
+  "version": "2.18.1",
   "description": "Sprint Report Generator",
   "main": "src/userscript/index.tsx",
   "scripts": {
