@@ -128,8 +128,30 @@ export const ExtensionApp = () => {
 
       // 3. Resolve ADOS context details
       const hostContext = SDK.getHost();
-      const origin = hostContext.name ? `https://dev.azure.com/${hostContext.name}` : "";
       const collection = hostContext.name || "DefaultCollection";
+
+      let origin = "https://dev.azure.com";
+      if (document.referrer) {
+        try {
+          const refUrl = new URL(document.referrer);
+          // If on-premises TFS, the path might be /tfs/CollectionName/Project/...
+          // We want to extract everything up to the collection name as the origin/base URL.
+          const collectionLower = collection.toLowerCase();
+          const pathSegments = refUrl.pathname.split("/").filter(Boolean);
+          const collectionIndex = pathSegments.findIndex(seg => decodeURIComponent(seg).toLowerCase() === collectionLower);
+
+          if (collectionIndex !== -1) {
+            // Keep segments before the collection name, e.g., ["tfs"]
+            const prefixSegments = pathSegments.slice(0, collectionIndex);
+            const pathPrefix = prefixSegments.length > 0 ? `/${prefixSegments.join("/")}` : "";
+            origin = `${refUrl.origin}${pathPrefix}`;
+          } else {
+            origin = refUrl.origin;
+          }
+        } catch (e) {
+          console.warn("Failed to resolve origin from document.referrer:", e);
+        }
+      }
 
       const webContext = SDK.getWebContext();
       const project = webContext?.project?.name || "";

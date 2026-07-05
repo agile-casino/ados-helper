@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.7] - 2026-07-05
+
+### Fixed
+
+- Fixed host origin resolution in the Azure DevOps extension to prevent duplicated organization name in API requests, correcting the 'Dates Not Set' issue in the sprint stats tab.
+
 ## [2.18.6] - 2026-07-05
 
 ### Fixed
