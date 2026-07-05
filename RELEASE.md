@@ -126,7 +126,7 @@ git push origin main --no-verify
 After pushing the release:
 
 1. **Verify on GitHub:**
-   - Navigate to https://github.com/archerax/ados-helper
+   - Navigate to https://github.com/agile-casino/ados-helper
    - Check that the tag `vX.Y.Z` appears in the Releases section
    - Verify the CHANGELOG and README are updated
 
@@ -163,7 +163,7 @@ git push origin vX.Y.Z --no-verify
 git push origin main --no-verify
 
 # 7. Verify on GitHub
-# Open: https://github.com/archerax/ados-helper/releases
+# Open: https://github.com/agile-casino/ados-helper/releases
 ```
 
 ## CHANGELOG Format

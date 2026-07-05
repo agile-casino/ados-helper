@@ -13,8 +13,8 @@ const banner = `
 // @author       archerax
 // @match        https://dev.azure.com/*
 // @icon         https://cdn.vsassets.io/content/icons/favicon.ico
-// @downloadURL  https://github.com/archerax/ados-helper/releases/latest/download/sprint-report-generator.user.js
-// @updateURL    https://github.com/archerax/ados-helper/releases/latest/download/sprint-report-generator.user.js
+// @downloadURL  https://github.com/agile-casino/ados-helper/releases/latest/download/sprint-report-generator.user.js
+// @updateURL    https://github.com/agile-casino/ados-helper/releases/latest/download/sprint-report-generator.user.js
 // @grant        GM_download
 // ==/UserScript==
 `.trim();

@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.2] - 2026-07-05
+
+### Fixed
+
+- Corrected userscript metadata download/update URLs and repository URLs to point to the `agile-casino` organization instead of `archerax`.
+
 ## [2.18.1] - 2026-07-05
 
 ### Added
