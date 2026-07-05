@@ -7,6 +7,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.5] - 2026-07-05
+
+### Added
+
+- Added "Say-Do Impact" column and status badges ("Excluded", "Reduces Ratio") to Sprint Stats tab tables.
+- Added detailed tooltips for Sprint Churn, Planned Points, Completed Points, and Net Change Details on the Sprint Stats tab.
+- Added Eruda Mobile DevTools integration in local sandbox `index.html`.
+
+### Changed
+
+- Renamed "Committed Points" to "Planned Points" across Sprint Stats metrics and cards to improve clarity.
+
 ## [2.18.4] - 2026-07-05
 
 ### Added
