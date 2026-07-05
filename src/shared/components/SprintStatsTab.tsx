@@ -1,4 +1,4 @@
-import { Alert, Badge, Box, Card, Group, Loader, Paper, RingProgress, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
+import { Alert, Badge, Box, Card, Group, Loader, Paper, RingProgress, SimpleGrid, Stack, Table, Text, Title, Tooltip } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { QueryClient } from "../api/query/QueryClient";
@@ -54,6 +54,26 @@ const calculateStdev = (values: number[], mean: number): number => {
 const getActiveItems = (items: WorkItem[]) => {
   return items.filter(w => w.state !== "Removed" && w.sprintTag?.sprintSuffix !== "-");
 };
+
+const InfoIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ opacity: 0.6, cursor: "help", display: "inline-block", verticalAlign: "middle" }}
+  >
+    <title>Info Icon</title>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 16v-4" />
+    <path d="M12 8h.01" />
+  </svg>
+);
 
 export const SprintStatsTab = (props: SprintStatsTabProps) => {
   const [loading, setLoading] = useState(true);
@@ -335,7 +355,7 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
             </div>
             <div>
               <Text size="xs" fw={700} c="dimmed" style={{ textTransform: "uppercase" }}>
-                Committed Snapshot Date
+                Sprint Start Snapshot
               </Text>
               <Text size="sm" fw={600}>
                 {committedDate ? formatLocalDate(committedDate) : "N/A"}
@@ -358,9 +378,20 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
           <Card withBorder style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <Group justify="space-between" align="center">
               <Stack gap="xs">
-                <Text size="sm" fw={600} c="dimmed">
-                  Say-Do Ratio
-                </Text>
+                <Tooltip
+                  label="Say-Do Ratio (Predictability) measures the percentage of planned points completed. Formula: (Completed Planned Points / Planned Points) * 100. Work items added after the start of the sprint are excluded."
+                  multiline
+                  w={280}
+                  withArrow
+                  events={{ hover: true, focus: true, touch: true }}
+                >
+                  <Group gap="xs" align="center" style={{ cursor: "help", width: "fit-content" }}>
+                    <Text size="sm" fw={600} c="dimmed">
+                      Say-Do Ratio
+                    </Text>
+                    <InfoIcon />
+                  </Group>
+                </Tooltip>
                 <Title order={2} style={{ fontSize: "2rem" }}>
                   {sayDoPct}%
                 </Title>
@@ -368,7 +399,7 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
                   {sayDoPct < 70 ? "Low Reliability" : sayDoPct < 90 ? "Moderate Reliability" : "High Reliability"}
                 </Badge>
                 <Text size="xs" c="dimmed" style={{ marginTop: "4px" }}>
-                  {completedCommittedPoints} of {committedPoints} committed pts ({completedCommittedCount} items)
+                  {completedCommittedPoints} of {committedPoints} planned pts ({completedCommittedCount} items)
                 </Text>
               </Stack>
               <RingProgress
@@ -389,9 +420,20 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
           <Card withBorder style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <Group justify="space-between" align="center">
               <Stack gap="xs">
-                <Text size="sm" fw={600} c="dimmed">
-                  Sprint Churn
-                </Text>
+                <Tooltip
+                  label="Sprint Churn measures scope changes during the sprint. Formula: ((Added Points + Removed Points) / Planned Points) * 100. Lower churn indicates more stable planning."
+                  multiline
+                  w={280}
+                  withArrow
+                  events={{ hover: true, focus: true, touch: true }}
+                >
+                  <Group gap="xs" align="center" style={{ cursor: "help", width: "fit-content" }}>
+                    <Text size="sm" fw={600} c="dimmed">
+                      Sprint Churn
+                    </Text>
+                    <InfoIcon />
+                  </Group>
+                </Tooltip>
                 <Title order={2} style={{ fontSize: "2rem" }}>
                   {churnPct}%
                 </Title>
@@ -416,11 +458,16 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
 
         {/* Primary Metrics Grid */}
         <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-          {/* Committed Stats Card */}
+          {/* Planned Stats Card */}
           <Card withBorder p="md" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <Text size="sm" fw={600} c="dimmed">
-              Committed Points
-            </Text>
+            <Tooltip label="The total story points of all active work items in the sprint at the Sprint Start Snapshot (end of Day 2)." multiline w={280} withArrow events={{ hover: true, focus: true, touch: true }}>
+              <Group gap="xs" align="center" style={{ cursor: "help", width: "fit-content" }}>
+                <Text size="sm" fw={600} c="dimmed">
+                  Planned Points
+                </Text>
+                <InfoIcon />
+              </Group>
+            </Tooltip>
             <div>
               <Title order={3}>{committedPoints} pts</Title>
               <Text size="xs" c="dimmed">
@@ -431,9 +478,20 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
 
           {/* Completed Stats Card */}
           <Card withBorder p="md" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <Text size="sm" fw={600} c="dimmed">
-              Completed Points
-            </Text>
+            <Tooltip
+              label="The total story points of work items in the sprint that are completed (in a Done state) by the end of the sprint, including items added mid-sprint."
+              multiline
+              w={280}
+              withArrow
+              events={{ hover: true, focus: true, touch: true }}
+            >
+              <Group gap="xs" align="center" style={{ cursor: "help", width: "fit-content" }}>
+                <Text size="sm" fw={600} c="dimmed">
+                  Completed Points
+                </Text>
+                <InfoIcon />
+              </Group>
+            </Tooltip>
             <div>
               <Title order={3} c="green">
                 {completedPoints} pts
@@ -446,9 +504,14 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
 
           {/* Churn Breakdown summary */}
           <Card withBorder p="md" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <Text size="sm" fw={600} c="dimmed">
-              Net Change Details
-            </Text>
+            <Tooltip label="Details of items added to or removed from the sprint after the Sprint Start Snapshot." multiline w={280} withArrow events={{ hover: true, focus: true, touch: true }}>
+              <Group gap="xs" align="center" style={{ cursor: "help", width: "fit-content" }}>
+                <Text size="sm" fw={600} c="dimmed">
+                  Net Change Details
+                </Text>
+                <InfoIcon />
+              </Group>
+            </Tooltip>
             <Stack gap="xs">
               <Group justify="space-between">
                 <Text size="xs">Added after start:</Text>
@@ -535,7 +598,8 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
                   <Table.Tr>
                     <Table.Th w={80}>ID</Table.Th>
                     <Table.Th>Title</Table.Th>
-                    <Table.Th w={120}>Date Added</Table.Th>
+                    <Table.Th w={110}>Date Added</Table.Th>
+                    <Table.Th w={130}>Say-Do Impact</Table.Th>
                     <Table.Th w={80} style={{ textAlign: "center" }}>
                       Points
                     </Table.Th>
@@ -566,6 +630,13 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
                             {transDate ? formatLocalDate(transDate) : "N/A"}
                           </Text>
                         </Table.Td>
+                        <Table.Td>
+                          <Tooltip label="Added mid-sprint; excluded from both planned baseline and completed committed points." events={{ hover: true, focus: true, touch: true }}>
+                            <Badge variant="light" color="gray" style={{ cursor: "help" }}>
+                              Excluded
+                            </Badge>
+                          </Tooltip>
+                        </Table.Td>
                         <Table.Td style={{ textAlign: "center" }}>
                           <Badge variant="light" color="blue">
                             {item.effort || 0}
@@ -594,7 +665,8 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
                   <Table.Tr>
                     <Table.Th w={80}>ID</Table.Th>
                     <Table.Th>Title</Table.Th>
-                    <Table.Th w={120}>Date Removed</Table.Th>
+                    <Table.Th w={110}>Date Removed</Table.Th>
+                    <Table.Th w={130}>Say-Do Impact</Table.Th>
                     <Table.Th w={80} style={{ textAlign: "center" }}>
                       Points
                     </Table.Th>
@@ -624,6 +696,13 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
                           <Text size="xs" c="dimmed">
                             {transDate ? formatLocalDate(transDate) : "N/A"}
                           </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Tooltip label="Counted in planned baseline but not completed; decreases the Say-Do ratio." events={{ hover: true, focus: true, touch: true }}>
+                            <Badge variant="light" color="red" style={{ cursor: "help" }}>
+                              Reduces Ratio
+                            </Badge>
+                          </Tooltip>
                         </Table.Td>
                         <Table.Td style={{ textAlign: "center" }}>
                           <Badge variant="light" color="gray">
