@@ -74,8 +74,8 @@ This project is a hybrid application that operates as:
   ```
 
 > [!NOTE]
-> **Vitest Workspace Conflicts and Memory Aborts:**
-> If you encounter the error: `Error: Projects "" and "" have different 'maxWorkers' but same 'sequence.groupOrder'` or a `double free or corruption (out) Aborted` crash, these are transient conflicts/memory limitations that occur when multiple configuration files or tests are evaluated concurrently in a resource-limited environment. Re-running the verification suite (`pnpm check` or `pnpm test`) usually resolves it.
+> **Vitest Workspace Conflicts, Pre-commit Hooks, and Memory Aborts:**
+> If you encounter the error: `Error: Projects "" and "" have different 'maxWorkers' but same 'sequence.groupOrder'`, a `double free or corruption (out)` crash, or a `SIGABRT` during `prettier` or test execution (including within `lint-staged` pre-commit hooks), these are transient conflicts/memory limitations that occur when multiple processes or tools are evaluated concurrently in a resource-limited environment. Re-running the command (e.g., retrying `git commit`, `pnpm check`, or `pnpm test`) usually resolves it.
 
 ---
 
