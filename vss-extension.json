@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "id": "sprint-report-generator",
-  "version": "2.18.8",
+  "version": "2.18.9",
   "name": "Sprint Report Generator",
   "description": "Sprint reports and metrics generator for Azure DevOps",
   "publisher": "agile-tools",
