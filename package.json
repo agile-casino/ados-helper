@@ -46,6 +46,7 @@
     "@types/react-dom": "^19.2.3",
     "husky": "^9.1.7",
     "knip": "^6.23.0",
+    "lint-staged": "^17.0.8",
     "postcss-preset-mantine": "^1.18.0",
     "prettier": "^3.9.3",
     "tfx-cli": "^0.23.3",
@@ -72,5 +73,9 @@
     "react-dom": "^19.2.7",
     "typescript-plugin-css-modules": "^5.2.0",
     "xlsx-js-style": "^1.2.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx,json}": "biome check --write",
+    "*.{md,yml}": "prettier --write"
   }
 }

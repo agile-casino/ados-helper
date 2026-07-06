@@ -25,6 +25,7 @@ jobs:
 
       - name: Build Code
         run: |
+          pnpm run typecheck
           pnpm run build
           pnpm run test
           pnpm biome ci src
