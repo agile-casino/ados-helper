@@ -7,7 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-## [2.18.8] - 2026-07-06
+## [2.18.9] - 2026-07-06
+
+### Changed
+
+- Refactored Mantine style imports to use a shared `mantine.css` in Tauri desktop build.
+
+### Fixed
+
+- Documented Vitest workspace troubleshooting/memory limit guidelines.
 
 ### Fixed
 
