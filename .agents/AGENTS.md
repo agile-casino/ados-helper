@@ -73,6 +73,10 @@ This project is a hybrid application that operates as:
   pnpm check
   ```
 
+> [!NOTE]
+> **Vitest Workspace Conflicts:**
+> If you encounter the error: `Error: Projects "" and "" have different 'maxWorkers' but same 'sequence.groupOrder'`, this is a transient Vitest conflict that occurs when multiple configuration files are evaluated concurrently. Re-running the verification suite (`pnpm check` or `pnpm test`) usually resolves it.
+
 ---
 
 ## 🚀 Release Process
