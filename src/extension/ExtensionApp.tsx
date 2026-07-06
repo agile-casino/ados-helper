@@ -9,7 +9,7 @@ import { ExtensionPlatformService } from "./ExtensionPlatformService";
 
 // Import Mantine Styles for the extension package
 // @ts-expect-error Mantine styles CSS module
-import "@mantine/core/styles.css";
+import "../shared/styles/mantine.css";
 
 const platformService = new ExtensionPlatformService();
 

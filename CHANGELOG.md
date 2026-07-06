@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.18.8] - 2026-07-06
+
+### Fixed
+
+- Fixed layered styling issues in the browser userscript and Azure DevOps extension by importing layered Mantine styles.
+
 ## [2.18.7] - 2026-07-05
 
 ### Fixed
