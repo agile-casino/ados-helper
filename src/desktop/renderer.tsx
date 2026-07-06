@@ -16,8 +16,8 @@ import { useAdoState } from "./useAdoState";
 
 const platformService = new TauriPlatformService();
 
-// @ts-expect-error
-import "@mantine/core/styles.css";
+// @ts-expect-error Mantine styles CSS module
+import "../shared/styles/mantine.css";
 
 interface TauriFetchResponse {
   body: string | null;
