@@ -1,6 +1,7 @@
 import { MantineProvider, Tabs, Title } from "@mantine/core";
 import * as SDK from "azure-devops-extension-sdk";
 import * as React from "react";
+import { createAuthFetch } from "../shared/api/authFetch";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
@@ -101,32 +102,7 @@ export const ExtensionApp = () => {
 
   React.useEffect(() => {
     async function initContext() {
-      // 1. Retrieve the delegated authorization token from Azure DevOps
-      const token = await SDK.getAccessToken();
-
-      // 2. Set up global fetch interception in the extension's execution context
-      // to transparently inject the Bearer token for all requests to ADOS APIs.
-      const originalFetch = window.fetch;
-      window.fetch = (input, init) => {
-        let headersObj: Record<string, string> = {};
-        if (init?.headers) {
-          if (init.headers instanceof Headers) {
-            init.headers.forEach((value, key) => {
-              headersObj[key] = value;
-            });
-          } else if (Array.isArray(init.headers)) {
-            for (const [key, value] of init.headers) {
-              headersObj[key] = value;
-            }
-          } else {
-            headersObj = { ...init.headers } as Record<string, string>;
-          }
-        }
-        headersObj["Authorization"] = `Bearer ${token}`;
-        return originalFetch(input, { ...init, headers: headersObj });
-      };
-
-      // 3. Resolve ADOS context details
+      // 1. Resolve ADOS context details
       const hostContext = SDK.getHost();
       const collection = hostContext.name || "DefaultCollection";
 
@@ -157,7 +133,7 @@ export const ExtensionApp = () => {
       const project = webContext?.project?.name || "";
       const team = webContext?.team?.name || "";
 
-      // 4. Resolve current iteration/sprint details from page configuration
+      // 2. Resolve current iteration/sprint details from page configuration
       const config = SDK.getConfiguration();
       let sprint = "Sprint 1";
       let iterationPath = "Sprint 1";
@@ -204,6 +180,8 @@ export const ExtensionApp = () => {
     };
   }, []);
 
+  const authFetch = React.useMemo(() => createAuthFetch(() => SDK.getAccessToken()), []);
+
   if (loading) {
     return <div style={{ padding: "20px", fontFamily: "sans-serif" }}>Loading Sprint Report Generator context...</div>;
   }
@@ -228,15 +206,15 @@ export const ExtensionApp = () => {
             </Tabs.List>
 
             <Tabs.Panel value="current-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <CurrentTeamTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} />
+              <CurrentTeamTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
             </Tabs.Panel>
 
             <Tabs.Panel value="multi-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} />
+              <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
             </Tabs.Panel>
 
             <Tabs.Panel value="sprint-stats" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} />
+              <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
             </Tabs.Panel>
           </Tabs>
         </div>

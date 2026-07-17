@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import type { WorkItemDto } from "../api/query/WorkItemDto";
+import type { WorkItemDto } from "../api/WorkItemDto";
 import { WorkItem } from "./WorkItem";
 
 function createWorkItemDto(
@@ -14,7 +14,7 @@ function createWorkItemDto(
   return {
     Microsoft: {
       VSTS: {
-        ...(overrides.activatedDate ? { Common: { ActivatedDate: overrides.activatedDate } } : {}),
+        Common: overrides.activatedDate ? { ActivatedDate: overrides.activatedDate } : undefined,
         Scheduling: {
           Effort: 3,
           RemainingWork: 0,
@@ -43,10 +43,10 @@ function createWorkItemDto(
 function createTaskDto(originalEstimate?: number, completedWork?: number, remainingWork?: number): WorkItemDto {
   const scheduling: {
     Effort: number;
-    RemainingWork?: number;
-    OriginalEstimate?: number;
-    CompletedWork?: number;
-  } = { Effort: 0 };
+    RemainingWork: number | undefined;
+    OriginalEstimate: number | undefined;
+    CompletedWork: number | undefined;
+  } = { Effort: 0, RemainingWork: undefined, OriginalEstimate: undefined, CompletedWork: undefined };
   if (remainingWork !== undefined) {
     scheduling.RemainingWork = remainingWork;
   }
@@ -60,6 +60,7 @@ function createTaskDto(originalEstimate?: number, completedWork?: number, remain
   return {
     Microsoft: {
       VSTS: {
+        Common: undefined,
         Scheduling: scheduling
       }
     },

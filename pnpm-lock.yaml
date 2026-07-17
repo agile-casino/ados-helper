@@ -23,6 +23,9 @@ importers:
       '@tauri-apps/plugin-updater':
         specifier: ^2.10.1
         version: 2.10.1
+      azure-devops-extension-api:
+        specifier: ^5.274.0
+        version: 5.274.0(azure-devops-extension-sdk@5.0.0)
       azure-devops-extension-sdk:
         specifier: ^5.0.0
         version: 5.0.0
@@ -1020,6 +1023,11 @@ packages:
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
+
+  azure-devops-extension-api@5.274.0:
+    resolution: {integrity: sha512-upVglA4T3L+aVTNJ9rdMDeb/t0aonKg6cf74GpcP2ayFQ7XTyG9MYba5Wc5qGdcnrwYDMO40P6rU/DwT+mqAQA==}
+    peerDependencies:
+      azure-devops-extension-sdk: ^2 || ^3 || ^4
 
   azure-devops-extension-sdk@5.0.0:
     resolution: {integrity: sha512-KI6XPHjDlAdYfEoMRpNfoxcZ0Xbzw16HXHzj4y1pQY9SK2NtlT5xWUPTqa8ZBPFmWuDT/OJa4PTqelWtAK1rTQ==}
@@ -2955,6 +2963,9 @@ packages:
     resolution: {integrity: sha512-3hu+tD8YzSLGuFYtPRb48vdhKMi0KQV5sn+uWr8+7dMEq/2G/dtLrdDinkLjqq5TIbIBjYJ4Ax/n3YiaW7QM8A==}
     engines: {node: 20 || >=22}
 
+  whatwg-fetch@3.0.1:
+    resolution: {integrity: sha512-gPeS9Ef8bSigQwAZiSbQyyU/sBQP1Qo6r112A2shGw5B6+4YT1D8O0oXXwF3zgXXLrrfxbIeP8fM3JmsoWU4Vw==}
+
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
     engines: {node: '>=12'}
@@ -3804,6 +3815,11 @@ snapshots:
   available-typed-arrays@1.0.7:
     dependencies:
       possible-typed-array-names: 1.1.0
+
+  azure-devops-extension-api@5.274.0(azure-devops-extension-sdk@5.0.0):
+    dependencies:
+      azure-devops-extension-sdk: 5.0.0
+      whatwg-fetch: 3.0.1
 
   azure-devops-extension-sdk@5.0.0: {}
 
@@ -5905,6 +5921,8 @@ snapshots:
       - msw
 
   walk-up-path@4.0.0: {}
+
+  whatwg-fetch@3.0.1: {}
 
   whatwg-mimetype@3.0.0: {}
 

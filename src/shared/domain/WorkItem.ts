@@ -1,6 +1,6 @@
 import countBy from "lodash/countBy";
 import maxBy from "lodash/maxBy";
-import type { WorkItemDto } from "../api/query/WorkItemDto";
+import type { WorkItemDto } from "../api/WorkItemDto";
 import { parseAzureDate } from "../utils/parseAzureDate";
 import { Tag } from "./Tag";
 

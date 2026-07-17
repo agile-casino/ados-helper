@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { WorkItemDto } from "../api/query/WorkItemDto";
+import type { WorkItemDto } from "../api/WorkItemDto";
 import { WorkItem } from "./WorkItem";
 import { WorkItemCollection } from "./WorkItemCollection";
 
@@ -25,7 +25,9 @@ describe("WorkItemCollection - Commitment Tracking", () => {
           },
           Scheduling: {
             Effort: effort,
-            RemainingWork: 0
+            RemainingWork: 0,
+            OriginalEstimate: undefined,
+            CompletedWork: undefined
           }
         }
       },
@@ -78,9 +80,12 @@ describe("WorkItemCollection - Commitment Tracking", () => {
       },
       Microsoft: {
         VSTS: {
+          Common: undefined,
           Scheduling: {
             Effort: 5,
-            RemainingWork: 0
+            RemainingWork: 0,
+            OriginalEstimate: undefined,
+            CompletedWork: undefined
           }
         }
       },

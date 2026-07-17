@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { WorkItemDto } from "../../api/query/WorkItemDto";
+import type { WorkItemDto } from "../../api/WorkItemDto";
 import { WorkItem } from "../WorkItem";
 import { generateMultiTeamReport, generateReport, type TeamWorkItems } from "./ReportGenerator";
 
@@ -19,7 +19,7 @@ function createWorkItem(
   const dto: WorkItemDto = {
     Microsoft: {
       VSTS: {
-        ...(overrides.activatedDate ? { Common: { ActivatedDate: overrides.activatedDate } } : {}),
+        Common: overrides.activatedDate ? { ActivatedDate: overrides.activatedDate } : undefined,
         Scheduling: {
           Effort: overrides.effort ?? 3,
           RemainingWork: 0,
