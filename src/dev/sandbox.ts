@@ -519,7 +519,90 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
     });
   }
 
-  // 2. Intercept Query API
+  // 2. Intercept public WIQL API
+  if (urlStr.includes("/_apis/wit/wiql")) {
+    state.addLog("POST", urlStr, 200);
+
+    if (state.currentScenario === "error") {
+      return new Response(JSON.stringify({ message: "Simulated query error" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    // URL: .../{collection}/{project}/{team}/_apis/wit/wiql?api-version=...
+    const urlObj = new URL(urlStr);
+    const pathSegments = urlObj.pathname.split("/");
+    const apisIndex = pathSegments.indexOf("_apis");
+    let requestedTeam = state.currentUrlParams.team;
+    let requestedProject = state.currentUrlParams.project;
+    if (apisIndex !== -1 && apisIndex >= 2) {
+      requestedTeam = decodeURIComponent(pathSegments[apisIndex - 1] || requestedTeam);
+      requestedProject = decodeURIComponent(pathSegments[apisIndex - 2] || requestedProject);
+    }
+
+    let wiql = "";
+    try {
+      if (init?.body) {
+        const bodyObj = JSON.parse(init.body.toString());
+        wiql = bodyObj.query || "";
+      }
+    } catch (e) {
+      console.warn("Failed to parse WIQL body in sandbox", e);
+    }
+
+    const itemsForTeam = state.mockData[requestedTeam] || [];
+    const isLinkQuery = wiql.includes("WorkItemLinks");
+
+    if (isLinkQuery) {
+      const relations: { source: { id: number }; target: { id: number } }[] = [];
+      const seen = new Set<string>();
+
+      function addRelations(item: MockWorkItem, parentId: number | null) {
+        if (parentId !== null) {
+          const key = `${parentId}-${item.id}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            relations.push({ source: { id: parentId }, target: { id: item.id } });
+          }
+        }
+        if (item.children) {
+          for (const child of item.children) {
+            addRelations(child, item.id);
+          }
+        }
+      }
+
+      for (const item of itemsForTeam) {
+        addRelations(item, null);
+      }
+
+      return new Response(JSON.stringify({ workItemRelations: relations }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    } else {
+      const items: { id: number }[] = [];
+      function collectItemIds(item: MockWorkItem) {
+        items.push({ id: item.id });
+        if (item.children) {
+          for (const child of item.children) {
+            collectItemIds(child);
+          }
+        }
+      }
+      for (const item of itemsForTeam) {
+        collectItemIds(item);
+      }
+
+      return new Response(JSON.stringify({ workItems: items }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  }
+
+  // 3. Intercept old internal Query API
   if (urlStr.includes("/_api/_wit/query")) {
     state.addLog("POST", urlStr, 200);
 
@@ -576,7 +659,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
     });
   }
 
-  // 3. Intercept WorkItems Batch API
+  // 4. Intercept WorkItems Batch API
   if (urlStr.includes("/_apis/wit/workitemsbatch")) {
     state.addLog("POST", urlStr, 200);
 
@@ -618,9 +701,26 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           url: link
         })) || [];
 
+      const iterationPath = `${state.currentUrlParams.project}\\${state.currentUrlParams.team}\\${state.currentUrlParams.sprint}`;
+
       return {
         id: id,
-        relations: relations
+        relations: relations,
+        fields: {
+          "System.Id": match?.id ?? id,
+          "System.Title": match?.title ?? "",
+          "System.State": match?.state ?? "",
+          "System.AssignedTo": match?.assignedTo ?? null,
+          "System.IterationPath": iterationPath,
+          "System.WorkItemType": match?.type ?? "",
+          "System.TeamProject": state.currentUrlParams.project,
+          "System.Tags": match?.tags ?? "",
+          "Microsoft.VSTS.Scheduling.Effort": match?.effort ?? 0,
+          "Microsoft.VSTS.Scheduling.RemainingWork": match?.remainingWork ?? null,
+          "Microsoft.VSTS.Scheduling.OriginalEstimate": match?.originalEstimate ?? null,
+          "Microsoft.VSTS.Scheduling.CompletedWork": match?.completedWork ?? null,
+          "Microsoft.VSTS.Common.ActivatedDate": match?.activatedDate ?? null
+        }
       };
     });
 
