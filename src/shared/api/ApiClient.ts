@@ -37,6 +37,13 @@ const WORK_ITEM_FIELDS = [
 
 const PUBLIC_API_VERSION = "7.1";
 
+function encodePathSegment(segment: string): string {
+  return segment
+    .split("/")
+    .map(s => encodeURIComponent(s))
+    .join("/");
+}
+
 function rawWorkItemToDto(wi: RawWorkItem, children: WorkItemDto[] = [], links: string[] = []): WorkItemDto {
   const f = wi.fields ?? {};
   return {
@@ -84,18 +91,13 @@ export class ApiClient {
   }
 
   public async getIterations(collection: string, project: string, team: string): Promise<AzureDevOpsIteration[]> {
-    try {
-      const url = `${this.origin}/${collection}/${project}/${team}/_apis/work/teamsettings/iterations?api-version=${PUBLIC_API_VERSION}`;
-      const response = await this._fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch iterations: ${response.status} ${response.statusText}`);
-      }
-      const data = await response.json();
-      return data.value ?? [];
-    } catch (error) {
-      console.warn("Failed to fetch iterations:", error);
-      return [];
+    const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/${encodePathSegment(team)}/_apis/work/teamsettings/iterations?api-version=${PUBLIC_API_VERSION}`;
+    const response = await this._fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch iterations: ${response.status} ${response.statusText}`);
     }
+    const data = await response.json();
+    return data.value ?? [];
   }
 
   public async getIterationDates(collection: string, project: string, team: string, iteration: string): Promise<{ startDate: Date | undefined; finishDate: Date | undefined }> {
@@ -112,7 +114,7 @@ export class ApiClient {
 
   public async getTeamAreaPath(collection: string, project: string, team: string): Promise<string> {
     try {
-      const url = `${this.origin}/${collection}/${project}/${team}/_apis/work/teamsettings/teamfieldvalues?api-version=${PUBLIC_API_VERSION}`;
+      const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/${encodePathSegment(team)}/_apis/work/teamsettings/teamfieldvalues?api-version=${PUBLIC_API_VERSION}`;
       const response = await this._fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -340,7 +342,7 @@ export class ApiClient {
 
   public async getWorkItemUpdates(collection: string, project: string, id: number): Promise<unknown[]> {
     try {
-      const url = `${this.origin}/${collection}/${project}/_apis/wit/workitems/${id}/updates?api-version=${PUBLIC_API_VERSION}`;
+      const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitems/${id}/updates?api-version=${PUBLIC_API_VERSION}`;
       const response = await this._fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch updates for work item ${id}: ${response.status} ${response.statusText}`);
@@ -354,7 +356,7 @@ export class ApiClient {
   }
 
   private async executeWiqlQuery(collection: string, project: string, team: string, wiql: string): Promise<WorkItemDto[]> {
-    const url = `${this.origin}/${collection}/${project}/${team}/_apis/wit/wiql?api-version=${PUBLIC_API_VERSION}`;
+    const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/${encodePathSegment(team)}/_apis/wit/wiql?api-version=${PUBLIC_API_VERSION}`;
     const response = await this._fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -430,7 +432,7 @@ export class ApiClient {
   }
 
   private async fetchWorkItemsBatch(collection: string, project: string, ids: number[]): Promise<WorkItemDto[]> {
-    const url = `${this.origin}/${collection}/${project}/_apis/wit/workitemsbatch?api-version=${PUBLIC_API_VERSION}`;
+    const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitemsbatch?api-version=${PUBLIC_API_VERSION}`;
     const response = await this._fetch(url, {
       method: "POST",
       headers: {
@@ -454,7 +456,7 @@ export class ApiClient {
   }
 
   private async getRelations(collection: string, project: string, ids: number[]): Promise<{ id: number; hasParent: boolean; links: string[] }[]> {
-    const url = `${this.origin}/${collection}/${project}/_apis/wit/workitemsbatch?api-version=${PUBLIC_API_VERSION}`;
+    const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitemsbatch?api-version=${PUBLIC_API_VERSION}`;
     const response = await this._fetch(url, {
       method: "POST",
       headers: {
