@@ -82,7 +82,7 @@ export class WorkItem {
   public get sprintTag(): Tag | undefined {
     const sprintTags = this.tags.filter(x => x.sprintNumber);
     if (sprintTags.length > 1) {
-      console.log(`Work Item ${this.id} has ${sprintTags.length} sprint tags.`);
+      console.warn(`Work Item ${this.id} has ${sprintTags.length} sprint tags.`);
     }
     return sprintTags.shift();
   }

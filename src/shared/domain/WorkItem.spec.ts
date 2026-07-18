@@ -245,10 +245,10 @@ describe("WorkItem", () => {
       dto.System.Tags = "Sprint 23; Sprint 24; Tag3";
       const workItem = new WorkItem(dto);
 
-      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       expect(workItem.sprintTag?.text).toBe("Sprint 23");
-      expect(logSpy).toHaveBeenCalledWith("Work Item 1 has 2 sprint tags.");
-      logSpy.mockRestore();
+      expect(warnSpy).toHaveBeenCalledWith("Work Item 1 has 2 sprint tags.");
+      warnSpy.mockRestore();
 
       // No sprint tags
       dto.System.Tags = "Tag1; Tag2";
