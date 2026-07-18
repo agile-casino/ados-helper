@@ -26,7 +26,7 @@ function createApiMock(responses: MockResponses) {
     if (url.includes("/_apis/wit/wiql") && responses.wiql !== undefined) return respond(responses.wiql);
     if (url.includes("/_apis/wit/workitemsbatch")) {
       const body = JSON.parse((init?.body as string) ?? "{}");
-      if (body.$expand === "Relations" && responses.batchRelations !== undefined) return respond(responses.batchRelations);
+      if (body.$expand === "relations" && responses.batchRelations !== undefined) return respond(responses.batchRelations);
       if (responses.batchFields !== undefined) return respond(responses.batchFields);
     }
     if (url.includes("/_apis/work/teamsettings/iterations") && responses.iterations !== undefined) return respond(responses.iterations);
@@ -238,19 +238,23 @@ describe("ApiClient", () => {
         wiql: {
           workItemRelations: [
             { source: { id: 101 }, target: { id: 102 } },
-            { source: { id: 101 }, target: { id: 103 } },
-            { source: { id: 104 }, target: { id: 105 } }
+            { source: { id: 103 }, target: { id: 104 } },
+            { source: { id: 105 }, target: { id: 106 } }
           ]
         },
         batchFields: {
           value: [
             { id: 101, fields: { ...commonFields, "System.Id": 101, "System.Title": "Standalone PBI", "System.WorkItemType": "Product Backlog Item" } },
-            { id: 104, fields: { ...commonFields, "System.Id": 104, "System.Title": "Orphan PBI", "System.WorkItemType": "Product Backlog Item" } },
-            { id: 105, fields: { ...commonFields, "System.Id": 105, "System.Title": "Orphan Task", "System.WorkItemType": "Task", "System.State": "Done" } }
+            { id: 103, fields: { ...commonFields, "System.Id": 103, "System.Title": "Orphan Task", "System.WorkItemType": "Task", "System.State": "In Progress" } },
+            { id: 105, fields: { ...commonFields, "System.Id": 105, "System.Title": "Preserved Task", "System.WorkItemType": "Task", "System.State": "Done" } },
+            { id: 106, fields: { ...commonFields, "System.Id": 106, "System.Title": "Sub Task", "System.WorkItemType": "Task", "System.State": "In Progress" } }
           ]
         },
         batchRelations: {
-          value: [{ id: 105, relations: [{ rel: "System.LinkTypes.Hierarchy-Reverse", url: "http://vso/parent/104" }] }]
+          value: [
+            { id: 103, relations: [{ rel: "System.LinkTypes.Hierarchy-Reverse", url: "http://vso/parent/101" }] },
+            { id: 105, relations: [] }
+          ]
         },
         iterations: mockIters
       });
@@ -261,9 +265,9 @@ describe("ApiClient", () => {
       expect(result.workItems).toHaveLength(2);
       expect(result.workItems[0]?.id).toBe(101);
       expect(result.workItems[0]?.tasks).toHaveLength(0);
-      expect(result.workItems[1]?.id).toBe(104);
+      expect(result.workItems[1]?.id).toBe(105);
       expect(result.workItems[1]?.tasks).toHaveLength(1);
-      expect(result.workItems[1]?.tasks[0]?.System.Id).toBe(105);
+      expect(result.workItems[1]?.tasks[0]?.System.Id).toBe(106);
     });
   });
 

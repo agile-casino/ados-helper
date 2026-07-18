@@ -350,6 +350,8 @@ export class ApiClient {
   }
 
   public async getWorkItemUpdates(collection: string, project: string, id: number): Promise<unknown[]> {
+    // Resilience: called inside Promise.all in SprintStatsTab; a single failure
+    // should not block transitions for other work items.
     try {
       const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitems/${id}/updates?api-version=${PUBLIC_API_VERSION}`;
       const response = await this._fetch(url);
