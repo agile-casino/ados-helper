@@ -484,7 +484,7 @@ export class ApiClient {
           body: JSON.stringify({
             ids: chunk,
             fields: [],
-            $expand: "Relations",
+            $expand: "relations",
             errorPolicy: "Omit"
           })
         });

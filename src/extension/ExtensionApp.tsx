@@ -149,7 +149,7 @@ export const ExtensionApp = () => {
   const [loading, setLoading] = React.useState(true);
   const [context, setContext] = React.useState<ExtensionContext | null>(null);
   const [colorScheme, setColorScheme] = React.useState<"light" | "dark">("light");
-  const [refreshKey, setRefreshKey] = React.useState(0);
+  const [, setRefreshKey] = React.useState(0);
   const hasNotified = React.useRef(false);
 
   React.useEffect(() => {
@@ -193,10 +193,7 @@ export const ExtensionApp = () => {
     };
   }, []);
 
-  const authFetch = React.useMemo(() => {
-    void refreshKey;
-    return createAuthFetch(() => SDK.getAccessToken());
-  }, [refreshKey]);
+  const authFetch = React.useMemo(() => createAuthFetch(() => SDK.getAccessToken()), []);
 
   if (loading) {
     return <div style={{ padding: "20px", fontFamily: "sans-serif" }}>Loading Sprint Report Generator context...</div>;
