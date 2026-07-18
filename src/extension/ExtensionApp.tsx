@@ -150,6 +150,7 @@ export const ExtensionApp = () => {
   const [context, setContext] = React.useState<ExtensionContext | null>(null);
   const [colorScheme, setColorScheme] = React.useState<"light" | "dark">("light");
   const [refreshCounter, setRefreshCounter] = React.useState(0);
+  const hasNotified = React.useRef(false);
 
   React.useEffect(() => {
     void refreshCounter;
@@ -159,7 +160,10 @@ export const ExtensionApp = () => {
       setColorScheme(detectTheme());
       setLoading(false);
 
-      SDK.notifyLoadSucceeded();
+      if (!hasNotified.current) {
+        SDK.notifyLoadSucceeded();
+        hasNotified.current = true;
+      }
     }
 
     initContext().catch(err => {

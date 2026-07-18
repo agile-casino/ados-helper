@@ -6,13 +6,15 @@ export function createAuthFetch(getAccessToken: () => Promise<string>): AuthFetc
     const headers = new Headers(init.headers);
     headers.set("Authorization", `Bearer ${token}`);
 
-    const response = await fetch(input, { ...init, headers });
+    const request = new Request(input, { ...init, headers });
+    const response = await fetch(request);
 
     if (response.status === 401) {
       const retryToken = await getAccessToken();
       const retryHeaders = new Headers(init.headers);
       retryHeaders.set("Authorization", `Bearer ${retryToken}`);
-      return fetch(input, { ...init, headers: retryHeaders });
+      const retryRequest = new Request(input, { ...init, headers: retryHeaders });
+      return fetch(retryRequest);
     }
 
     return response;

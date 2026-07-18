@@ -32,7 +32,8 @@ const WORK_ITEM_FIELDS = [
   "Microsoft.VSTS.Scheduling.RemainingWork",
   "Microsoft.VSTS.Scheduling.OriginalEstimate",
   "Microsoft.VSTS.Scheduling.CompletedWork",
-  "Microsoft.VSTS.Common.ActivatedDate"
+  "Microsoft.VSTS.Common.ActivatedDate",
+  "System.HyperLinkCount"
 ];
 
 const PUBLIC_API_VERSION = "7.1";
@@ -42,6 +43,14 @@ function encodePathSegment(segment: string): string {
     .split("/")
     .map(s => encodeURIComponent(s))
     .join("/");
+}
+
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
 }
 
 function rawWorkItemToDto(wi: RawWorkItem, children: WorkItemDto[] = [], links: string[] = []): WorkItemDto {
@@ -432,54 +441,68 @@ export class ApiClient {
   }
 
   private async fetchWorkItemsBatch(collection: string, project: string, ids: number[]): Promise<WorkItemDto[]> {
-    const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitemsbatch?api-version=${PUBLIC_API_VERSION}`;
-    const response = await this._fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        ids,
-        fields: WORK_ITEM_FIELDS,
-        $expand: "Fields",
-        errorPolicy: "Omit"
+    const BATCH_SIZE = 200;
+    const chunks = chunkArray(ids, BATCH_SIZE);
+
+    const results = await Promise.all(
+      chunks.map(async chunk => {
+        const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitemsbatch?api-version=${PUBLIC_API_VERSION}`;
+        const response = await this._fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: chunk,
+            fields: WORK_ITEM_FIELDS,
+            $expand: "Fields",
+            errorPolicy: "Omit"
+          })
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Work items batch fetch failed: HTTP ${response.status} - ${text}`);
+        }
+
+        const data = await response.json();
+        return (data.value ?? []).map((wi: RawWorkItem) => rawWorkItemToDto(wi));
       })
-    });
+    );
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Work items batch fetch failed: HTTP ${response.status} - ${text}`);
-    }
-
-    const data = await response.json();
-    return (data.value ?? []).map((wi: RawWorkItem) => rawWorkItemToDto(wi));
+    return results.flat();
   }
 
   private async getRelations(collection: string, project: string, ids: number[]): Promise<{ id: number; hasParent: boolean; links: string[] }[]> {
-    const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitemsbatch?api-version=${PUBLIC_API_VERSION}`;
-    const response = await this._fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        ids,
-        fields: [],
-        $expand: "Relations",
-        errorPolicy: "Omit"
+    const BATCH_SIZE = 200;
+    const chunks = chunkArray(ids, BATCH_SIZE);
+
+    const results = await Promise.all(
+      chunks.map(async chunk => {
+        const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitemsbatch?api-version=${PUBLIC_API_VERSION}`;
+        const response = await this._fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: chunk,
+            fields: [],
+            $expand: "Relations",
+            errorPolicy: "Omit"
+          })
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Work items batch fetch failed: HTTP ${response.status} - ${text}`);
+        }
+
+        const data = await response.json();
+        return (data.value ?? []).map((wi: { id: number; relations?: { rel: string; url: string }[] }) => ({
+          id: wi.id,
+          hasParent: wi.relations?.some(r => r.rel === "System.LinkTypes.Hierarchy-Reverse") ?? false,
+          links: wi.relations?.map(r => r.url) ?? []
+        }));
       })
-    });
+    );
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Work items batch fetch failed: HTTP ${response.status} - ${text}`);
-    }
-
-    const data = await response.json();
-    return (data.value ?? []).map((wi: { id: number; relations?: { rel: string; url: string }[] }) => ({
-      id: wi.id,
-      hasParent: wi.relations?.some(r => r.rel === "System.LinkTypes.Hierarchy-Reverse") ?? false,
-      links: wi.relations?.map(r => r.url) ?? []
-    }));
+    return results.flat();
   }
 }
