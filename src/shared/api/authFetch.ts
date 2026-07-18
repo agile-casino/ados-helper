@@ -9,6 +9,9 @@ export function createAuthFetch(getAccessToken: () => Promise<string>, fetchImpl
     const response = await fetchImpl(input, { ...init, headers });
 
     if (response.status === 401) {
+      // Retry once with a fresh token. This re-sends the original init, which
+      // assumes a reusable body (e.g. a JSON string); a one-shot body such as
+      // a ReadableStream would fail on retry.
       const retryToken = await getAccessToken();
       const retryHeaders = new Headers(init.headers);
       retryHeaders.set("Authorization", `Bearer ${retryToken}`);

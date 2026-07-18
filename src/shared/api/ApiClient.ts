@@ -27,6 +27,7 @@ const WORK_ITEM_FIELDS = [
   "System.IterationPath",
   "System.WorkItemType",
   "System.TeamProject",
+  "System.Rev",
   "System.Tags",
   "Microsoft.VSTS.Scheduling.Effort",
   "Microsoft.VSTS.Scheduling.RemainingWork",
@@ -142,38 +143,16 @@ export class ApiClient {
     const sprintMatch = iteration.match(/((?:Sprint|Iteration)(?:\s+|-|_|)\d+)/i);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
 
-    let teamCondition = "";
-    if (project === "WirelineRnD") {
-      teamCondition = `
-        AND (
-          [System.IterationPath] UNDER '${project}\\${team}\\${iteration}' OR (
-            [System.IterationPath] UNDER '${project}\\${team}' AND (
-              [System.Tags] CONTAINS '${sprintNumber}' OR
-              [System.Tags] CONTAINS '${sprintNumber}-' OR
-              [System.Tags] CONTAINS '${sprintNumber}+' OR
-              [System.Tags] CONTAINS '${sprintNumber}!'
-            )
-          )
-        )
-      `;
-    } else {
-      const areaPath = await this.getTeamAreaPath(collection, project, team);
-      const adoIterationPath = `${project}\\${iterationPath.replace(/\//g, "\\")}`;
-      teamCondition = `
-        AND [System.AreaPath] UNDER '${areaPath}'
-        AND (
-          [System.IterationPath] UNDER '${adoIterationPath}' OR (
-            [System.IterationPath] UNDER '${project}' AND (
-              [System.Tags] CONTAINS '${sprintNumber}' OR
-              [System.Tags] CONTAINS '${sprintNumber}-' OR
-              [System.Tags] CONTAINS '${sprintNumber}+' OR
-              [System.Tags] CONTAINS '${sprintNumber}!'
-            )
-          )
-        )
-      `;
-    }
-
+    const areaPath = await this.getTeamAreaPath(collection, project, team);
+    const adoIterationPath = `${project}\\${iterationPath.replace(/\//g, "\\")}`;
+    // Note: ASOF only makes the returned ID set historical — field values are
+    // fetched separately via the batch endpoint, which always returns current
+    // values. The active-item filters (state, removal tag) therefore live in
+    // the WIQL, where they are evaluated as of the snapshot date, so items
+    // dropped mid-sprint stay in the start snapshot and leave the final one.
+    // Remaining skew (e.g. effort edited after the snapshot date, or an item
+    // reopened after the sprint closed counting as not-done for that sprint)
+    // is an accepted limitation of the public API.
     const query = `
       SELECT
         [System.Id],
@@ -188,7 +167,18 @@ export class ApiClient {
           [System.WorkItemType] = 'Product Backlog Item' OR
           [System.WorkItemType] = 'Bug'
         )
-        ${teamCondition}
+        AND [System.State] <> 'Removed'
+        AND NOT [System.Tags] CONTAINS '${sprintNumber}-'
+        AND [System.AreaPath] UNDER '${areaPath}'
+        AND (
+          [System.IterationPath] UNDER '${adoIterationPath}' OR (
+            [System.IterationPath] UNDER '${project}' AND (
+              [System.Tags] CONTAINS '${sprintNumber}' OR
+              [System.Tags] CONTAINS '${sprintNumber}+' OR
+              [System.Tags] CONTAINS '${sprintNumber}!'
+            )
+          )
+        )
       ASOF '${asOfStr}'
     `
       .replace(/\s+/g, " ")
@@ -203,6 +193,13 @@ export class ApiClient {
     const sprintName = iterationSegments[iterationSegments.length - 1] ?? iteration;
     const sprintMatch = sprintName.match(/((?:Sprint|Iteration)(?:\s+|-|_|)\d+)/i);
     const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
+    // Fetch dates in parallel, tolerating failure: they are ancillary for the
+    // report tabs, which should still render without them. SprintStatsTab
+    // fetches dates itself and surfaces failures to the user.
+    const datesPromise = this.getIterationDates(collection, project, team, sprintName).catch((error: unknown) => {
+      console.warn("Failed to fetch iteration dates:", error);
+      return { startDate: undefined, finishDate: undefined };
+    });
     const areaPath = await this.getTeamAreaPath(collection, project, team);
     const adoIterationPath = `${project}\\${iteration.replace(/\//g, "\\")}`;
     const query = `
@@ -305,7 +302,7 @@ export class ApiClient {
       }
     }
 
-    const dates = await this.getIterationDates(collection, project, team, sprintName);
+    const dates = await datesPromise;
 
     return {
       workItems: filteredWorkItemDtos.map(x => new WorkItem(x)),
@@ -348,9 +345,9 @@ export class ApiClient {
 
     const ids: number[] = [];
     const parentMap = new Map<number, number>();
+    const seen = new Set<number>();
 
     if (result.workItemRelations && result.workItemRelations.length > 0) {
-      const seen = new Set<number>();
       for (const link of result.workItemRelations) {
         if (link.source && !seen.has(link.source.id)) {
           ids.push(link.source.id);
@@ -364,32 +361,38 @@ export class ApiClient {
           parentMap.set(link.target.id, link.source.id);
         }
       }
+    } else if (result.workItems) {
+      for (const ref of result.workItems) {
+        if (!seen.has(ref.id)) {
+          ids.push(ref.id);
+          seen.add(ref.id);
+        }
+      }
+    }
 
-      if (orphanWiql) {
-        try {
-          const orphanResponse = await this._fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: orphanWiql })
-          });
-          if (orphanResponse.ok) {
-            const orphanResult = await orphanResponse.json();
-            if (orphanResult.workItems) {
-              for (const ref of orphanResult.workItems) {
-                if (!seen.has(ref.id)) {
-                  ids.push(ref.id);
-                  seen.add(ref.id);
-                }
+    // The orphan query catches items with no hierarchy links, which the
+    // WorkItemLinks query can never return. It must run even when the link
+    // query returned zero relations (e.g. a sprint of standalone items).
+    if (orphanWiql) {
+      try {
+        const orphanResponse = await this._fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: orphanWiql })
+        });
+        if (orphanResponse.ok) {
+          const orphanResult = await orphanResponse.json();
+          if (orphanResult.workItems) {
+            for (const ref of orphanResult.workItems) {
+              if (!seen.has(ref.id)) {
+                ids.push(ref.id);
+                seen.add(ref.id);
               }
             }
           }
-        } catch (error) {
-          console.warn("Failed to fetch orphan work items:", error);
         }
-      }
-    } else if (result.workItems) {
-      for (const ref of result.workItems) {
-        ids.push(ref.id);
+      } catch (error) {
+        console.warn("Failed to fetch orphan work items:", error);
       }
     }
 

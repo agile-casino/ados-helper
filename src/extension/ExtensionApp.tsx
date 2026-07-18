@@ -46,7 +46,7 @@ export function resolveOrigin(collection: string): string {
   return origin;
 }
 
-export function buildExtensionContext(): ExtensionContext {
+function buildExtensionContext(): ExtensionContext {
   const hostContext = SDK.getHost();
   const collection = hostContext.name || "DefaultCollection";
   const webContext = SDK.getWebContext();
@@ -126,7 +126,7 @@ export const isColorDark = (color: string): boolean => {
   return false;
 };
 
-export const detectTheme = (): "light" | "dark" => {
+const detectTheme = (): "light" | "dark" => {
   const rootStyle = getComputedStyle(document.documentElement);
   const bodyStyle = getComputedStyle(document.body);
 
@@ -149,7 +149,7 @@ export const ExtensionApp = () => {
   const [loading, setLoading] = React.useState(true);
   const [context, setContext] = React.useState<ExtensionContext | null>(null);
   const [colorScheme, setColorScheme] = React.useState<"light" | "dark">("light");
-  const [, setRefreshKey] = React.useState(0);
+  const [refreshKey, setRefreshKey] = React.useState(0);
   const hasNotified = React.useRef(false);
 
   React.useEffect(() => {
@@ -193,7 +193,10 @@ export const ExtensionApp = () => {
     };
   }, []);
 
-  const authFetch = React.useMemo(() => createAuthFetch(() => SDK.getAccessToken()), []);
+  // Recreate authFetch on refresh: the tabs' effects depend on fetchFn, so a
+  // new identity re-triggers their data fetching.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is intentionally an extra dependency to invalidate the memoized fetch on refresh
+  const authFetch = React.useMemo(() => createAuthFetch(() => SDK.getAccessToken()), [refreshKey]);
 
   if (loading) {
     return <div style={{ padding: "20px", fontFamily: "sans-serif" }}>Loading Sprint Report Generator context...</div>;

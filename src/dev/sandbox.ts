@@ -381,7 +381,9 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
     }
 
     // URL: .../{collection}/{project}/_apis/wit/wiql?api-version=...
-    // The public WIQL API does not include a /team segment, so we use the configured team directly.
+    // The public WIQL API does not include a /team segment, so resolve the team
+    // from the "Area Path UNDER '<project>\Engineering\<team>'" clause in the
+    // query body, falling back to the configured team.
 
     let wiql = "";
     try {
@@ -393,7 +395,18 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
       console.warn("Failed to parse WIQL body in sandbox", e);
     }
 
-    const itemsForTeam = state.mockData[state.currentUrlParams.team] || [];
+    let teamKey = state.currentUrlParams.team;
+    const areaPathMatch = wiql.match(/Area\s*Path\]\s*UNDER\s*'([^']+)'/i);
+    if (areaPathMatch?.[1]) {
+      const segments = areaPathMatch[1].split("\\");
+      const areaTeam = segments[segments.length - 1] ?? "";
+      const resolvedTeam = [areaTeam, areaTeam.replace("PixelPerfect", "Pixel_Perfect")].find(candidate => state.mockData[candidate]);
+      if (resolvedTeam) {
+        teamKey = resolvedTeam;
+      }
+    }
+
+    const itemsForTeam = state.mockData[teamKey] || [];
     const isLinkQuery = wiql.includes("WorkItemLinks");
 
     if (isLinkQuery) {

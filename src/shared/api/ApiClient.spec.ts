@@ -143,7 +143,7 @@ describe("ApiClient", () => {
   });
 
   describe("getSprintSnapshot", () => {
-    it("returns work items for WirelineRnD project", async () => {
+    it("returns work items using the fallback area path when team field values are unavailable", async () => {
       const fetchSpy = createApiMock({
         wiql: { workItems: [{ id: 101 }, { id: 102 }] },
         batchFields: {
@@ -155,7 +155,7 @@ describe("ApiClient", () => {
       });
 
       const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
-      const workItems = await client.getSprintSnapshot("coll", "WirelineRnD", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
+      const workItems = await client.getSprintSnapshot("coll", "proj", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
 
       expect(workItems).toHaveLength(2);
       expect(workItems[0]?.title).toBe("PBI One");
@@ -164,7 +164,7 @@ describe("ApiClient", () => {
       expect(workItems[1]?.effort).toBe(3);
     });
 
-    it("returns work items for non-WirelineRnD project with area path", async () => {
+    it("returns work items using the team area path from team field values", async () => {
       const fetchSpy = createApiMock({
         teamFieldValues: { defaultValue: "proj\\Engineering\\team" },
         wiql: { workItems: [{ id: 201 }] },
@@ -180,20 +180,58 @@ describe("ApiClient", () => {
       expect(workItems[0]?.title).toBe("PBI Two");
     });
 
-    it("returns empty array when no work items match", async () => {
+    it("filters removed items and removal tags in the ASOF query for all projects", async () => {
       const fetchSpy = createApiMock({
-        wiql: { workItems: [] },
-        batchFields: { value: [] }
+        teamFieldValues: { defaultValue: "WirelineRnD\\Engineering\\team" },
+        wiql: { workItems: [] }
       });
 
       const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
       const workItems = await client.getSprintSnapshot("coll", "WirelineRnD", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
 
       expect(workItems).toHaveLength(0);
+      const wiqlCall = fetchSpy.mock.calls.find(([url]) => (url as string).includes("/_apis/wit/wiql"));
+      expect(wiqlCall).toBeDefined();
+      const body = JSON.parse((wiqlCall?.[1] as RequestInit).body as string) as { query: string };
+      expect(body.query).toContain("AND [System.State] <> 'Removed'");
+      expect(body.query).toContain("AND NOT [System.Tags] CONTAINS 'Sprint 13-'");
+      expect(body.query).toContain("[System.AreaPath] UNDER 'WirelineRnD\\Engineering\\team'");
+      expect(body.query).toContain("ASOF '2026-01-20T00:00:00.000Z'");
     });
   });
 
   describe("getIteration2", () => {
+    const respond = (data: unknown) => ({ ok: true, json: async () => data, text: async () => JSON.stringify(data), status: 200, statusText: "OK" }) as Response;
+
+    function createIteration2Mock(options: { iterationsFail?: boolean } = {}) {
+      return vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url.includes("/_apis/work/teamsettings/iterations")) {
+          if (options.iterationsFail) {
+            return { ok: false, status: 500, statusText: "Internal Server Error", json: async () => ({}), text: async () => "{}" } as Response;
+          }
+          return respond(mockIters);
+        }
+        if (url.includes("/_apis/work/teamsettings/teamfieldvalues")) return respond({ defaultValue: "proj\\Engineering\\team" });
+        if (url.includes("/_apis/wit/wiql")) {
+          const body = JSON.parse((init?.body as string) ?? "{}");
+          if ((body.query as string).includes("WorkItemLinks")) {
+            return respond({ workItemRelations: [] });
+          }
+          return respond({ workItems: [{ id: 401 }] });
+        }
+        if (url.includes("/_apis/wit/workitemsbatch")) {
+          const body = JSON.parse((init?.body as string) ?? "{}");
+          if (body.$expand === "relations") {
+            return respond({ value: [{ id: 401, relations: [] }] });
+          }
+          return respond({
+            value: [{ id: 401, fields: { ...commonFields, "System.Id": 401, "System.Title": "Standalone PBI", "System.WorkItemType": "Product Backlog Item" } }]
+          });
+        }
+        throw new Error(`Unexpected URL: ${url}`);
+      });
+    }
+
     it("returns work items with area path filter", async () => {
       const fetchSpy = createApiMock({
         teamFieldValues: { defaultValue: "proj\\Engineering\\team" },
@@ -219,6 +257,29 @@ describe("ApiClient", () => {
       expect(result.workItems[0]?.title).toBe("Bug Item");
       expect(result.workItems[0]?.tasks).toHaveLength(1);
       expect(result.workItems[0]?.tasks[0]?.System.Title).toBe("Linked Task");
+    });
+
+    it("runs the orphan query when the link query returns no relations", async () => {
+      const fetchSpy = createIteration2Mock();
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const result = await client.getIteration2("coll", "proj", "team", "Sprint 13");
+
+      expect(result.workItems).toHaveLength(1);
+      expect(result.workItems[0]?.title).toBe("Standalone PBI");
+      expect(result.sprintStartDate).toEqual(new Date("2026-01-13T00:00:00Z"));
+    });
+
+    it("still returns work items without dates when the iterations endpoint fails", async () => {
+      const fetchSpy = createIteration2Mock({ iterationsFail: true });
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const result = await client.getIteration2("coll", "proj", "team", "Sprint 13");
+
+      expect(result.workItems).toHaveLength(1);
+      expect(result.workItems[0]?.title).toBe("Standalone PBI");
+      expect(result.sprintStartDate).toBeUndefined();
+      expect(result.sprintEndDate).toBeUndefined();
     });
   });
 });
