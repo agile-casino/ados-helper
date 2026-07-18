@@ -380,16 +380,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
       });
     }
 
-    // URL: .../{collection}/{project}/{team}/_apis/wit/wiql?api-version=...
-    const urlObj = new URL(urlStr);
-    const pathSegments = urlObj.pathname.split("/");
-    const apisIndex = pathSegments.indexOf("_apis");
-    let requestedTeam = state.currentUrlParams.team;
-    let requestedProject = state.currentUrlParams.project;
-    if (apisIndex !== -1 && apisIndex >= 2) {
-      requestedTeam = decodeURIComponent(pathSegments[apisIndex - 1] || requestedTeam);
-      requestedProject = decodeURIComponent(pathSegments[apisIndex - 2] || requestedProject);
-    }
+    // URL: .../{collection}/{project}/_apis/wit/wiql?api-version=...
+    // The public WIQL API does not include a /team segment, so we use the configured team directly.
 
     let wiql = "";
     try {
@@ -401,7 +393,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
       console.warn("Failed to parse WIQL body in sandbox", e);
     }
 
-    const itemsForTeam = state.mockData[requestedTeam] || [];
+    const itemsForTeam = state.mockData[state.currentUrlParams.team] || [];
     const isLinkQuery = wiql.includes("WorkItemLinks");
 
     if (isLinkQuery) {

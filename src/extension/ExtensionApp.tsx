@@ -149,12 +149,11 @@ export const ExtensionApp = () => {
   const [loading, setLoading] = React.useState(true);
   const [context, setContext] = React.useState<ExtensionContext | null>(null);
   const [colorScheme, setColorScheme] = React.useState<"light" | "dark">("light");
-  const [refreshCounter, setRefreshCounter] = React.useState(0);
+  const [refreshKey, setRefreshKey] = React.useState(0);
   const hasNotified = React.useRef(false);
 
   React.useEffect(() => {
-    void refreshCounter;
-    async function initContext() {
+    async function init() {
       const ctx = buildExtensionContext();
       setContext(ctx);
       setColorScheme(detectTheme());
@@ -166,7 +165,7 @@ export const ExtensionApp = () => {
       }
     }
 
-    initContext().catch(err => {
+    init().catch(err => {
       console.error("Failed to initialize extension context:", err);
       SDK.notifyLoadFailed(err instanceof Error ? err : new Error(String(err)));
       setLoading(false);
@@ -179,8 +178,9 @@ export const ExtensionApp = () => {
     const handleMessage = (event: MessageEvent) => {
       if (event.source !== window.parent) return;
       if (event.data && typeof event.data === "object") {
-        if (event.data.method === "onIterationChanged" || event.data.method === "iterationChanged" || event.data.method === "configurationUpdated" || event.data.method === "notifyLoadSucceeded") {
-          setRefreshCounter(c => c + 1);
+        if (event.data.method === "onIterationChanged" || event.data.method === "iterationChanged" || event.data.method === "configurationUpdated") {
+          const ctx = buildExtensionContext();
+          setContext(ctx);
         }
       }
     };
@@ -191,9 +191,12 @@ export const ExtensionApp = () => {
       window.removeEventListener("themeApplied", handleThemeApplied);
       window.removeEventListener("message", handleMessage);
     };
-  }, [refreshCounter]);
+  }, []);
 
-  const authFetch = React.useMemo(() => createAuthFetch(() => SDK.getAccessToken()), []);
+  const authFetch = React.useMemo(() => {
+    void refreshKey;
+    return createAuthFetch(() => SDK.getAccessToken());
+  }, [refreshKey]);
 
   if (loading) {
     return <div style={{ padding: "20px", fontFamily: "sans-serif" }}>Loading Sprint Report Generator context...</div>;
@@ -212,7 +215,7 @@ export const ExtensionApp = () => {
               <span>{context.sprint} Reports</span>
             </Title>
             <Tooltip label="Refresh data for current sprint">
-              <ActionIcon variant="subtle" onClick={() => setRefreshCounter(c => c + 1)} aria-label="Refresh">
+              <ActionIcon variant="subtle" onClick={() => setRefreshKey(c => c + 1)} aria-label="Refresh">
                 &#x21bb;
               </ActionIcon>
             </Tooltip>

@@ -194,7 +194,7 @@ export class ApiClient {
       .replace(/\s+/g, " ")
       .trim();
 
-    const dtos = await this.executeWiqlQuery(collection, project, team, query);
+    const dtos = await this.executeWiqlQuery(collection, project, query);
     return dtos.map(x => new WorkItem(x));
   }
 
@@ -237,7 +237,7 @@ export class ApiClient {
       .replace(/\s+/g, " ")
       .trim();
 
-    const workItemDtos = await this.executeWiqlQuery(collection, project, team, query);
+    const workItemDtos = await this.executeWiqlQuery(collection, project, query);
 
     let filteredWorkItemDtos = workItemDtos;
     const ids = workItemDtos.map(x => x.System.Id);
@@ -317,7 +317,7 @@ export class ApiClient {
       .replace(/\s+/g, " ")
       .trim();
 
-    const workItemDtos = await this.executeWiqlQuery(collection, project, team, query);
+    const workItemDtos = await this.executeWiqlQuery(collection, project, query);
 
     let filteredWorkItemDtos = workItemDtos;
     const ids = workItemDtos.map(x => x.System.Id);
@@ -364,8 +364,8 @@ export class ApiClient {
     }
   }
 
-  private async executeWiqlQuery(collection: string, project: string, team: string, wiql: string): Promise<WorkItemDto[]> {
-    const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/${encodePathSegment(team)}/_apis/wit/wiql?api-version=${PUBLIC_API_VERSION}`;
+  private async executeWiqlQuery(collection: string, project: string, wiql: string): Promise<WorkItemDto[]> {
+    const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/wiql?api-version=${PUBLIC_API_VERSION}`;
     const response = await this._fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

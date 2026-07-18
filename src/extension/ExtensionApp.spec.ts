@@ -38,7 +38,7 @@ describe("isColorDark", () => {
 
   test("is case insensitive", () => {
     expect(isColorDark("#000000")).toBe(true);
-    expect(isColorDark("#000000")).toBe(true);
+    expect(isColorDark("#FfFfFf")).toBe(false);
   });
 
   test("trims whitespace", () => {
