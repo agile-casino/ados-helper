@@ -206,7 +206,7 @@ class SandboxState {
   public apiLogs: { timestamp: string; method: string; url: string; status: number }[] = [];
   public currentUrlParams = {
     collection: "DefaultCollection",
-    project: "WirelineRnD",
+    project: "Contoso",
     team: "DE_BK_Green",
     sprint: "Sprint 13",
     iterationPath: "Sprint 13"
@@ -544,7 +544,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-05-15T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 13"
+              newValue: "Contoso\\Sprint 13"
             }
           }
         },
@@ -554,8 +554,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-06-08T10:00:00Z",
           fields: {
             "System.IterationPath": {
-              oldValue: "WirelineRnD\\Sprint 13",
-              newValue: "WirelineRnD\\Backlog"
+              oldValue: "Contoso\\Sprint 13",
+              newValue: "Contoso\\Backlog"
             }
           }
         }
@@ -568,7 +568,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-05-10T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 12"
+              newValue: "Contoso\\Sprint 12"
             }
           }
         },
@@ -578,8 +578,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-06-05T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              oldValue: "WirelineRnD\\Sprint 12",
-              newValue: "WirelineRnD\\Sprint 13"
+              oldValue: "Contoso\\Sprint 12",
+              newValue: "Contoso\\Sprint 13"
             }
           }
         }
@@ -592,7 +592,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-05-12T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 12"
+              newValue: "Contoso\\Sprint 12"
             }
           }
         },
@@ -602,8 +602,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-06-03T10:00:00Z",
           fields: {
             "System.IterationPath": {
-              oldValue: "WirelineRnD\\Sprint 12",
-              newValue: "WirelineRnD\\Sprint 13"
+              oldValue: "Contoso\\Sprint 12",
+              newValue: "Contoso\\Sprint 13"
             }
           }
         }
@@ -616,7 +616,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-05-14T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 13"
+              newValue: "Contoso\\Sprint 13"
             }
           }
         },
@@ -640,7 +640,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-06-01T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 13"
+              newValue: "Contoso\\Sprint 13"
             }
           }
         }

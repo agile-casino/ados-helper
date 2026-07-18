@@ -182,12 +182,12 @@ describe("ApiClient", () => {
 
     it("filters removed items and removal tags in the ASOF query for all projects", async () => {
       const fetchSpy = createApiMock({
-        teamFieldValues: { defaultValue: "WirelineRnD\\Engineering\\team" },
+        teamFieldValues: { defaultValue: "Contoso\\Engineering\\team" },
         wiql: { workItems: [] }
       });
 
       const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
-      const workItems = await client.getSprintSnapshot("coll", "WirelineRnD", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
+      const workItems = await client.getSprintSnapshot("coll", "Contoso", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
 
       expect(workItems).toHaveLength(0);
       const wiqlCall = fetchSpy.mock.calls.find(([url]) => (url as string).includes("/_apis/wit/wiql"));
@@ -195,7 +195,7 @@ describe("ApiClient", () => {
       const body = JSON.parse((wiqlCall?.[1] as RequestInit).body as string) as { query: string };
       expect(body.query).toContain("AND [System.State] <> 'Removed'");
       expect(body.query).toContain("AND NOT [System.Tags] CONTAINS 'Sprint 13-'");
-      expect(body.query).toContain("[System.AreaPath] UNDER 'WirelineRnD\\Engineering\\team'");
+      expect(body.query).toContain("[System.AreaPath] UNDER 'Contoso\\Engineering\\team'");
       expect(body.query).toContain("ASOF '2026-01-20T00:00:00.000Z'");
     });
   });
