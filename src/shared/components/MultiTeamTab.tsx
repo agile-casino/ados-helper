@@ -191,7 +191,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
 
     for (const team of selectedTeams) {
       try {
-        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, team.name, props.sprint) : await apiClient.getIteration2(props.collection, props.project, team.name, props.iterationPath);
+        const queryResult = await apiClient.getIteration2(props.collection, props.project, team.name, props.iterationPath);
 
         results.push({
           team: team.name,

@@ -97,7 +97,7 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
         const apiClient = new ApiClient(props.origin, props.fetchFn);
 
         // 1. Fetch dates
-        const sprintName = props.project === "WirelineRnD" ? props.sprint : (props.iterationPath.split("/").pop() ?? props.sprint);
+        const sprintName = props.iterationPath.split("/").pop() ?? props.sprint;
         const iterDates = await apiClient.getIterationDates(props.collection, props.project, props.team, sprintName);
 
         if (!iterDates.startDate || !iterDates.finishDate) {

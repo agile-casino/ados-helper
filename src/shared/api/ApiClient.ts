@@ -198,77 +198,6 @@ export class ApiClient {
     return dtos.map(x => new WorkItem(x));
   }
 
-  public async getIteration(collection: string, project: string, team: string, iteration: string): Promise<IterationData> {
-    const sprintMatch = iteration.match(/((?:Sprint|Iteration)(?:\s+|-|_|)\d+)/i);
-    const sprintNumber = sprintMatch ? sprintMatch[1] : "Sprint XYZ";
-    const query = `
-      SELECT
-        [System.Id],
-        [System.IterationPath],
-        [System.WorkItemType],
-        [System.Title],
-        [System.AssignedTo],
-        [System.State],
-        [System.Tags],
-        [Microsoft.VSTS.Scheduling.Effort],
-        [Microsoft.VSTS.Scheduling.RemainingWork],
-        [Microsoft.VSTS.Scheduling.OriginalEstimate],
-        [Microsoft.VSTS.Scheduling.CompletedWork]
-      FROM WorkItemLinks
-      WHERE [Source].[System.TeamProject] = @project
-        AND (
-          [Source].[System.WorkItemType] = 'Product Backlog Item' OR
-          [Source].[System.WorkItemType] = 'Task'
-        )
-        AND (
-          [Source].[System.IterationPath] UNDER '${project}\\${team}\\${iteration}' OR (
-            [Source].[System.IterationPath] UNDER '${project}\\${team}' AND (
-              [Source].[System.Tags] CONTAINS '${sprintNumber}' OR
-              [Source].[System.Tags] CONTAINS '${sprintNumber}-' OR
-              [Source].[System.Tags] CONTAINS '${sprintNumber}+' OR
-              [Source].[System.Tags] CONTAINS '${sprintNumber}!'
-            )
-          )
-        )
-        AND [System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward'
-        AND [Target].[System.TeamProject] = @project
-        mode(Recursive)
-    `
-      .replace(/\s+/g, " ")
-      .trim();
-
-    const workItemDtos = await this.executeWiqlQuery(collection, project, query);
-
-    let filteredWorkItemDtos = workItemDtos;
-    const ids = workItemDtos.map(x => x.System.Id);
-    if (ids.length) {
-      const relations = await this.getRelations(collection, project, ids);
-      const idsToExclude = new Set<number>();
-      relations.forEach(r => {
-        const workItem = workItemDtos.find(wi => wi.System.Id === r.id);
-        if (workItem) {
-          workItem.links = r.links ?? [];
-          if (workItem.System.WorkItemType === "Task") {
-            if (r.hasParent) {
-              idsToExclude.add(r.id);
-            }
-          }
-        }
-      });
-      if (idsToExclude.size > 0) {
-        filteredWorkItemDtos = workItemDtos.filter(x => !idsToExclude.has(x.System.Id));
-      }
-    }
-
-    const dates = await this.getIterationDates(collection, project, team, iteration);
-
-    return {
-      workItems: filteredWorkItemDtos.map(x => new WorkItem(x)),
-      sprintStartDate: dates.startDate,
-      sprintEndDate: dates.finishDate
-    };
-  }
-
   public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<IterationData> {
     const iterationSegments = iteration.split("/");
     const sprintName = iterationSegments[iterationSegments.length - 1] ?? iteration;
@@ -317,7 +246,43 @@ export class ApiClient {
       .replace(/\s+/g, " ")
       .trim();
 
-    const workItemDtos = await this.executeWiqlQuery(collection, project, query);
+    const flatQuery = `
+      SELECT
+        [System.Id],
+        [System.IterationPath],
+        [System.WorkItemType],
+        [System.Title],
+        [System.AssignedTo],
+        [System.State],
+        [System.Tags],
+        [Microsoft.VSTS.Common.ActivatedDate],
+        [Microsoft.VSTS.Scheduling.Effort],
+        [Microsoft.VSTS.Scheduling.RemainingWork],
+        [Microsoft.VSTS.Scheduling.OriginalEstimate],
+        [Microsoft.VSTS.Scheduling.CompletedWork]
+      FROM WorkItems
+      WHERE [System.TeamProject] = @project
+        AND (
+          [System.WorkItemType] = 'Product Backlog Item' OR
+          [System.WorkItemType] = 'Bug' OR
+          [System.WorkItemType] = 'Task'
+        )
+        AND [System.AreaPath] UNDER '${areaPath}'
+        AND (
+          [System.IterationPath] UNDER '${adoIterationPath}' OR (
+            [System.IterationPath] UNDER '${project}' AND (
+              [System.Tags] CONTAINS '${sprintNumber}' OR
+              [System.Tags] CONTAINS '${sprintNumber}-' OR
+              [System.Tags] CONTAINS '${sprintNumber}+' OR
+              [System.Tags] CONTAINS '${sprintNumber}!'
+            )
+          )
+        )
+    `
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const workItemDtos = await this.executeWiqlQuery(collection, project, query, flatQuery);
 
     let filteredWorkItemDtos = workItemDtos;
     const ids = workItemDtos.map(x => x.System.Id);
@@ -366,7 +331,7 @@ export class ApiClient {
     }
   }
 
-  private async executeWiqlQuery(collection: string, project: string, wiql: string): Promise<WorkItemDto[]> {
+  private async executeWiqlQuery(collection: string, project: string, wiql: string, orphanWiql?: string): Promise<WorkItemDto[]> {
     const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/wiql?api-version=${PUBLIC_API_VERSION}`;
     const response = await this._fetch(url, {
       method: "POST",
@@ -397,6 +362,29 @@ export class ApiClient {
         }
         if (link.source && link.target) {
           parentMap.set(link.target.id, link.source.id);
+        }
+      }
+
+      if (orphanWiql) {
+        try {
+          const orphanResponse = await this._fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: orphanWiql })
+          });
+          if (orphanResponse.ok) {
+            const orphanResult = await orphanResponse.json();
+            if (orphanResult.workItems) {
+              for (const ref of orphanResult.workItems) {
+                if (!seen.has(ref.id)) {
+                  ids.push(ref.id);
+                  seen.add(ref.id);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to fetch orphan work items:", error);
         }
       }
     } else if (result.workItems) {

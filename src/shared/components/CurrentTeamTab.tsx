@@ -50,7 +50,7 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
       if (props.collection && props.project && props.team && props.sprint) {
         const apiClient = new ApiClient(props.origin, props.fetchFn);
 
-        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, props.team, props.sprint) : await apiClient.getIteration2(props.collection, props.project, props.team, props.iterationPath);
+        const queryResult = await apiClient.getIteration2(props.collection, props.project, props.team, props.iterationPath);
 
         setWorkItems(queryResult.workItems);
         setSprintStartDate(queryResult.sprintStartDate);
