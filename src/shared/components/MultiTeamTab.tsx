@@ -1,8 +1,6 @@
 import { Button, Checkbox, ColorInput, Group, Stack, Text, TextInput, Title } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
-import { QueryClient } from "../api/query/QueryClient";
-import { WorkItemClient } from "../api/workItems/WorkItemClient";
 import { usePlatform } from "../context/PlatformContext";
 import { generateMultiTeamPdfReport } from "../domain/reports/PdfGenerator";
 import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/ReportGenerator";
@@ -50,6 +48,7 @@ interface MultiTeamTabProps {
   currentTeam: string;
   sprint: string;
   iterationPath: string;
+  fetchFn?: typeof globalThis.fetch;
 }
 
 interface TeamSelection {
@@ -186,15 +185,13 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
 
     setIsLoading(true);
 
-    const workItemClient = new WorkItemClient(props.origin);
-    const queryClient = new QueryClient(props.origin, workItemClient);
-    const apiClient = new ApiClient(props.origin, queryClient, workItemClient);
+    const apiClient = new ApiClient(props.origin, props.fetchFn);
 
     const results: TeamData[] = [];
 
     for (const team of selectedTeams) {
       try {
-        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, team.name, props.sprint) : await apiClient.getIteration2(props.collection, props.project, team.name, props.iterationPath);
+        const queryResult = await apiClient.getIteration2(props.collection, props.project, team.name, props.iterationPath);
 
         results.push({
           team: team.name,

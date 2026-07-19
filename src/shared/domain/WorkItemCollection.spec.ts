@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { WorkItemDto } from "../api/query/WorkItemDto";
+import type { WorkItemDto } from "../api/WorkItemDto";
 import { WorkItem } from "./WorkItem";
 import { WorkItemCollection } from "./WorkItemCollection";
 
@@ -17,9 +17,12 @@ function createWorkItemDto(
   return {
     Microsoft: {
       VSTS: {
+        Common: undefined,
         Scheduling: {
           Effort: overrides.effort !== undefined ? overrides.effort : 3,
-          RemainingWork: 0
+          RemainingWork: 0,
+          OriginalEstimate: undefined,
+          CompletedWork: undefined
         }
       }
     },
@@ -213,7 +216,7 @@ describe("WorkItemCollection", () => {
       w1.Microsoft = {
         VSTS: {
           Common: { ActivatedDate: "2026-06-17T08:00:00Z" },
-          Scheduling: { Effort: 3, RemainingWork: 0 }
+          Scheduling: { Effort: 3, RemainingWork: 0, OriginalEstimate: undefined, CompletedWork: undefined }
         }
       };
       const collection2 = new WorkItemCollection([new WorkItem(w1)]);
@@ -224,21 +227,21 @@ describe("WorkItemCollection", () => {
       w2.Microsoft = {
         VSTS: {
           Common: { ActivatedDate: "2026-06-18T08:00:00Z" },
-          Scheduling: { Effort: 3, RemainingWork: 0 }
+          Scheduling: { Effort: 3, RemainingWork: 0, OriginalEstimate: undefined, CompletedWork: undefined }
         }
       };
       const w3 = createWorkItemDto({ id: 3 });
       w3.Microsoft = {
         VSTS: {
           Common: { ActivatedDate: "2026-06-19T08:00:00Z" },
-          Scheduling: { Effort: 3, RemainingWork: 0 }
+          Scheduling: { Effort: 3, RemainingWork: 0, OriginalEstimate: undefined, CompletedWork: undefined }
         }
       };
       const w4 = createWorkItemDto({ id: 4 });
       w4.Microsoft = {
         VSTS: {
           Common: { ActivatedDate: "2026-06-20T08:00:00Z" },
-          Scheduling: { Effort: 3, RemainingWork: 0 }
+          Scheduling: { Effort: 3, RemainingWork: 0, OriginalEstimate: undefined, CompletedWork: undefined }
         }
       };
 

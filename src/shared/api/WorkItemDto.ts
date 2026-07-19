@@ -1,14 +1,12 @@
 export interface WorkItemDto {
   Microsoft: {
     VSTS: {
-      Common?: {
-        ActivatedDate?: string;
-      };
+      Common: { ActivatedDate: string } | undefined;
       Scheduling: {
         Effort: number;
-        RemainingWork?: number;
-        OriginalEstimate?: number;
-        CompletedWork?: number;
+        RemainingWork: number | undefined;
+        OriginalEstimate: number | undefined;
+        CompletedWork: number | undefined;
       };
     };
   };

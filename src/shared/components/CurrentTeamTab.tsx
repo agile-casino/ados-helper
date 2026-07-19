@@ -1,8 +1,6 @@
 import { Button } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
-import { QueryClient } from "../api/query/QueryClient";
-import { WorkItemClient } from "../api/workItems/WorkItemClient";
 import { usePlatform } from "../context/PlatformContext";
 import { generatePdfReport } from "../domain/reports/PdfGenerator";
 import { generateReport } from "../domain/reports/ReportGenerator";
@@ -38,6 +36,7 @@ interface CurrentTeamTabProps {
   team: string;
   sprint: string;
   iterationPath: string;
+  fetchFn?: typeof globalThis.fetch;
 }
 
 export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
@@ -49,11 +48,9 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
   useEffect(() => {
     async function updateIteration() {
       if (props.collection && props.project && props.team && props.sprint) {
-        const workItemClient = new WorkItemClient(props.origin);
-        const queryClient = new QueryClient(props.origin, workItemClient);
-        const apiClient = new ApiClient(props.origin, queryClient, workItemClient);
+        const apiClient = new ApiClient(props.origin, props.fetchFn);
 
-        const queryResult = props.project === "WirelineRnD" ? await apiClient.getIteration(props.collection, props.project, props.team, props.sprint) : await apiClient.getIteration2(props.collection, props.project, props.team, props.iterationPath);
+        const queryResult = await apiClient.getIteration2(props.collection, props.project, props.team, props.iterationPath);
 
         setWorkItems(queryResult.workItems);
         setSprintStartDate(queryResult.sprintStartDate);
@@ -61,7 +58,7 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
       }
     }
     updateIteration().catch((e: unknown) => console.error(e));
-  }, [props.collection, props.project, props.team, props.sprint, props.iterationPath, props.origin]);
+  }, [props.collection, props.project, props.team, props.sprint, props.iterationPath, props.origin, props.fetchFn]);
 
   return (
     <div style={{ height: "100%", overflowY: "scroll" }}>

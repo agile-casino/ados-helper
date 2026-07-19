@@ -206,7 +206,7 @@ class SandboxState {
   public apiLogs: { timestamp: string; method: string; url: string; status: number }[] = [];
   public currentUrlParams = {
     collection: "DefaultCollection",
-    project: "WirelineRnD",
+    project: "Contoso",
     team: "DE_BK_Green",
     sprint: "Sprint 13",
     iterationPath: "Sprint 13"
@@ -263,156 +263,6 @@ class SandboxState {
 }
 
 const state = new SandboxState();
-
-// Flatten helper
-function flattenMockWorkItems(
-  mockItems: MockWorkItem[],
-  project: string,
-  team: string,
-  sprint?: string,
-  asOfDate?: Date
-): {
-  payload: {
-    columns: string[];
-    rows: (string | number | null)[][];
-  };
-  sourceIds: number[];
-} {
-  const columns = [
-    "System.Id",
-    "System.IterationPath",
-    "System.WorkItemType",
-    "System.Title",
-    "System.AssignedTo",
-    "System.State",
-    "System.Tags",
-    "Microsoft.VSTS.Common.ActivatedDate",
-    "Microsoft.VSTS.Scheduling.Effort",
-    "Microsoft.VSTS.Scheduling.RemainingWork",
-    "Microsoft.VSTS.Scheduling.OriginalEstimate",
-    "Microsoft.VSTS.Scheduling.CompletedWork"
-  ];
-
-  const rows: (string | number | null)[][] = [];
-  const sourceIds: number[] = [];
-
-  const sprintNameStr = sprint || "Sprint 13";
-  const iterationPathValue = `${project}\\${team}\\${sprintNameStr}`;
-
-  // If there's an ASOF date, we might want to simulate historical changes.
-  // We calculate the sprint's start date dynamically relative to Sprint 13.
-  const sprintMatch = sprintNameStr.match(/(?:Sprint|Iteration)(?:\s+|-|_|)(\d+)/i);
-  let sprintStartDate = new Date("2026-06-01T00:00:00Z");
-  if (sprintMatch) {
-    const num = parseInt(sprintMatch[1] || "13", 10);
-    sprintStartDate = new Date(new Date("2026-06-01T00:00:00Z").getTime() - (13 - num) * 14 * 24 * 60 * 60 * 1000);
-  }
-  const committedThreshold = new Date(sprintStartDate.getTime() + 2 * 24 * 60 * 60 * 1000);
-  const isCommittedSnapshot = asOfDate && asOfDate.getTime() < committedThreshold.getTime();
-
-  function traverse(item: MockWorkItem, parentId: number) {
-    if (isCommittedSnapshot) {
-      // Exclude items pulled in late (activated after Day 2, or tagged with '+')
-      if (item.tags?.includes("+") || item.title.includes("[Plus]") || item.title.includes("[Late]")) {
-        return;
-      }
-      if (item.activatedDate && new Date(item.activatedDate).getTime() > asOfDate.getTime()) {
-        return;
-      }
-    }
-
-    const row = columns.map(col => {
-      switch (col) {
-        case "System.Id":
-          return item.id;
-        case "System.IterationPath":
-          return iterationPathValue;
-        case "System.WorkItemType":
-          return item.type;
-        case "System.Title":
-          return item.title;
-        case "System.AssignedTo":
-          return item.assignedTo;
-        case "System.State":
-          if (isCommittedSnapshot) {
-            // On Day 2, items were not Done yet, they were Committed/In Progress
-            if (item.tags?.includes("-") || item.title.includes("[Minus]")) {
-              return "Committed"; // Override Removed to Committed
-            }
-            if (item.state === "Done" || item.state === "Staging" || item.state === "Released") {
-              return "Committed";
-            }
-          }
-          return item.state;
-        case "System.Tags":
-          return item.tags || "";
-        case "Microsoft.VSTS.Common.ActivatedDate":
-          return item.activatedDate || null;
-        case "Microsoft.VSTS.Scheduling.Effort": {
-          let itemEffort = item.effort ?? 0;
-          if (itemEffort > 0) {
-            const sprintMatch = sprintNameStr.match(/(?:Sprint|Iteration)(?:\s+|-|_|)(\d+)/i);
-            if (sprintMatch) {
-              const num = parseInt(sprintMatch[1] || "13", 10);
-              itemEffort = Math.max(1, itemEffort + ((item.id + num) % 5) - 2);
-            }
-          }
-          return itemEffort;
-        }
-        case "Microsoft.VSTS.Scheduling.RemainingWork":
-          return item.remainingWork ?? null;
-        case "Microsoft.VSTS.Scheduling.OriginalEstimate":
-          return item.originalEstimate ?? null;
-        case "Microsoft.VSTS.Scheduling.CompletedWork":
-          return item.completedWork ?? null;
-        default:
-          return null;
-      }
-    });
-
-    rows.push(row);
-    sourceIds.push(parentId);
-
-    if (item.children) {
-      for (const child of item.children) {
-        traverse(child, item.id);
-      }
-    }
-  }
-
-  // Under standard scenario, if it is committed snapshot, artificially add a removed item to demonstrate Dropped items!
-  let scenarioKey = "standard";
-  try {
-    const saved = localStorage.getItem("sprint-report-generator-sandbox-state") || localStorage.getItem("ados-helper-sandbox-state");
-    if (saved) {
-      scenarioKey = JSON.parse(saved).currentScenario || "standard";
-    }
-  } catch {}
-
-  const updatedMockItems = [...mockItems];
-  if (isCommittedSnapshot && scenarioKey === "standard") {
-    // Add artificial removed item
-    updatedMockItems.push({
-      id: 199,
-      type: "Product Backlog Item",
-      title: "[Core] Legacy cleanup and refactoring",
-      state: "Committed",
-      assignedTo: "Bob Miller",
-      tags: "Sprint 13",
-      effort: 3,
-      children: []
-    });
-  }
-
-  for (const item of updatedMockItems) {
-    traverse(item, 0);
-  }
-
-  return {
-    payload: { columns, rows },
-    sourceIds
-  };
-}
 
 // Fetch interception
 const originalFetch = window.fetch;
@@ -519,8 +369,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
     });
   }
 
-  // 2. Intercept Query API
-  if (urlStr.includes("/_api/_wit/query")) {
+  // 2. Intercept public WIQL API
+  if (urlStr.includes("/_apis/wit/wiql")) {
     state.addLog("POST", urlStr, 200);
 
     if (state.currentScenario === "error") {
@@ -530,53 +380,84 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
       });
     }
 
-    // Find requested team in URL segment
-    // URL: .../{collection}/{project}/{team}/_api/_wit/query?__v=5...
-    const urlObj = new URL(urlStr);
-    const pathSegments = urlObj.pathname.split("/");
-    const apiIndex = pathSegments.indexOf("_api");
-    let requestedTeam = state.currentUrlParams.team;
-    let requestedProject = state.currentUrlParams.project;
+    // URL: .../{collection}/{project}/_apis/wit/wiql?api-version=...
+    // The public WIQL API does not include a /team segment, so resolve the team
+    // from the "Area Path UNDER '<project>\Engineering\<team>'" clause in the
+    // query body, falling back to the configured team.
 
-    if (apiIndex !== -1 && apiIndex >= 2) {
-      requestedTeam = decodeURIComponent(pathSegments[apiIndex - 1] || requestedTeam);
-      requestedProject = decodeURIComponent(pathSegments[apiIndex - 2] || requestedProject);
-    }
-
-    // Try to get body to extract ASOF date if present
     let wiql = "";
     try {
       if (init?.body) {
         const bodyObj = JSON.parse(init.body.toString());
-        wiql = bodyObj.wiql || "";
+        wiql = bodyObj.query || "";
       }
     } catch (e) {
-      console.warn("Failed to parse query body in sandbox", e);
+      console.warn("Failed to parse WIQL body in sandbox", e);
     }
 
-    let asOfDate: Date | undefined;
-    const asOfMatch = wiql.match(/ASOF\s+'([^']+)'/i);
-    if (asOfMatch?.[1]) {
-      asOfDate = new Date(asOfMatch[1]);
+    let teamKey = state.currentUrlParams.team;
+    const areaPathMatch = wiql.match(/Area\s*Path\]\s*UNDER\s*'([^']+)'/i);
+    if (areaPathMatch?.[1]) {
+      const segments = areaPathMatch[1].split("\\");
+      const areaTeam = segments[segments.length - 1] ?? "";
+      const resolvedTeam = [areaTeam, areaTeam.replace("PixelPerfect", "Pixel_Perfect")].find(candidate => state.mockData[candidate]);
+      if (resolvedTeam) {
+        teamKey = resolvedTeam;
+      }
     }
 
-    let querySprint = state.currentUrlParams.sprint;
-    const iterationPathMatch = wiql.match(/\[System\.IterationPath\]\s+UNDER\s+'([^']+)'/i);
-    if (iterationPathMatch?.[1]) {
-      const parts = iterationPathMatch[1].split("\\");
-      querySprint = parts[parts.length - 1] || querySprint;
+    const itemsForTeam = state.mockData[teamKey] || [];
+    const isLinkQuery = wiql.includes("WorkItemLinks");
+
+    if (isLinkQuery) {
+      const relations: { source: { id: number }; target: { id: number } }[] = [];
+      const seen = new Set<string>();
+
+      function addRelations(item: MockWorkItem, parentId: number | null) {
+        if (parentId !== null) {
+          const key = `${parentId}-${item.id}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            relations.push({ source: { id: parentId }, target: { id: item.id } });
+          }
+        }
+        if (item.children) {
+          for (const child of item.children) {
+            addRelations(child, item.id);
+          }
+        }
+      }
+
+      for (const item of itemsForTeam) {
+        addRelations(item, null);
+      }
+
+      return new Response(JSON.stringify({ workItemRelations: relations }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    } else {
+      const items: { id: number }[] = [];
+      function collectItemIds(item: MockWorkItem) {
+        items.push({ id: item.id });
+        if (item.children) {
+          for (const child of item.children) {
+            collectItemIds(child);
+          }
+        }
+      }
+      for (const item of itemsForTeam) {
+        collectItemIds(item);
+      }
+
+      return new Response(JSON.stringify({ workItems: items }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
     }
-
-    const itemsForTeam = state.mockData[requestedTeam] || [];
-    const flattened = flattenMockWorkItems(itemsForTeam, requestedProject, requestedTeam, querySprint, asOfDate);
-
-    return new Response(JSON.stringify(flattened), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
   }
 
-  // 3. Intercept WorkItems Batch API
+  // 4. Intercept WorkItems Batch API
   if (urlStr.includes("/_apis/wit/workitemsbatch")) {
     state.addLog("POST", urlStr, 200);
 
@@ -618,9 +499,26 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           url: link
         })) || [];
 
+      const iterationPath = `${state.currentUrlParams.project}\\${state.currentUrlParams.team}\\${state.currentUrlParams.sprint}`;
+
       return {
         id: id,
-        relations: relations
+        relations: relations,
+        fields: {
+          "System.Id": match?.id ?? id,
+          "System.Title": match?.title ?? "",
+          "System.State": match?.state ?? "",
+          "System.AssignedTo": match?.assignedTo ?? null,
+          "System.IterationPath": iterationPath,
+          "System.WorkItemType": match?.type ?? "",
+          "System.TeamProject": state.currentUrlParams.project,
+          "System.Tags": match?.tags ?? "",
+          "Microsoft.VSTS.Scheduling.Effort": match?.effort ?? 0,
+          "Microsoft.VSTS.Scheduling.RemainingWork": match?.remainingWork ?? null,
+          "Microsoft.VSTS.Scheduling.OriginalEstimate": match?.originalEstimate ?? null,
+          "Microsoft.VSTS.Scheduling.CompletedWork": match?.completedWork ?? null,
+          "Microsoft.VSTS.Common.ActivatedDate": match?.activatedDate ?? null
+        }
       };
     });
 
@@ -646,7 +544,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-05-15T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 13"
+              newValue: "Contoso\\Sprint 13"
             }
           }
         },
@@ -656,8 +554,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-06-08T10:00:00Z",
           fields: {
             "System.IterationPath": {
-              oldValue: "WirelineRnD\\Sprint 13",
-              newValue: "WirelineRnD\\Backlog"
+              oldValue: "Contoso\\Sprint 13",
+              newValue: "Contoso\\Backlog"
             }
           }
         }
@@ -670,7 +568,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-05-10T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 12"
+              newValue: "Contoso\\Sprint 12"
             }
           }
         },
@@ -680,8 +578,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-06-05T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              oldValue: "WirelineRnD\\Sprint 12",
-              newValue: "WirelineRnD\\Sprint 13"
+              oldValue: "Contoso\\Sprint 12",
+              newValue: "Contoso\\Sprint 13"
             }
           }
         }
@@ -694,7 +592,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-05-12T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 12"
+              newValue: "Contoso\\Sprint 12"
             }
           }
         },
@@ -704,8 +602,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-06-03T10:00:00Z",
           fields: {
             "System.IterationPath": {
-              oldValue: "WirelineRnD\\Sprint 12",
-              newValue: "WirelineRnD\\Sprint 13"
+              oldValue: "Contoso\\Sprint 12",
+              newValue: "Contoso\\Sprint 13"
             }
           }
         }
@@ -718,7 +616,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-05-14T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 13"
+              newValue: "Contoso\\Sprint 13"
             }
           }
         },
@@ -742,7 +640,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           revisedDate: "2026-06-01T09:00:00Z",
           fields: {
             "System.IterationPath": {
-              newValue: "WirelineRnD\\Sprint 13"
+              newValue: "Contoso\\Sprint 13"
             }
           }
         }

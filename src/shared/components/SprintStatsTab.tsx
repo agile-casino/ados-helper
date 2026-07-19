@@ -1,8 +1,6 @@
 import { Alert, Badge, Box, Card, Group, Loader, Paper, RingProgress, SimpleGrid, Stack, Table, Text, Title, Tooltip } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
-import { QueryClient } from "../api/query/QueryClient";
-import { WorkItemClient } from "../api/workItems/WorkItemClient";
 import { usePlatform } from "../context/PlatformContext";
 import type { WorkItem } from "../domain/WorkItem";
 
@@ -28,6 +26,7 @@ interface SprintStatsTabProps {
   team: string;
   sprint: string;
   iterationPath: string;
+  fetchFn?: typeof globalThis.fetch;
 }
 
 const normalizeIterationPath = (path: string, project: string) => {
@@ -95,12 +94,10 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
       setError(null);
 
       try {
-        const workItemClient = new WorkItemClient(props.origin);
-        const queryClient = new QueryClient(props.origin, workItemClient);
-        const apiClient = new ApiClient(props.origin, queryClient, workItemClient);
+        const apiClient = new ApiClient(props.origin, props.fetchFn);
 
         // 1. Fetch dates
-        const sprintName = props.project === "WirelineRnD" ? props.sprint : (props.iterationPath.split("/").pop() ?? props.sprint);
+        const sprintName = props.iterationPath.split("/").pop() ?? props.sprint;
         const iterDates = await apiClient.getIterationDates(props.collection, props.project, props.team, sprintName);
 
         if (!iterDates.startDate || !iterDates.finishDate) {
@@ -253,7 +250,7 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
     return () => {
       active = false;
     };
-  }, [props.collection, props.project, props.team, props.sprint, props.iterationPath, props.origin]);
+  }, [props.collection, props.project, props.team, props.sprint, props.iterationPath, props.origin, props.fetchFn]);
 
   if (loading) {
     return (

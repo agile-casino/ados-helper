@@ -1,6 +1,7 @@
-import { MantineProvider, Tabs, Title } from "@mantine/core";
+import { ActionIcon, MantineProvider, Tabs, Title, Tooltip } from "@mantine/core";
 import * as SDK from "azure-devops-extension-sdk";
 import * as React from "react";
+import { createAuthFetch } from "../shared/api/authFetch";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
@@ -13,7 +14,7 @@ import "../shared/styles/mantine.css";
 
 const platformService = new ExtensionPlatformService();
 
-interface ExtensionContext {
+export interface ExtensionContext {
   origin: string;
   collection: string;
   project: string;
@@ -22,7 +23,57 @@ interface ExtensionContext {
   iterationPath: string;
 }
 
-const isColorDark = (color: string): boolean => {
+export function resolveOrigin(collection: string): string {
+  let origin = "https://dev.azure.com";
+  if (document.referrer) {
+    try {
+      const refUrl = new URL(document.referrer);
+      const collectionLower = collection.toLowerCase();
+      const pathSegments = refUrl.pathname.split("/").filter(Boolean);
+      const collectionIndex = pathSegments.findIndex(seg => decodeURIComponent(seg).toLowerCase() === collectionLower);
+
+      if (collectionIndex !== -1) {
+        const prefixSegments = pathSegments.slice(0, collectionIndex);
+        const pathPrefix = prefixSegments.length > 0 ? `/${prefixSegments.join("/")}` : "";
+        origin = `${refUrl.origin}${pathPrefix}`;
+      } else {
+        origin = refUrl.origin;
+      }
+    } catch (e) {
+      console.warn("Failed to resolve origin from document.referrer:", e);
+    }
+  }
+  return origin;
+}
+
+function buildExtensionContext(): ExtensionContext {
+  const hostContext = SDK.getHost();
+  const collection = hostContext.name || "DefaultCollection";
+  const webContext = SDK.getWebContext();
+  const project = webContext?.project?.name || "";
+  const team = webContext?.team?.name || "";
+  const origin = resolveOrigin(collection);
+
+  const config = SDK.getConfiguration();
+  let sprint = "Sprint 1";
+  let iterationPath = "Sprint 1";
+
+  const iterationObj = config["iteration"];
+  if (iterationObj) {
+    sprint = iterationObj["name"] || "";
+    const rawPath = iterationObj["path"] || "";
+    const prefix = `${project}\\`;
+    if (rawPath.toLowerCase().startsWith(prefix.toLowerCase())) {
+      iterationPath = rawPath.substring(prefix.length).replace(/\\/g, "/");
+    } else {
+      iterationPath = rawPath.replace(/\\/g, "/");
+    }
+  }
+
+  return { origin, collection, project, team, sprint, iterationPath };
+}
+
+export const isColorDark = (color: string): boolean => {
   if (!color) return false;
   const cleanColor = color.trim().toLowerCase();
 
@@ -98,99 +149,25 @@ export const ExtensionApp = () => {
   const [loading, setLoading] = React.useState(true);
   const [context, setContext] = React.useState<ExtensionContext | null>(null);
   const [colorScheme, setColorScheme] = React.useState<"light" | "dark">("light");
+  const [refreshKey, setRefreshKey] = React.useState(0);
+  const hasNotified = React.useRef(false);
 
   React.useEffect(() => {
-    async function initContext() {
-      // 1. Retrieve the delegated authorization token from Azure DevOps
-      const token = await SDK.getAccessToken();
-
-      // 2. Set up global fetch interception in the extension's execution context
-      // to transparently inject the Bearer token for all requests to ADOS APIs.
-      const originalFetch = window.fetch;
-      window.fetch = (input, init) => {
-        let headersObj: Record<string, string> = {};
-        if (init?.headers) {
-          if (init.headers instanceof Headers) {
-            init.headers.forEach((value, key) => {
-              headersObj[key] = value;
-            });
-          } else if (Array.isArray(init.headers)) {
-            for (const [key, value] of init.headers) {
-              headersObj[key] = value;
-            }
-          } else {
-            headersObj = { ...init.headers } as Record<string, string>;
-          }
-        }
-        headersObj["Authorization"] = `Bearer ${token}`;
-        return originalFetch(input, { ...init, headers: headersObj });
-      };
-
-      // 3. Resolve ADOS context details
-      const hostContext = SDK.getHost();
-      const collection = hostContext.name || "DefaultCollection";
-
-      let origin = "https://dev.azure.com";
-      if (document.referrer) {
-        try {
-          const refUrl = new URL(document.referrer);
-          // If on-premises TFS, the path might be /tfs/CollectionName/Project/...
-          // We want to extract everything up to the collection name as the origin/base URL.
-          const collectionLower = collection.toLowerCase();
-          const pathSegments = refUrl.pathname.split("/").filter(Boolean);
-          const collectionIndex = pathSegments.findIndex(seg => decodeURIComponent(seg).toLowerCase() === collectionLower);
-
-          if (collectionIndex !== -1) {
-            // Keep segments before the collection name, e.g., ["tfs"]
-            const prefixSegments = pathSegments.slice(0, collectionIndex);
-            const pathPrefix = prefixSegments.length > 0 ? `/${prefixSegments.join("/")}` : "";
-            origin = `${refUrl.origin}${pathPrefix}`;
-          } else {
-            origin = refUrl.origin;
-          }
-        } catch (e) {
-          console.warn("Failed to resolve origin from document.referrer:", e);
-        }
-      }
-
-      const webContext = SDK.getWebContext();
-      const project = webContext?.project?.name || "";
-      const team = webContext?.team?.name || "";
-
-      // 4. Resolve current iteration/sprint details from page configuration
-      const config = SDK.getConfiguration();
-      let sprint = "Sprint 1";
-      let iterationPath = "Sprint 1";
-
-      const iterationObj = config["iteration"];
-      if (iterationObj) {
-        sprint = iterationObj["name"] || "";
-        const rawPath = iterationObj["path"] || ""; // e.g. "ProjectName\\2W\\Sprint 13"
-        const prefix = `${project}\\`;
-        if (rawPath.toLowerCase().startsWith(prefix.toLowerCase())) {
-          iterationPath = rawPath.substring(prefix.length).replace(/\\/g, "/");
-        } else {
-          iterationPath = rawPath.replace(/\\/g, "/");
-        }
-      }
-
-      setContext({
-        origin,
-        collection,
-        project,
-        team,
-        sprint,
-        iterationPath
-      });
+    async function init() {
+      const ctx = buildExtensionContext();
+      setContext(ctx);
       setColorScheme(detectTheme());
       setLoading(false);
 
-      // Notify ADOS host that extension page loaded successfully
-      SDK.notifyLoadSucceeded();
+      if (!hasNotified.current) {
+        SDK.notifyLoadSucceeded();
+        hasNotified.current = true;
+      }
     }
 
-    initContext().catch(err => {
+    init().catch(err => {
       console.error("Failed to initialize extension context:", err);
+      SDK.notifyLoadFailed(err instanceof Error ? err : new Error(String(err)));
       setLoading(false);
     });
 
@@ -198,11 +175,28 @@ export const ExtensionApp = () => {
       setColorScheme(detectTheme());
     };
 
+    const handleMessage = (event: MessageEvent) => {
+      if (event.source !== window.parent) return;
+      if (event.data && typeof event.data === "object") {
+        if (event.data.method === "onIterationChanged" || event.data.method === "iterationChanged" || event.data.method === "configurationUpdated") {
+          const ctx = buildExtensionContext();
+          setContext(ctx);
+        }
+      }
+    };
+
     window.addEventListener("themeApplied", handleThemeApplied);
+    window.addEventListener("message", handleMessage);
     return () => {
       window.removeEventListener("themeApplied", handleThemeApplied);
+      window.removeEventListener("message", handleMessage);
     };
   }, []);
+
+  // Recreate authFetch on refresh: the tabs' effects depend on fetchFn, so a
+  // new identity re-triggers their data fetching.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is intentionally an extra dependency to invalidate the memoized fetch on refresh
+  const authFetch = React.useMemo(() => createAuthFetch(() => SDK.getAccessToken()), [refreshKey]);
 
   if (loading) {
     return <div style={{ padding: "20px", fontFamily: "sans-serif" }}>Loading Sprint Report Generator context...</div>;
@@ -216,9 +210,16 @@ export const ExtensionApp = () => {
     <PlatformProvider value={platformService}>
       <MantineProvider forceColorScheme={colorScheme}>
         <div style={{ padding: "16px", height: "100vh", display: "flex", flexDirection: "column" }}>
-          <Title order={3} fw={400} style={{ marginBottom: "1rem" }}>
-            <span>{context.sprint} Reports</span>
-          </Title>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "1rem" }}>
+            <Title order={3} fw={400} style={{ flexGrow: 1 }}>
+              <span>{context.sprint} Reports</span>
+            </Title>
+            <Tooltip label="Refresh data for current sprint">
+              <ActionIcon variant="subtle" onClick={() => setRefreshKey(c => c + 1)} aria-label="Refresh">
+                &#x21bb;
+              </ActionIcon>
+            </Tooltip>
+          </div>
 
           <Tabs defaultValue="current-team" style={{ flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
             <Tabs.List>
@@ -228,15 +229,15 @@ export const ExtensionApp = () => {
             </Tabs.List>
 
             <Tabs.Panel value="current-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <CurrentTeamTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} />
+              <CurrentTeamTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
             </Tabs.Panel>
 
             <Tabs.Panel value="multi-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} />
+              <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
             </Tabs.Panel>
 
             <Tabs.Panel value="sprint-stats" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} />
+              <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
             </Tabs.Panel>
           </Tabs>
         </div>

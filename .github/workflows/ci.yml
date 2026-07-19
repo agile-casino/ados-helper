@@ -27,5 +27,6 @@ jobs:
         run: |
           pnpm run typecheck
           pnpm run build
+          pnpm run build:extension
           pnpm run test
           pnpm biome ci src

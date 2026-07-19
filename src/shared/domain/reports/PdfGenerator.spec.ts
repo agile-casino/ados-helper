@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { WorkItemDto } from "../../api/query/WorkItemDto";
+import type { WorkItemDto } from "../../api/WorkItemDto";
 import { WorkItem } from "../WorkItem";
 import { generateMultiTeamPdfReport, generatePdfReport } from "./PdfGenerator";
 
 const mockAutoTable = vi.fn().mockImplementation((_doc, options) => {
-  if (options && options.body && Array.isArray(options.body)) {
+  if (options?.body && Array.isArray(options.body)) {
     for (const [rowIndex, rowRaw] of options.body.entries()) {
       const mockRow = { raw: rowRaw, index: rowIndex };
 
@@ -96,10 +96,12 @@ function createWorkItemDto(
   return {
     Microsoft: {
       VSTS: {
-        ...(overrides.activatedDate ? { Common: { ActivatedDate: overrides.activatedDate } } : {}),
+        Common: overrides.activatedDate ? { ActivatedDate: overrides.activatedDate } : undefined,
         Scheduling: {
           Effort: 3,
-          RemainingWork: 0
+          RemainingWork: 0,
+          OriginalEstimate: undefined,
+          CompletedWork: undefined
         }
       }
     },
