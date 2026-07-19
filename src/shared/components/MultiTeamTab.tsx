@@ -1,5 +1,5 @@
 import { Button, Checkbox, ColorInput, Group, Stack, Text, TextInput, Title } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { usePlatform } from "../context/PlatformContext";
 import { generateMultiTeamPdfReport } from "../domain/reports/PdfGenerator";
@@ -305,13 +305,11 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
               <Text size="xs" fw={500} c="dimmed" />
 
               {teams.map((team, index) => (
-                <>
-                  <Checkbox key={`${team.name}-checkbox`} checked={team.selected} onChange={() => handleTeamToggle(team.name)} />
-                  <Text key={`${team.name}-label`} size="sm">
-                    {team.name}
-                  </Text>
-                  <ColorInput key={`${team.name}-color`} value={team.backgroundColor || ""} onChange={color => handleColorChange(team.name, color)} placeholder="None" size="xs" />
-                  <Group key={`${team.name}-order`} gap={4} wrap="nowrap">
+                <Fragment key={team.name}>
+                  <Checkbox checked={team.selected} onChange={() => handleTeamToggle(team.name)} />
+                  <Text size="sm">{team.name}</Text>
+                  <ColorInput value={team.backgroundColor || ""} onChange={color => handleColorChange(team.name, color)} placeholder="None" size="xs" />
+                  <Group gap={4} wrap="nowrap">
                     <Button variant="subtle" size="xs" onClick={() => handleMoveTeamUp(index)} disabled={index === 0}>
                       ↑
                     </Button>
@@ -319,10 +317,10 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
                       ↓
                     </Button>
                   </Group>
-                  <Button key={`${team.name}-remove`} variant="subtle" color="red" size="xs" onClick={() => handleRemoveTeam(team.name)}>
+                  <Button variant="subtle" color="red" size="xs" onClick={() => handleRemoveTeam(team.name)}>
                     Remove
                   </Button>
-                </>
+                </Fragment>
               ))}
             </div>
           </div>
