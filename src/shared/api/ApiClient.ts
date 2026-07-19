@@ -64,7 +64,12 @@ function rawWorkItemToDto(wi: RawWorkItem, children: WorkItemDto[] = [], links: 
       Rev: (f["System.Rev"] as number) ?? 0,
       Tags: (f["System.Tags"] as string) ?? "",
       State: (f["System.State"] as string) ?? "",
-      AssignedTo: (f["System.AssignedTo"] as string | null) ?? null,
+      AssignedTo: (() => {
+        const assignedTo = f["System.AssignedTo"];
+        if (assignedTo == null) return null;
+        if (typeof assignedTo === "string") return assignedTo;
+        return (assignedTo as { displayName?: string }).displayName ?? null;
+      })(),
       Title: (f["System.Title"] as string) ?? "",
       IterationPath: (f["System.IterationPath"] as string) ?? "",
       HyperLinkCount: (f["System.HyperLinkCount"] as number) ?? 0
