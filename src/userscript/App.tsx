@@ -9,7 +9,7 @@ const platformService = new BrowserPlatformService();
 
 export const App = () => {
   const [url, setUrl] = useState(window.location.href);
-  const [origin, setOrigin] = useState(window.location.origin);
+  const [origin, setOrigin] = useState(window.__ADO_ORIGIN__ || window.location.origin);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   let colorScheme = useColorScheme();
@@ -24,7 +24,7 @@ export const App = () => {
 
   const onUrlChange = useCallback(() => {
     setUrl(window.location.href);
-    setOrigin(window.location.origin);
+    setOrigin(window.__ADO_ORIGIN__ || window.location.origin);
   }, []);
 
   useEffect(() => {

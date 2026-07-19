@@ -451,7 +451,6 @@ export class ApiClient {
           body: JSON.stringify({
             ids: chunk,
             fields: WORK_ITEM_FIELDS,
-            $expand: "fields",
             errorPolicy: "Omit"
           })
         });
@@ -481,7 +480,6 @@ export class ApiClient {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ids: chunk,
-            fields: [],
             $expand: "relations",
             errorPolicy: "Omit"
           })

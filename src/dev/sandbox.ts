@@ -204,6 +204,8 @@ class SandboxState {
   public mockData: Record<string, MockWorkItem[]> = JSON.parse(JSON.stringify(SCENARIOS.standard.data));
   public isDarkMode: boolean = false;
   public apiLogs: { timestamp: string; method: string; url: string; status: number }[] = [];
+  public pat: string = "";
+  public adoOrigin: string = "https://dev.azure.com";
   public currentUrlParams = {
     collection: "DefaultCollection",
     project: "Contoso",
@@ -216,6 +218,10 @@ class SandboxState {
     this.loadState();
   }
 
+  public get useRealApi(): boolean {
+    return this.pat.length > 0;
+  }
+
   public loadState() {
     const saved = localStorage.getItem("sprint-report-generator-sandbox-state") || localStorage.getItem("ados-helper-sandbox-state");
     if (saved) {
@@ -224,6 +230,8 @@ class SandboxState {
         this.currentScenario = parsed.currentScenario || "standard";
         this.mockData = parsed.mockData || JSON.parse(JSON.stringify((SCENARIOS as Record<string, { name: string; description: string; data: Record<string, MockWorkItem[]> }>)[this.currentScenario]?.data || SCENARIOS.standard.data));
         this.isDarkMode = !!parsed.isDarkMode;
+        this.pat = parsed.pat || "";
+        this.adoOrigin = parsed.adoOrigin || "https://dev.azure.com";
         this.currentUrlParams = parsed.currentUrlParams || this.currentUrlParams;
       } catch (e) {
         console.warn("Failed to load sandbox state", e);
@@ -238,6 +246,8 @@ class SandboxState {
         currentScenario: this.currentScenario,
         mockData: this.mockData,
         isDarkMode: this.isDarkMode,
+        pat: this.pat,
+        adoOrigin: this.adoOrigin,
         currentUrlParams: this.currentUrlParams
       })
     );
@@ -268,6 +278,23 @@ const state = new SandboxState();
 const originalFetch = window.fetch;
 window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const urlStr = input.toString();
+
+  // If a PAT is configured, forward ADO API requests to the real Azure DevOps API
+  if (state.pat && urlStr.includes("/_apis/")) {
+    const localOrigin = window.location.origin;
+    const realUrl = urlStr.replace(localOrigin, state.adoOrigin);
+    const headers = new Headers(init?.headers);
+    headers.set("Authorization", `Basic ${btoa(`:${state.pat}`)}`);
+    headers.set("Content-Type", "application/json");
+    try {
+      const response = await originalFetch(realUrl, { ...init, headers });
+      state.addLog(init?.method || "GET", realUrl, response.status);
+      return response;
+    } catch (err) {
+      state.addLog(init?.method || "GET", `${realUrl} (NETWORK ERROR)`, 0);
+      throw err;
+    }
+  }
 
   // Intercept Team Field Values API
   if (urlStr.includes("/_apis/work/teamsettings/teamfieldvalues")) {
@@ -710,6 +737,42 @@ function updateDataEditorUI() {
   }
 }
 
+function updateRealApiStatusUI() {
+  const useReal = state.useRealApi;
+  const badge = document.getElementById("real-api-badge");
+  const status = document.getElementById("real-api-status");
+  const scenarioSection = document.getElementById("mock-scenario-section");
+  const dataSection = document.getElementById("mock-data-section");
+  const btnReal = document.getElementById("btn-use-real-api");
+  const btnMock = document.getElementById("btn-use-mock-api");
+  const originInput = document.getElementById("in-ado-origin") as HTMLInputElement;
+
+  if (badge) {
+    badge.textContent = useReal ? "LIVE" : "MOCK";
+    badge.style.color = useReal ? "#50fa7b" : "#888";
+  }
+  if (status) {
+    status.textContent = useReal ? `Connected to ${state.adoOrigin}` : "Using mock API responses.";
+  }
+  if (scenarioSection) {
+    scenarioSection.style.display = useReal ? "none" : "";
+  }
+  if (dataSection) {
+    dataSection.style.display = useReal ? "none" : "";
+  }
+  if (btnReal) {
+    btnReal.style.display = useReal ? "none" : "";
+  }
+  if (btnMock) {
+    btnMock.style.display = useReal ? "" : "none";
+  }
+  if (originInput) {
+    originInput.disabled = useReal;
+  }
+
+  window.__ADO_ORIGIN__ = useReal ? state.adoOrigin : undefined;
+}
+
 // Initial setup on page load
 window.addEventListener("DOMContentLoaded", () => {
   // 1. Create simulated page structure
@@ -859,6 +922,37 @@ window.addEventListener("DOMContentLoaded", () => {
   `;
   sidebar.appendChild(configSection);
 
+  // Real API Connection section
+  const realApiSection = document.createElement("div");
+  realApiSection.id = "real-api-section";
+  realApiSection.style.marginBottom = "20px";
+  realApiSection.innerHTML = `
+    <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #50fa7b; border-bottom: 1px solid #333; padding-bottom: 4px;">
+      Real API Connection
+      <span id="real-api-badge" style="float: right; font-size: 0.65rem; background: #333; padding: 2px 8px; border-radius: 10px; color: #888;">MOCK</span>
+    </h3>
+    <div>
+      <label style="font-size: 0.75rem; color: #888; display: block; margin-bottom: 2px;">Azure DevOps URL</label>
+      <input id="in-ado-origin" class="sb-input" value="${state.adoOrigin}" style="width: 100%; box-sizing: border-box; background: #2d2d2d; border: 1px solid #444; color: white; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem;">
+    </div>
+    <div style="margin-top: 8px;">
+      <label style="font-size: 0.75rem; color: #888; display: block; margin-bottom: 2px;">Personal Access Token</label>
+      <input id="in-pat" type="password" class="sb-input" value="${state.pat}" placeholder="Paste your PAT here" style="width: 100%; box-sizing: border-box; background: #2d2d2d; border: 1px solid #444; color: white; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem;">
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 8px;">
+      <button id="btn-use-real-api" style="flex: 1; background: #28a745; border: none; color: white; padding: 6px 12px; border-radius: 4px; font-weight: 500; font-size: 0.85rem; cursor: pointer;">
+        Use Real API
+      </button>
+      <button id="btn-use-mock-api" style="flex: 1; background: #dc3545; border: none; color: white; padding: 6px 12px; border-radius: 4px; font-weight: 500; font-size: 0.85rem; cursor: pointer; display: none;">
+        Disconnect
+      </button>
+    </div>
+    <div id="real-api-status" style="font-size: 0.75rem; color: #aaa; margin-top: 6px; line-height: 1.3;">
+      Using mock API responses.
+    </div>
+  `;
+  sidebar.appendChild(realApiSection);
+
   // Add styles for toggle switch and inputs
   const styleEl = document.createElement("style");
   styleEl.innerHTML = `
@@ -880,6 +974,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Scenario picker
   const scenarioSection = document.createElement("div");
+  scenarioSection.id = "mock-scenario-section";
   scenarioSection.style.marginBottom = "20px";
   scenarioSection.innerHTML = `
     <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #ff79c6; border-bottom: 1px solid #333; padding-bottom: 4px;">Mock Scenario</h3>
@@ -897,6 +992,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Live Data Editor
   const dataSection = document.createElement("div");
+  dataSection.id = "mock-data-section";
   dataSection.style.marginBottom = "20px";
   dataSection.style.display = "flex";
   dataSection.style.flexDirection = "column";
@@ -1055,9 +1151,38 @@ window.addEventListener("DOMContentLoaded", () => {
     updateLogsUI();
   });
 
+  // Real API / PAT event handlers
+  const btnUseRealApi = document.getElementById("btn-use-real-api");
+  btnUseRealApi?.addEventListener("click", () => {
+    const pat = (document.getElementById("in-pat") as HTMLInputElement).value.trim();
+    const origin = (document.getElementById("in-ado-origin") as HTMLInputElement).value.trim();
+    if (!pat) {
+      alert("Please enter a Personal Access Token.");
+      return;
+    }
+    if (!origin) {
+      alert("Please enter your Azure DevOps URL (e.g. https://dev.azure.com).");
+      return;
+    }
+    state.pat = pat;
+    state.adoOrigin = origin.replace(/\/+$/, "");
+    state.saveState();
+    updateRealApiStatusUI();
+    syncUrl();
+  });
+
+  const btnUseMockApi = document.getElementById("btn-use-mock-api");
+  btnUseMockApi?.addEventListener("click", () => {
+    state.pat = "";
+    state.saveState();
+    updateRealApiStatusUI();
+    syncUrl();
+  });
+
   // Initial UI sync
   updateThemeClass();
   updateLogsUI();
   updateDataEditorUI();
+  updateRealApiStatusUI();
   syncUrl();
 });
