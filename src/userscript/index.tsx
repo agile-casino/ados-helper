@@ -1,7 +1,6 @@
 import * as ReactDOM from "react-dom/client";
 import { isInDocument } from "../shared/utils/isInDocument";
 import { App } from "./App";
-// @ts-expect-error Mantine styles CSS module
 import "../shared/styles/mantine.css";
 
 const container = document.createElement("div");

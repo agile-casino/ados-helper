@@ -29,7 +29,7 @@
 @import "@mantine/core/styles/ScrollArea.layer.css";
 @import "@mantine/core/styles/SimpleGrid.layer.css";
 @import "@mantine/core/styles/Stack.layer.css";
-@import "@mantine/core/styles/Table.css";
+@import "@mantine/core/styles/Table.layer.css";
 @import "@mantine/core/styles/Tabs.layer.css";
 @import "@mantine/core/styles/Text.layer.css";
 @import "@mantine/core/styles/Title.layer.css";

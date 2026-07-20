@@ -8,7 +8,7 @@
 
   table {
     th {
-      padding: 0.1em 0.5em;
+      padding: 0.3em 0.5em;
       border-left: 1px solid silver;
       border-right: 1px solid silver;
       border-bottom: 1px solid silver;
@@ -24,14 +24,26 @@
       padding-left: 0;
     }
 
+    thead tr:last-child th {
+      background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+      font-weight: 600;
+      border-bottom: 2px solid silver;
+      white-space: nowrap;
+    }
+
     td {
-      padding: 0.1em 0.5em;
+      padding: 0.3em 0.5em;
       border-left: 1px solid silver;
       border-right: 1px solid silver;
+      vertical-align: top;
     }
 
     tbody {
       border-bottom: 1px solid silver;
+    }
+
+    tbody tr:hover {
+      background-color: light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.05));
     }
   }
 }
