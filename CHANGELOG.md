@@ -7,6 +7,27 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.19.0] - 2026-07-20
+
+### Added
+
+- Added PAT-based real API proxy to sandbox for integration testing.
+
+### Changed
+
+- Replaced global fetch override with `authFetch` utility for authenticated API requests.
+
+### Fixed
+
+- Fixed URL path segment encoding and error propagation from `getIterations`.
+- Fixed batch API chunking, `HyperLinkCount` field handling, and `authFetch` retry logic.
+- Fixed sprint switching, CI notifications, and SDK notification bugs in the Azure DevOps extension.
+- Fixed `IdentityRef` object handling from batch endpoint for `System.AssignedTo`.
+- Fixed expand/fields conflict in WIQL queries.
+- Fixed missing `.layer.css` on Table import and enhanced table styling.
+- Fixed missing key prop on Fragment in `MultiTeamTab`.
+- Fixed casing issues and removed dead code across the codebase.
+
 ## [2.18.9] - 2026-07-06
 
 ### Changed
