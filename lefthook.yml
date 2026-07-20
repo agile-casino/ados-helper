@@ -1,0 +1,15 @@
+pre-commit:
+  commands:
+    biome:
+      glob: "*.{js,ts,jsx,tsx,json}"
+      run: biome check --write {staged_files}
+    prettier:
+      glob: "*.{md,yml}"
+      run: prettier --write {staged_files}
+    stage:
+      run: git add {staged_files}
+
+pre-push:
+  commands:
+    check:
+      run: pnpm check
