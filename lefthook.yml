@@ -1,0 +1,21 @@
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,ts,jsx,tsx,json}"
+      run: biome check --write {staged_files}
+    prettier:
+      glob: "*.{md,yml}"
+      run: pnpm prettier --write {staged_files}
+
+pre-push:
+  parallel: true
+  commands:
+    typecheck:
+      run: pnpm typecheck
+    knip:
+      run: pnpm knip
+    build:
+      run: pnpm build
+    test:
+      run: pnpm test

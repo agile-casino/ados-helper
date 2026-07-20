@@ -21,7 +21,7 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "version": "node scripts/update-versions.js",
-    "prepare": "husky"
+    "postinstall": "lefthook install"
   },
   "repository": {
     "type": "git",
@@ -33,9 +33,9 @@
     "url": "https://github.com/agile-casino/ados-helper/issues"
   },
   "homepage": "https://github.com/agile-casino/ados-helper#readme",
-  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b",
+  "packageManager": "pnpm@11.15.1+sha512.81350b07e53c9538a02f1f2303b4290fa2d7be04e56e2a970c4cc4b417dc761de196edabd49d55c7dc9580db81007c44143e4e3d7e462b3000d23c255122d065",
   "devDependencies": {
-    "@biomejs/biome": "2.5.0",
+    "@biomejs/biome": "2.5.4",
     "@tauri-apps/cli": "^2.11.4",
     "@testing-library/react": "^16.3.2",
     "@tsconfig/strictest": "^2.0.8",
@@ -44,9 +44,8 @@
     "@types/node": "^25.9.5",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "husky": "^9.1.7",
     "knip": "^6.27.0",
-    "lint-staged": "^17.0.8",
+    "lefthook": "2.1.10",
     "postcss-preset-mantine": "^1.18.0",
     "prettier": "^3.9.5",
     "tfx-cli": "^0.23.4",
@@ -64,18 +63,14 @@
     "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-updater": "^2.10.1",
     "azure-devops-extension-sdk": "^5.0.0",
-    "happy-dom": "^20.10.6",
+    "happy-dom": "^20.11.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lodash": "^4.18.1",
-    "postcss": "^8.5.19",
+    "postcss": "^8.5.20",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "typescript-plugin-css-modules": "^5.2.0",
     "xlsx-js-style": "^1.2.0"
-  },
-  "lint-staged": {
-    "*.{js,ts,jsx,tsx,json}": "biome check --write",
-    "*.{md,yml}": "prettier --write"
   }
 }
