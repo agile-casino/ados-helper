@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { WorkItemDto } from "../../api/WorkItemDto";
 import { WorkItem } from "../WorkItem";
-import { generateMultiTeamPdfReport, generatePdfReport } from "./PdfGenerator";
+import { generateAcceptanceCriteriaReport, generateMultiTeamAcceptanceCriteriaReport, generateMultiTeamPdfReport, generatePdfReport } from "./PdfGenerator";
 
 const mockAutoTable = vi.fn().mockImplementation((_doc, options) => {
   if (options?.body && Array.isArray(options.body)) {
@@ -76,6 +76,7 @@ vi.mock("jspdf", () => {
         link = mockLink;
         output = mockOutput;
         getNumberOfPages = () => 1;
+        splitTextToSize = (text: string) => String(text).split("\n");
         lastAutoTable = { finalY: 100 };
       } as unknown as (...args: unknown[]) => unknown
     )
@@ -91,12 +92,20 @@ function createWorkItemDto(
     iterationPath: string;
     links: string[];
     activatedDate: string;
+    acceptanceCriteria: string;
+    workItemType: string;
   }>
 ): WorkItemDto {
   return {
     Microsoft: {
       VSTS: {
-        Common: overrides.activatedDate ? { ActivatedDate: overrides.activatedDate } : undefined,
+        Common:
+          overrides.activatedDate || overrides.acceptanceCriteria
+            ? {
+                ActivatedDate: overrides.activatedDate,
+                AcceptanceCriteria: overrides.acceptanceCriteria ?? ""
+              }
+            : undefined,
         Scheduling: {
           Effort: 3,
           RemainingWork: 0,
@@ -107,7 +116,7 @@ function createWorkItemDto(
     },
     System: {
       Id: overrides.id ?? 1,
-      WorkItemType: "User Story",
+      WorkItemType: overrides.workItemType ?? "User Story",
       TeamProject: "TestProject",
       Rev: 1,
       Tags: overrides.tags ?? "",
@@ -296,5 +305,183 @@ describe("PdfGenerator", () => {
 
     expect(mockAddPage).toHaveBeenCalled();
     expect(mockSaveFile).toHaveBeenCalled();
+  });
+
+  describe("Acceptance Criteria reports", () => {
+    beforeEach(() => {
+      mockText.mockClear();
+      mockAddPage.mockClear();
+      mockLink.mockClear();
+      mockAutoTable.mockClear();
+      mockSaveFile.mockClear();
+    });
+
+    function getTextCalls(): string[] {
+      return mockText.mock.calls.map(call => call[0] as string);
+    }
+
+    test("renders a heading per work item in '<Type_Prefix> <Id> - <Title>' format", () => {
+      const workItems = [new WorkItem(createWorkItemDto({ id: 42, title: "Implement login", acceptanceCriteria: "User can log in" })), new WorkItem(createWorkItemDto({ id: 43, title: "Implement logout", acceptanceCriteria: "User can log out" }))];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      const textCalls = getTextCalls();
+      expect(textCalls).toContain("Story 42 - Implement login");
+      expect(textCalls).toContain("Story 43 - Implement logout");
+    });
+
+    test("prefixes headings with the correct work item type", () => {
+      const workItems = [
+        new WorkItem(createWorkItemDto({ id: 1, title: "Backlog item", workItemType: "Product Backlog Item", acceptanceCriteria: "AC" })),
+        new WorkItem(createWorkItemDto({ id: 2, title: "Defect", workItemType: "Bug", acceptanceCriteria: "AC" })),
+        new WorkItem(createWorkItemDto({ id: 3, title: "Narrative", workItemType: "User Story", acceptanceCriteria: "AC" }))
+      ];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      const textCalls = getTextCalls();
+      expect(textCalls).toContain("PBI 1 - Backlog item");
+      expect(textCalls).toContain("Bug 2 - Defect");
+      expect(textCalls).toContain("Story 3 - Narrative");
+    });
+
+    test("groups work items under status sub-headings with Completed first, then In Progress, then Not Started", () => {
+      const taskDto = createWorkItemDto({ state: "In Progress" });
+      const workItems = [
+        new WorkItem(createWorkItemDto({ id: 1, title: "Zebra Not Started", acceptanceCriteria: "AC" })),
+        new WorkItem(createWorkItemDto({ id: 2, title: "Alpha Not Started", acceptanceCriteria: "AC" })),
+        new WorkItem(createWorkItemDto({ id: 3, title: "Done Item", state: "Done", acceptanceCriteria: "AC" })),
+        new WorkItem({ ...createWorkItemDto({ id: 4, title: "Active Item", acceptanceCriteria: "AC" }), children: [taskDto] })
+      ];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      const textCalls = getTextCalls();
+      const completedIndex = textCalls.indexOf("Completed");
+      const inProgressIndex = textCalls.indexOf("In Progress");
+      const notStartedIndex = textCalls.indexOf("Not Started");
+
+      expect(completedIndex).toBeGreaterThanOrEqual(0);
+      expect(inProgressIndex).toBeGreaterThan(completedIndex);
+      expect(notStartedIndex).toBeGreaterThan(inProgressIndex);
+
+      const doneItemIndex = textCalls.indexOf("Story 3 - Done Item");
+      const inProgressItemIndex = textCalls.indexOf("Story 4 - Active Item");
+      const zebraIndex = textCalls.indexOf("Story 1 - Zebra Not Started");
+      const alphaIndex = textCalls.indexOf("Story 2 - Alpha Not Started");
+
+      expect(doneItemIndex).toBeGreaterThan(completedIndex);
+      expect(doneItemIndex).toBeLessThan(inProgressIndex);
+      expect(inProgressItemIndex).toBeGreaterThan(inProgressIndex);
+      expect(inProgressItemIndex).toBeLessThan(notStartedIndex);
+      expect(alphaIndex).toBeGreaterThan(notStartedIndex);
+      expect(zebraIndex).toBeGreaterThan(alphaIndex);
+    });
+
+    test("skips status sub-headings for empty sections", () => {
+      const workItems = [new WorkItem(createWorkItemDto({ id: 1, title: "Only Not Started", acceptanceCriteria: "AC" }))];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      const textCalls = getTextCalls();
+      expect(textCalls).toContain("Not Started");
+      expect(textCalls).not.toContain("Completed");
+      expect(textCalls).not.toContain("In Progress");
+      expect(textCalls).not.toContain("Removed");
+      expect(textCalls).not.toContain("Study Time");
+    });
+
+    test("links each heading to its work item", () => {
+      const workItems = [
+        new WorkItem(createWorkItemDto({ id: 42, title: "Implement login", workItemType: "Product Backlog Item", acceptanceCriteria: "User can log in" })),
+        new WorkItem(createWorkItemDto({ id: 43, title: "Implement logout", workItemType: "Bug", acceptanceCriteria: "User can log out" }))
+      ];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      const linkUrls = mockLink.mock.calls.map(call => call[4]?.url);
+      expect(linkUrls).toContain("http://origin/collection/project/_workitems/edit/42");
+      expect(linkUrls).toContain("http://origin/collection/project/_workitems/edit/43");
+    });
+
+    test("renders acceptance criteria as plain text with bullets, stripping HTML", () => {
+      const workItems = [
+        new WorkItem(
+          createWorkItemDto({
+            id: 7,
+            title: "Search feature",
+            acceptanceCriteria: "<div><ul><li>User can search &amp; filter</li><li>Results are sorted</li></ul></div>"
+          })
+        )
+      ];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      const textCalls = getTextCalls();
+      expect(textCalls).toContain("• User can search & filter");
+      expect(textCalls).toContain("• Results are sorted");
+      expect(textCalls.some(text => text.includes("<li>") || text.includes("<div>"))).toBe(false);
+    });
+
+    test("shows placeholder text when a PBI has no acceptance criteria", () => {
+      const workItems = [new WorkItem(createWorkItemDto({ id: 9, title: "No AC PBI" }))];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      expect(getTextCalls()).toContain("No acceptance criteria defined.");
+    });
+
+    test("renders markdown acceptance criteria with bullets and emphasis stripped", () => {
+      const workItems = [
+        new WorkItem(
+          createWorkItemDto({
+            id: 8,
+            title: "Markdown AC",
+            acceptanceCriteria: "**Given** the user is logged in\n- When they log out\n- Then the session ends"
+          })
+        )
+      ];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      const textCalls = getTextCalls();
+      expect(textCalls).toContain("Given the user is logged in");
+      expect(textCalls).toContain("• When they log out");
+      expect(textCalls).toContain("• Then the session ends");
+    });
+
+    test("does not render the commitment text in the team banner", () => {
+      const workItems = [new WorkItem(createWorkItemDto({ id: 1, title: "PBI 1", acceptanceCriteria: "Works" }))];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      const textCalls = getTextCalls();
+      expect(textCalls).toContain("team - sprint");
+      expect(textCalls.some(text => text.includes("% Commitment"))).toBe(false);
+    });
+
+    test("saves the single team report with an acceptance criteria filename", () => {
+      const workItems = [new WorkItem(createWorkItemDto({ id: 1, title: "PBI 1", acceptanceCriteria: "Works" }))];
+
+      generateAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+      expect(mockSaveFile).toHaveBeenCalledWith(expect.anything(), "team - sprint - Acceptance Criteria.pdf", "application/pdf");
+    });
+
+    test("generates multi-team report with one page per team and no commitment text", async () => {
+      const w1 = new WorkItem(createWorkItemDto({ id: 1, title: "PBI Team 1", acceptanceCriteria: "Criterion A" }));
+      const w2 = new WorkItem(createWorkItemDto({ id: 2, title: "PBI Team 2", acceptanceCriteria: "Criterion B" }));
+
+      const teamWorkItems = [
+        { team: "Team 1", workItems: [w1] },
+        { team: "Team 2", workItems: [w2], backgroundColor: "#00FF00" }
+      ];
+
+      await generateMultiTeamAcceptanceCriteriaReport(mockSaveFile, "http://origin", "collection", "project", "sprint", teamWorkItems);
+
+      expect(mockAddPage).toHaveBeenCalledTimes(1);
+      expect(getTextCalls().some(text => text.includes("% Commitment"))).toBe(false);
+      expect(mockSaveFile).toHaveBeenCalledWith(expect.anything(), "Multi-Team (Team 1, Team 2) - sprint - Acceptance Criteria.pdf", "application/pdf");
+    });
   });
 });

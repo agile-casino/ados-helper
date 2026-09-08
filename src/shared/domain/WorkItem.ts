@@ -41,6 +41,10 @@ export class WorkItem {
     return this.dto.System.Id;
   }
 
+  public get workItemType(): string {
+    return this.dto.System.WorkItemType;
+  }
+
   public get isDone(): boolean {
     return ["Done", "Staging", "Released"].includes(this.dto.System.State);
   }
@@ -101,6 +105,10 @@ export class WorkItem {
 
   public get title(): string {
     return this.dto.System.Title;
+  }
+
+  public get acceptanceCriteria(): string {
+    return this.dto.Microsoft.VSTS.Common?.AcceptanceCriteria ?? "";
   }
 
   public get owner(): string | null {

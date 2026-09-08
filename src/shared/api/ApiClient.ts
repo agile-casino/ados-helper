@@ -34,6 +34,7 @@ const WORK_ITEM_FIELDS = [
   "Microsoft.VSTS.Scheduling.OriginalEstimate",
   "Microsoft.VSTS.Scheduling.CompletedWork",
   "Microsoft.VSTS.Common.ActivatedDate",
+  "Microsoft.VSTS.Common.AcceptanceCriteria",
   "System.HyperLinkCount"
 ];
 
@@ -56,6 +57,8 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 
 function rawWorkItemToDto(wi: RawWorkItem, children: WorkItemDto[] = [], links: string[] = []): WorkItemDto {
   const f = wi.fields ?? {};
+  const acceptanceCriteria = (f["Microsoft.VSTS.Common.AcceptanceCriteria"] as string | undefined) ?? "";
+  const activatedDate = f["Microsoft.VSTS.Common.ActivatedDate"] as string | undefined;
   return {
     System: {
       Id: (f["System.Id"] as number) ?? wi.id,
@@ -77,9 +80,10 @@ function rawWorkItemToDto(wi: RawWorkItem, children: WorkItemDto[] = [], links: 
     Microsoft: {
       VSTS: {
         Common:
-          f["Microsoft.VSTS.Common.ActivatedDate"] != null
+          activatedDate != null || acceptanceCriteria
             ? {
-                ActivatedDate: f["Microsoft.VSTS.Common.ActivatedDate"] as string
+                ActivatedDate: activatedDate,
+                AcceptanceCriteria: acceptanceCriteria
               }
             : undefined,
         Scheduling: {

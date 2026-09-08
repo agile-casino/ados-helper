@@ -180,6 +180,22 @@ describe("ApiClient", () => {
       expect(workItems[0]?.title).toBe("PBI Two");
     });
 
+    it("maps acceptance criteria onto work items", async () => {
+      const fetchSpy = createApiMock({
+        teamFieldValues: { defaultValue: "proj\\Engineering\\team" },
+        wiql: { workItems: [{ id: 310 }] },
+        batchFields: {
+          value: [{ id: 310, fields: { ...commonFields, "System.Id": 310, "System.Title": "PBI With AC", "System.WorkItemType": "Product Backlog Item", "Microsoft.VSTS.Common.AcceptanceCriteria": "<ul><li>Criterion one</li></ul>" } }]
+        }
+      });
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const workItems = await client.getSprintSnapshot("coll", "proj", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
+
+      expect(workItems).toHaveLength(1);
+      expect(workItems[0]?.acceptanceCriteria).toBe("<ul><li>Criterion one</li></ul>");
+    });
+
     it("filters removed items and removal tags in the ASOF query for all projects", async () => {
       const fetchSpy = createApiMock({
         teamFieldValues: { defaultValue: "Contoso\\Engineering\\team" },

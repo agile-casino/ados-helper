@@ -1,7 +1,7 @@
 export interface WorkItemDto {
   Microsoft: {
     VSTS: {
-      Common: { ActivatedDate: string } | undefined;
+      Common: { ActivatedDate: string | undefined; AcceptanceCriteria?: string } | undefined;
       Scheduling: {
         Effort: number;
         RemainingWork: number | undefined;

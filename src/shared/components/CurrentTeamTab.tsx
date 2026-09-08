@@ -2,7 +2,7 @@ import { Button } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { usePlatform } from "../context/PlatformContext";
-import { generatePdfReport } from "../domain/reports/PdfGenerator";
+import { generateAcceptanceCriteriaReport, generatePdfReport } from "../domain/reports/PdfGenerator";
 import { generateReport } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemTable } from "./WorkItemTable";
@@ -26,6 +26,15 @@ const PdfIcon = (
     <path d="M9 15h6" />
     <path d="M9 11h6" />
     <path d="M9 18h6" />
+  </svg>
+);
+
+const ChecklistIcon = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <title>Acceptance Criteria Icon</title>
+    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+    <rect x="9" y="3" width="6" height="4" rx="1" />
+    <path d="m9 14 2 2 4-4" />
   </svg>
 );
 
@@ -69,6 +78,9 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
         </Button>
         <Button leftSection={PdfIcon} onClick={() => generatePdfReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}>
           Export PDF
+        </Button>
+        <Button leftSection={ChecklistIcon} onClick={() => generateAcceptanceCriteriaReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems)}>
+          Acceptance Criteria Report
         </Button>
       </div>
     </div>
