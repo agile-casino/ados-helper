@@ -11,7 +11,7 @@ The **Userscript** target runs Sprint Report Generator directly on top of your e
 ### 🌟 Key Features
 
 - **Inline Enhancements:** Adds productivity helpers to work item forms, query tables, and pull request pages.
-- **Sprint Reports Panel:** Adds action buttons directly on your ADOS Sprint Taskboard to generate PDF and Excel sprint reports on the fly.
+- **Sprint Reports Panel:** Adds action buttons directly on your ADOS Sprint Taskboard to generate PDF and Excel sprint reports on the fly, including acceptance criteria reports for single and multi-team sprints.
 - **Zero Infrastructure:** Runs entirely in your browser using the authenticated session already active in your browser.
 
 ---
