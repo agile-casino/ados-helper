@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.20.0] - 2026-09-08
+
+### Added
+
+- Added acceptance criteria PDF report for single and multi-team tabs.
+
 ## [2.19.0] - 2026-07-20
 
 ### Added
