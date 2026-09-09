@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { toPlainText } from "../../utils/toPlainText";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
+import { AC_BULLET_LINE, DEFAULT_BANNER_COLOR, DIVIDER_COLOR, darkenHex, formatSectionTitle, REPORT_SECTIONS, type ReportSectionTheme, SLATE_400, SLATE_500, SLATE_700, SLATE_800, SLATE_900 } from "./reportTheme";
 import { getWorkItemTypePrefix } from "./workItemType";
 
 export interface TeamWorkItems {
@@ -221,25 +222,123 @@ const AC_MARGIN_X = 14;
 const AC_TOP_MARGIN = 20;
 const AC_BOTTOM_MARGIN = 20;
 const AC_HEADING_LINE_HEIGHT = 6;
-const AC_CONTENT_LINE_HEIGHT = 5;
+const AC_CONTENT_LINE_HEIGHT = 4.8;
+const AC_BULLET_INDENT = 4;
+const AC_BANNER_HEIGHT = 16;
+const AC_KEEP_LINES = 2;
+const AC_EMPTY_STATE_TEXT = "No work items found for this sprint.";
 
-function addAcceptanceCriteriaItem(doc: jsPDF, workItem: WorkItem, context: PdfReportContext, startY: number): number {
+interface AcPageContext {
+  teamName: string;
+  sprintName: string;
+  backgroundColor?: string | undefined;
+  hasBannerDrawn: boolean;
+}
+
+function drawAcceptanceCriteriaBanner(doc: jsPDF, teamName: string, sprintName: string, backgroundColor?: string): number {
+  const width = doc.internal.pageSize.getWidth();
+  const marginX = AC_MARGIN_X;
+  const startY = 16;
+
+  const fillCol = backgroundColor || `#${DEFAULT_BANNER_COLOR}`;
+  doc.setFillColor(fillCol);
+  doc.rect(marginX, startY, width - marginX * 2, AC_BANNER_HEIGHT, "F");
+  doc.setFillColor(darkenHex(fillCol, 0.55));
+  doc.rect(marginX, startY, 2.2, AC_BANNER_HEIGHT, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(SLATE_800);
+  doc.text(cleanTextForPdf(`${teamName} - ${sprintName}`), marginX + 5, startY + 11);
+
+  return startY + AC_BANNER_HEIGHT + 9;
+}
+
+function drawAcceptanceCriteriaRunningHeader(doc: jsPDF, teamName: string, sprintName: string, backgroundColor?: string): void {
+  const width = doc.internal.pageSize.getWidth();
+  const marginX = AC_MARGIN_X;
+  const bannerHeight = 8;
+  const startY = 14;
+
+  const fillCol = backgroundColor || `#${DEFAULT_BANNER_COLOR}`;
+  doc.setFillColor(fillCol);
+  doc.rect(marginX, startY, width - marginX * 2, bannerHeight, "F");
+  doc.setFillColor(darkenHex(fillCol, 0.55));
+  doc.rect(marginX, startY, 2.2, bannerHeight, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(SLATE_800);
+  doc.text(cleanTextForPdf(`${teamName} - ${sprintName} (continued)`), marginX + 5, startY + 6);
+}
+
+function addAcceptanceCriteriaPage(doc: jsPDF, pageContext: AcPageContext): number {
+  doc.addPage();
+  if (pageContext.hasBannerDrawn) {
+    drawAcceptanceCriteriaRunningHeader(doc, pageContext.teamName, pageContext.sprintName, pageContext.backgroundColor);
+    return AC_TOP_MARGIN + 8;
+  }
+  return drawAcceptanceCriteriaBanner(doc, pageContext.teamName, pageContext.sprintName, pageContext.backgroundColor);
+}
+
+function drawCriteriaLines(doc: jsPDF, lines: string[], startY: number, pageContext: AcPageContext): number {
   const contentWidth = doc.internal.pageSize.getWidth() - AC_MARGIN_X * 2;
   const pageHeight = doc.internal.pageSize.getHeight();
   let currentY = startY;
 
-  // Heading: "<Type_Prefix> <PBI_Number> - <PBI Title>"
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor("#334155"); // Slate 700
-  const typePrefix = getWorkItemTypePrefix(workItem.workItemType);
-  const headingLines = doc.splitTextToSize(cleanTextForPdf(`${typePrefix} ${workItem.id} - ${workItem.title}`), contentWidth) as string[];
-  for (const line of headingLines) {
-    if (currentY > pageHeight - AC_BOTTOM_MARGIN) {
-      doc.addPage();
-      currentY = AC_TOP_MARGIN;
+  for (const line of lines) {
+    const bulletMatch = AC_BULLET_LINE.exec(line);
+    if (bulletMatch) {
+      const contentLines = doc.splitTextToSize(bulletMatch[1] ?? "", contentWidth - AC_BULLET_INDENT) as string[];
+      for (const [index, contentLine] of contentLines.entries()) {
+        if (currentY > pageHeight - AC_BOTTOM_MARGIN) {
+          currentY = addAcceptanceCriteriaPage(doc, pageContext);
+        }
+        if (index === 0) {
+          doc.text("•", AC_MARGIN_X + 0.8, currentY);
+        }
+        doc.text(contentLine, AC_MARGIN_X + AC_BULLET_INDENT, currentY);
+        currentY += AC_CONTENT_LINE_HEIGHT;
+      }
+    } else {
+      const contentLines = doc.splitTextToSize(line, contentWidth) as string[];
+      for (const contentLine of contentLines) {
+        if (currentY > pageHeight - AC_BOTTOM_MARGIN) {
+          currentY = addAcceptanceCriteriaPage(doc, pageContext);
+        }
+        doc.text(contentLine, AC_MARGIN_X, currentY);
+        currentY += AC_CONTENT_LINE_HEIGHT;
+      }
     }
-    doc.text(line, AC_MARGIN_X, currentY);
+  }
+
+  return currentY;
+}
+
+function addAcceptanceCriteriaItem(doc: jsPDF, workItem: WorkItem, context: PdfReportContext, startY: number, pageContext: AcPageContext): number {
+  const contentWidth = doc.internal.pageSize.getWidth() - AC_MARGIN_X * 2;
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let currentY = startY;
+
+  // Heading: "<Type_Prefix> <PBI_Number>" followed by the title
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  if (currentY > pageHeight - AC_BOTTOM_MARGIN - AC_HEADING_LINE_HEIGHT - AC_KEEP_LINES * AC_CONTENT_LINE_HEIGHT) {
+    currentY = addAcceptanceCriteriaPage(doc, pageContext);
+  }
+  doc.setTextColor(SLATE_500);
+  const typePrefix = getWorkItemTypePrefix(workItem.workItemType);
+  const idText = cleanTextForPdf(`${typePrefix} ${workItem.id}`);
+  doc.text(idText, AC_MARGIN_X, currentY);
+
+  const titleX = AC_MARGIN_X + doc.getTextWidth(idText) + 1.8;
+  doc.setTextColor(SLATE_900);
+  const titleLines = doc.splitTextToSize(cleanTextForPdf(workItem.title), contentWidth - (titleX - AC_MARGIN_X)) as string[];
+  for (const line of titleLines) {
+    if (currentY > pageHeight - AC_BOTTOM_MARGIN) {
+      currentY = addAcceptanceCriteriaPage(doc, pageContext);
+    }
+    doc.text(line, titleX, currentY);
     doc.link(AC_MARGIN_X, currentY - 4.5, contentWidth, AC_HEADING_LINE_HEIGHT, {
       url: `${context.origin}/${context.collection}/${context.project}/_workitems/edit/${workItem.id}`
     });
@@ -249,59 +348,83 @@ function addAcceptanceCriteriaItem(doc: jsPDF, workItem: WorkItem, context: PdfR
   // Acceptance criteria content
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.setTextColor("#0f172a"); // Slate 900
-  const criteriaText = cleanTextForPdf(toPlainText(workItem.acceptanceCriteria)) || "No acceptance criteria defined.";
-  const contentLines = doc.splitTextToSize(criteriaText, contentWidth) as string[];
-  currentY += 1;
-  for (const line of contentLines) {
-    if (currentY > pageHeight - AC_BOTTOM_MARGIN) {
-      doc.addPage();
-      currentY = AC_TOP_MARGIN;
-    }
-    doc.text(line, AC_MARGIN_X, currentY);
-    currentY += AC_CONTENT_LINE_HEIGHT;
+  const criteriaText = cleanTextForPdf(toPlainText(workItem.acceptanceCriteria));
+  if (!criteriaText) {
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(SLATE_400);
+    currentY += 1;
+    doc.text("No acceptance criteria defined.", AC_MARGIN_X, currentY);
+    return currentY + AC_CONTENT_LINE_HEIGHT + 6;
   }
 
-  return currentY + 8; // spacing between items
+  doc.setTextColor(SLATE_700);
+  currentY = drawCriteriaLines(doc, criteriaText.split("\n"), currentY + 1, pageContext);
+  return currentY + 6;
 }
 
-function addAcceptanceCriteriaSection(doc: jsPDF, title: string, workItems: WorkItem[], context: PdfReportContext, startY: number): number {
+function addAcceptanceCriteriaSection(doc: jsPDF, section: ReportSectionTheme, workItems: WorkItem[], context: PdfReportContext, startY: number, pageContext: AcPageContext): number {
   if (workItems.length === 0) return startY;
 
   const pageHeight = doc.internal.pageSize.getHeight();
+  const contentWidth = doc.internal.pageSize.getWidth() - AC_MARGIN_X * 2;
   let currentY = startY;
 
-  if (currentY > pageHeight - AC_BOTTOM_MARGIN - AC_HEADING_LINE_HEIGHT) {
-    doc.addPage();
-    currentY = AC_TOP_MARGIN;
+  if (currentY > pageHeight - AC_BOTTOM_MARGIN - AC_HEADING_LINE_HEIGHT - AC_KEEP_LINES * AC_CONTENT_LINE_HEIGHT) {
+    currentY = addAcceptanceCriteriaPage(doc, pageContext);
   }
 
+  const title = formatSectionTitle(section, workItems.length);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor("#1e293b"); // Slate 800
+  doc.setFontSize(12.5);
+  doc.setTextColor(section.accent);
   doc.text(title, AC_MARGIN_X, currentY);
-  currentY += AC_HEADING_LINE_HEIGHT + 3;
 
-  for (const workItem of workItems) {
-    currentY = addAcceptanceCriteriaItem(doc, workItem, context, currentY);
+  const ruleWidth = Math.min(doc.getTextWidth(title) + 2, contentWidth);
+  doc.setDrawColor(section.accent);
+  doc.setLineWidth(0.7);
+  doc.line(AC_MARGIN_X, currentY + 2.2, AC_MARGIN_X + ruleWidth, currentY + 2.2);
+  currentY += AC_HEADING_LINE_HEIGHT + 3.5;
+
+  for (const [index, workItem] of workItems.entries()) {
+    currentY = addAcceptanceCriteriaItem(doc, workItem, context, currentY, pageContext);
+    if (index < workItems.length - 1) {
+      if (currentY > pageHeight - AC_BOTTOM_MARGIN - 4) {
+        currentY = addAcceptanceCriteriaPage(doc, pageContext);
+      }
+      doc.setDrawColor(DIVIDER_COLOR);
+      doc.setLineWidth(0.2);
+      doc.line(AC_MARGIN_X, currentY + 1, AC_MARGIN_X + contentWidth, currentY + 1);
+      currentY += 5;
+    }
   }
 
   return currentY;
 }
 
 function renderAcceptanceCriteriaContent(doc: jsPDF, teamName: string, workItems: WorkItem[], context: PdfReportContext, backgroundColor?: string): void {
-  // Coloured team header banner, without the "% Commitment" text
-  let currentY = drawTeamHeaderBanner(doc, teamName, context.sprint, 0, backgroundColor, false);
+  const pageContext: AcPageContext = { teamName, sprintName: context.sprint, backgroundColor, hasBannerDrawn: false };
+  let currentY = drawAcceptanceCriteriaBanner(doc, teamName, context.sprint, backgroundColor);
+  pageContext.hasBannerDrawn = true;
 
   const workItemCollection = new WorkItemCollection(workItems);
+  const isEmpty = workItemCollection.done.length === 0 && workItemCollection.inProgress.length === 0 && workItemCollection.notStarted.length === 0 && workItemCollection.removed.length === 0 && workItemCollection.studyTime.length === 0;
 
-  currentY = addAcceptanceCriteriaSection(doc, "Completed", workItemCollection.done, context, currentY);
-  currentY = addAcceptanceCriteriaSection(doc, "In Progress", workItemCollection.inProgress, context, currentY);
-  currentY = addAcceptanceCriteriaSection(doc, "Not Started", workItemCollection.notStarted, context, currentY);
-  currentY = addAcceptanceCriteriaSection(doc, "Removed", workItemCollection.removed, context, currentY);
+  if (isEmpty) {
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(10);
+    doc.setTextColor(SLATE_400);
+    currentY += 4;
+    doc.text(AC_EMPTY_STATE_TEXT, AC_MARGIN_X, currentY);
+    return;
+  }
+
+  currentY = addAcceptanceCriteriaSection(doc, REPORT_SECTIONS.completed, workItemCollection.done, context, currentY, pageContext);
+  currentY = addAcceptanceCriteriaSection(doc, REPORT_SECTIONS.inProgress, workItemCollection.inProgress, context, currentY, pageContext);
+  currentY = addAcceptanceCriteriaSection(doc, REPORT_SECTIONS.notStarted, workItemCollection.notStarted, context, currentY, pageContext);
+  currentY = addAcceptanceCriteriaSection(doc, REPORT_SECTIONS.removed, workItemCollection.removed, context, currentY, pageContext);
 
   if (workItemCollection.studyTime.length > 0) {
-    currentY = addAcceptanceCriteriaSection(doc, "Study Time", workItemCollection.studyTime, context, currentY);
+    addAcceptanceCriteriaSection(doc, REPORT_SECTIONS.studyTime, workItemCollection.studyTime, context, currentY, pageContext);
   }
 }
 
@@ -316,7 +439,7 @@ function addPageNumbers(doc: jsPDF) {
     // Draw footer
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.setTextColor("#64748b"); // Slate 500
+    doc.setTextColor(SLATE_500);
 
     // Generation timestamp (local date string)
     const timestampStr = `Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
@@ -362,6 +485,7 @@ export function generateAcceptanceCriteriaReport(saveFile: (data: Uint8Array, fi
   const context: PdfReportContext = { origin, collection, project, sprint };
 
   renderAcceptanceCriteriaContent(doc, team, workItems, context);
+  doc.setProperties({ title: `${team} - ${sprint} - Acceptance Criteria`, subject: "Acceptance Criteria" });
   addPageNumbers(doc);
 
   const pdfOutput = doc.output("arraybuffer");
@@ -380,6 +504,7 @@ export function generateMultiTeamAcceptanceCriteriaReport(saveFile: (data: Uint8
   });
 
   const teamNames = teamWorkItems.map(t => t.team).join(", ");
+  doc.setProperties({ title: `Multi-Team (${teamNames}) - ${sprint} - Acceptance Criteria`, subject: "Acceptance Criteria" });
   addPageNumbers(doc);
 
   const pdfOutput = doc.output("arraybuffer");

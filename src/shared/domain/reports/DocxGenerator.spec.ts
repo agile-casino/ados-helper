@@ -24,10 +24,11 @@ function getConstructorMock(name: string): ReturnType<typeof vi.fn> {
 
 vi.mock("docx", () => {
   return {
-    BorderStyle: { NONE: "none" },
+    BorderStyle: { NONE: "none", SINGLE: "single" },
     Document: getConstructorMock("Document"),
     ExternalHyperlink: getConstructorMock("ExternalHyperlink"),
     Footer: getConstructorMock("Footer"),
+    HeadingLevel: { HEADING_2: "Heading2", HEADING_3: "Heading3" },
     PageNumber: { CURRENT: "CURRENT", TOTAL_PAGES: "TOTAL_PAGES" },
     Packer: {
       toBlob: vi.fn().mockResolvedValue(new Blob([new Uint8Array([0x50, 0x4b])]))
@@ -74,6 +75,18 @@ function getLinkUrls(): string[] {
   return getNodes("ExternalHyperlink")
     .map(node => node.props?.["link"])
     .filter((link): link is string => typeof link === "string");
+}
+
+function getHyperlinkTexts(): string[] {
+  return getNodes("ExternalHyperlink").map(node => extractText({ props: node.props }));
+}
+
+function getParagraphByText(text: string): Record<string, unknown> {
+  const paragraph = getParagraphProps().find(props => extractText({ props }) === text);
+  if (!paragraph) {
+    throw new Error(`Expected a paragraph with text "${text}"`);
+  }
+  return paragraph;
 }
 
 function createWorkItemDto(
@@ -130,14 +143,16 @@ describe("DocxGenerator", () => {
     mockSaveFile.mockClear();
   });
 
-  test("renders a heading per work item in '<Type_Prefix> <Id> - <Title>' format", async () => {
+  test("renders a heading per work item with '<Type_Prefix> <Id>' followed by the title", async () => {
     const workItems = [new WorkItem(createWorkItemDto({ id: 42, title: "Implement login", acceptanceCriteria: "User can log in" })), new WorkItem(createWorkItemDto({ id: 43, title: "Implement logout", acceptanceCriteria: "User can log out" }))];
 
     await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
 
-    const texts = getParagraphTexts();
-    expect(texts).toContain("Story 42 - Implement login");
-    expect(texts).toContain("Story 43 - Implement logout");
+    const texts = getHyperlinkTexts();
+    const login = texts.find(text => text.includes("Implement login"));
+    const logout = texts.find(text => text.includes("Implement logout"));
+    expect(login?.startsWith("Story 42")).toBe(true);
+    expect(logout?.startsWith("Story 43")).toBe(true);
   });
 
   test("prefixes headings with the correct work item type", async () => {
@@ -149,10 +164,10 @@ describe("DocxGenerator", () => {
 
     await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
 
-    const texts = getParagraphTexts();
-    expect(texts).toContain("PBI 1 - Backlog item");
-    expect(texts).toContain("Bug 2 - Defect");
-    expect(texts).toContain("Story 3 - Narrative");
+    const texts = getHyperlinkTexts();
+    expect(texts.some(text => text.startsWith("PBI 1") && text.includes("Backlog item"))).toBe(true);
+    expect(texts.some(text => text.startsWith("Bug 2") && text.includes("Defect"))).toBe(true);
+    expect(texts.some(text => text.startsWith("Story 3") && text.includes("Narrative"))).toBe(true);
   });
 
   test("groups work items under status sub-headings with Completed first, then In Progress, then Not Started", async () => {
@@ -167,18 +182,18 @@ describe("DocxGenerator", () => {
     await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
 
     const texts = getParagraphTexts();
-    const completedIndex = texts.indexOf("Completed");
-    const inProgressIndex = texts.indexOf("In Progress");
-    const notStartedIndex = texts.indexOf("Not Started");
+    const completedIndex = texts.indexOf("Completed (1)");
+    const inProgressIndex = texts.indexOf("In Progress (1)");
+    const notStartedIndex = texts.indexOf("Not Started (2)");
 
     expect(completedIndex).toBeGreaterThanOrEqual(0);
     expect(inProgressIndex).toBeGreaterThan(completedIndex);
     expect(notStartedIndex).toBeGreaterThan(inProgressIndex);
 
-    const doneItemIndex = texts.indexOf("Story 3 - Done Item");
-    const inProgressItemIndex = texts.indexOf("Story 4 - Active Item");
-    const zebraIndex = texts.indexOf("Story 1 - Zebra Not Started");
-    const alphaIndex = texts.indexOf("Story 2 - Alpha Not Started");
+    const doneItemIndex = texts.findIndex(text => text.startsWith("Story 3"));
+    const inProgressItemIndex = texts.findIndex(text => text.startsWith("Story 4"));
+    const zebraIndex = texts.findIndex(text => text.startsWith("Story 1"));
+    const alphaIndex = texts.findIndex(text => text.startsWith("Story 2"));
 
     expect(doneItemIndex).toBeGreaterThan(completedIndex);
     expect(doneItemIndex).toBeLessThan(inProgressIndex);
@@ -194,11 +209,11 @@ describe("DocxGenerator", () => {
     await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
 
     const texts = getParagraphTexts();
-    expect(texts).toContain("Not Started");
-    expect(texts).not.toContain("Completed");
-    expect(texts).not.toContain("In Progress");
-    expect(texts).not.toContain("Removed");
-    expect(texts).not.toContain("Study Time");
+    expect(texts).toContain("Not Started (1)");
+    expect(texts.some(text => text.startsWith("Completed"))).toBe(false);
+    expect(texts.some(text => text.startsWith("In Progress"))).toBe(false);
+    expect(texts.some(text => text.startsWith("Removed"))).toBe(false);
+    expect(texts.some(text => text.startsWith("Study Time"))).toBe(false);
   });
 
   test("links each heading to its work item", async () => {
@@ -284,7 +299,9 @@ describe("DocxGenerator", () => {
 
     await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
 
-    expect(getParagraphTexts()).toContain("No acceptance criteria defined.");
+    const placeholder = getParagraphByText("No acceptance criteria defined.");
+    const run = (placeholder["children"] as MockNode[])[0];
+    expect(run?.props?.["italics"]).toBe(true);
   });
 
   test("renders a team banner without the commitment text", async () => {
@@ -304,6 +321,46 @@ describe("DocxGenerator", () => {
 
     const cell = getNodes("TableCell")[0];
     expect(cell?.props?.["shading"]).toEqual({ type: expect.anything(), fill: "00FF00" });
+  });
+
+  test("adds a darkened accent border to the team banner", async () => {
+    const workItems = [new WorkItem(createWorkItemDto({ id: 1, title: "PBI 1", acceptanceCriteria: "Works" }))];
+
+    await generateMultiTeamAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "sprint", [{ team: "Team 1", workItems, backgroundColor: "#00ff00" }]);
+
+    const cell = getNodes("TableCell")[0];
+    expect(cell?.props?.["borders"]).toEqual({ left: { style: "single", size: 24, color: "008C00" } });
+  });
+
+  test("renders the team banner at the top of the report without an 'Acceptance Criteria' eyebrow", async () => {
+    const workItems = [new WorkItem(createWorkItemDto({ id: 1, title: "PBI 1", acceptanceCriteria: "Works" }))];
+
+    await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+    const texts = getParagraphTexts();
+    expect(texts[0]).toBe("team - sprint");
+    expect(texts).not.toContain("ACCEPTANCE CRITERIA");
+  });
+
+  test("styles section titles as Heading 2 with keepNext and the section accent colour", async () => {
+    const workItems = [new WorkItem(createWorkItemDto({ id: 1, title: "PBI 1", acceptanceCriteria: "Works" }))];
+
+    await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+    const sectionTitle = getParagraphByText("Not Started (1)");
+    expect(sectionTitle["heading"]).toBe("Heading2");
+    expect(sectionTitle["keepNext"]).toBe(true);
+    expect(sectionTitle["border"]).toEqual({ bottom: { style: "single", size: 6, color: "64748B", space: 2 } });
+  });
+
+  test("styles work item headings as Heading 3 with keepNext", async () => {
+    const workItems = [new WorkItem(createWorkItemDto({ id: 42, title: "Implement login", acceptanceCriteria: "User can log in" }))];
+
+    await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+    const heading = getParagraphProps().find(props => extractText({ props }).includes("Implement login"));
+    expect(heading?.["heading"]).toBe("Heading3");
+    expect(heading?.["keepNext"]).toBe(true);
   });
 
   test("saves the single team report with an acceptance criteria filename", async () => {
@@ -333,5 +390,25 @@ describe("DocxGenerator", () => {
     expect(texts).toContain("Team 2 - sprint");
     expect(texts.some(text => text.includes("% Commitment"))).toBe(false);
     expect(mockSaveFile).toHaveBeenCalledWith(expect.anything(), "Multi-Team (Team 1, Team 2) - sprint - Acceptance Criteria.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  });
+
+  test("renders an empty-state message when a team has no work items", async () => {
+    await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", []);
+
+    const placeholder = getParagraphByText("No work items found for this sprint.");
+    const run = (placeholder["children"] as MockNode[])[0];
+    expect(run?.props?.["italics"]).toBe(true);
+    expect(getParagraphTexts().some(text => text.startsWith("Completed") || text.startsWith("In Progress"))).toBe(false);
+  });
+
+  test("sets document title and subject metadata", async () => {
+    const workItems = [new WorkItem(createWorkItemDto({ id: 1, title: "PBI 1", acceptanceCriteria: "Works" }))];
+
+    await generateAcceptanceCriteriaDocxReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+    const documentProps = getNodes("Document")[0]?.props ?? {};
+    expect(documentProps["title"]).toBe("team - sprint - Acceptance Criteria");
+    expect(documentProps["subject"]).toBe("Acceptance Criteria");
+    expect(documentProps["creator"]).toBe("ados-helper");
   });
 });

@@ -1,17 +1,14 @@
-import { BorderStyle, convertMillimetersToTwip, Document, ExternalHyperlink, Footer, Packer, PageNumber, Paragraph, ShadingType, Tab, Table, TableCell, TableRow, TabStopType, TextRun, WidthType } from "docx";
+import { BorderStyle, convertMillimetersToTwip, Document, ExternalHyperlink, Footer, HeadingLevel, Packer, PageNumber, Paragraph, ShadingType, Tab, Table, TableCell, TableRow, TabStopType, TextRun, WidthType } from "docx";
 import { toPlainText } from "../../utils/toPlainText";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 import type { TeamWorkItems } from "./ReportGenerator";
+import { AC_BULLET_LINE, DEFAULT_BANNER_COLOR, darkenHex, formatSectionTitle, REPORT_SECTIONS, type ReportSectionTheme, SLATE_400, SLATE_500, SLATE_700, SLATE_800, SLATE_900 } from "./reportTheme";
 import { getWorkItemTypePrefix } from "./workItemType";
 
 const WORD_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-const SLATE_500 = "64748B";
-const SLATE_700 = "334155";
-const SLATE_800 = "1E293B";
-const SLATE_900 = "0F172A";
-const DEFAULT_BANNER_COLOR = "F3F4F6";
+const AC_EMPTY_STATE_TEXT = "No work items found for this sprint.";
 
 const NO_BORDERS = {
   top: { style: BorderStyle.NONE, size: 0, color: "auto" },
@@ -22,7 +19,7 @@ const NO_BORDERS = {
   insideVertical: { style: BorderStyle.NONE, size: 0, color: "auto" }
 };
 
-const BULLET_LINE = /^(\s*)•\s?(.*)$/;
+const BODY_LINE_SPACING = 276; // 1.15 line spacing
 
 interface DocxReportContext {
   origin: string;
@@ -37,6 +34,7 @@ function toHexColor(color: string | undefined): string {
 }
 
 function createTeamBanner(teamName: string, sprintName: string, backgroundColor?: string): Table {
+  const fill = toHexColor(backgroundColor);
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders: NO_BORDERS,
@@ -44,11 +42,12 @@ function createTeamBanner(teamName: string, sprintName: string, backgroundColor?
       new TableRow({
         children: [
           new TableCell({
-            shading: { type: ShadingType.CLEAR, fill: toHexColor(backgroundColor) },
-            margins: { top: 120, bottom: 120, left: 120, right: 120 },
+            shading: { type: ShadingType.CLEAR, fill },
+            borders: { left: { style: BorderStyle.SINGLE, size: 24, color: darkenHex(fill, 0.55) } },
+            margins: { top: 160, bottom: 160, left: 200, right: 160 },
             children: [
               new Paragraph({
-                children: [new TextRun({ text: `${teamName} - ${sprintName}`, bold: true, size: 26, color: SLATE_800 })]
+                children: [new TextRun({ text: `${teamName} - ${sprintName}`, bold: true, size: 28, color: SLATE_800 })]
               })
             ]
           })
@@ -58,21 +57,25 @@ function createTeamBanner(teamName: string, sprintName: string, backgroundColor?
   });
 }
 
-function createSectionTitle(title: string): Paragraph {
+function createSectionTitle(section: ReportSectionTheme, count: number): Paragraph {
   return new Paragraph({
-    spacing: { before: 240, after: 80 },
-    children: [new TextRun({ text: title, bold: true, size: 28, color: SLATE_800 })]
+    heading: HeadingLevel.HEADING_2,
+    keepNext: true,
+    spacing: { before: 320, after: 120 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: section.accent, space: 2 } },
+    children: [new TextRun({ text: formatSectionTitle(section, count), bold: true, size: 26, color: section.accent })]
   });
 }
 
 function createWorkItemHeading(workItem: WorkItem, context: DocxReportContext): Paragraph {
   const typePrefix = getWorkItemTypePrefix(workItem.workItemType);
-  const headingText = `${typePrefix} ${workItem.id} - ${workItem.title}`;
   return new Paragraph({
-    spacing: { before: 160, after: 40 },
+    heading: HeadingLevel.HEADING_3,
+    keepNext: true,
+    spacing: { before: 220, after: 60 },
     children: [
       new ExternalHyperlink({
-        children: [new TextRun({ text: headingText, bold: true, size: 24, color: SLATE_700 })],
+        children: [new TextRun({ text: `${typePrefix} ${workItem.id}`, bold: true, size: 22, color: SLATE_500 }), new TextRun({ text: `  ${workItem.title}`, bold: true, size: 22, color: SLATE_900 })],
         link: `${context.origin}/${context.collection}/${context.project}/_workitems/edit/${workItem.id}`
       })
     ]
@@ -81,45 +84,55 @@ function createWorkItemHeading(workItem: WorkItem, context: DocxReportContext): 
 
 function createCriteriaParagraphs(criteriaText: string): Paragraph[] {
   if (!criteriaText.trim()) {
-    return [new Paragraph({ children: [new TextRun({ text: "No acceptance criteria defined.", size: 20, color: SLATE_900 })] })];
+    return [new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: "No acceptance criteria defined.", italics: true, size: 20, color: SLATE_500 })] })];
   }
 
   return criteriaText.split("\n").map(line => {
-    const bulletText = BULLET_LINE.exec(line)?.[2];
+    const bulletText = AC_BULLET_LINE.exec(line)?.[1];
     if (bulletText?.trim()) {
       return new Paragraph({
         bullet: { level: 0 },
-        spacing: { after: 40 },
-        children: [new TextRun({ text: bulletText, size: 20, color: SLATE_900 })]
+        spacing: { after: 40, line: BODY_LINE_SPACING },
+        children: [new TextRun({ text: bulletText, size: 20, color: SLATE_700 })]
       });
     }
     if (!line.trim()) {
-      return new Paragraph({ spacing: { after: 40 } });
+      return new Paragraph({ spacing: { after: 40, line: BODY_LINE_SPACING } });
     }
     return new Paragraph({
-      spacing: { after: 40 },
-      children: [new TextRun({ text: line, size: 20, color: SLATE_900 })]
+      spacing: { after: 40, line: BODY_LINE_SPACING },
+      children: [new TextRun({ text: line, size: 20, color: SLATE_700 })]
     });
   });
 }
 
-function createAcceptanceCriteriaSection(title: string, workItems: WorkItem[], context: DocxReportContext): (Paragraph | Table)[] {
+function createAcceptanceCriteriaSection(section: ReportSectionTheme, workItems: WorkItem[], context: DocxReportContext): (Paragraph | Table)[] {
   if (workItems.length === 0) return [];
 
-  return [createSectionTitle(title), ...workItems.flatMap(workItem => [createWorkItemHeading(workItem, context), ...createCriteriaParagraphs(toPlainText(workItem.acceptanceCriteria))])];
+  return [createSectionTitle(section, workItems.length), ...workItems.flatMap(workItem => [createWorkItemHeading(workItem, context), ...createCriteriaParagraphs(toPlainText(workItem.acceptanceCriteria))])];
 }
 
 function createTeamContent(teamName: string, workItems: WorkItem[], context: DocxReportContext, backgroundColor?: string): (Paragraph | Table)[] {
   const workItemCollection = new WorkItemCollection(workItems);
+  const isEmpty = workItemCollection.done.length === 0 && workItemCollection.inProgress.length === 0 && workItemCollection.notStarted.length === 0 && workItemCollection.removed.length === 0 && workItemCollection.studyTime.length === 0;
 
   return [
     createTeamBanner(teamName, context.sprint, backgroundColor),
     new Paragraph({ spacing: { after: 120 } }),
-    ...createAcceptanceCriteriaSection("Completed", workItemCollection.done, context),
-    ...createAcceptanceCriteriaSection("In Progress", workItemCollection.inProgress, context),
-    ...createAcceptanceCriteriaSection("Not Started", workItemCollection.notStarted, context),
-    ...createAcceptanceCriteriaSection("Removed", workItemCollection.removed, context),
-    ...createAcceptanceCriteriaSection("Study Time", workItemCollection.studyTime, context)
+    ...(isEmpty
+      ? [
+          new Paragraph({
+            spacing: { after: 40 },
+            children: [new TextRun({ text: AC_EMPTY_STATE_TEXT, italics: true, size: 20, color: SLATE_400 })]
+          })
+        ]
+      : [
+          ...createAcceptanceCriteriaSection(REPORT_SECTIONS.completed, workItemCollection.done, context),
+          ...createAcceptanceCriteriaSection(REPORT_SECTIONS.inProgress, workItemCollection.inProgress, context),
+          ...createAcceptanceCriteriaSection(REPORT_SECTIONS.notStarted, workItemCollection.notStarted, context),
+          ...createAcceptanceCriteriaSection(REPORT_SECTIONS.removed, workItemCollection.removed, context),
+          ...createAcceptanceCriteriaSection(REPORT_SECTIONS.studyTime, workItemCollection.studyTime, context)
+        ])
   ];
 }
 
@@ -138,14 +151,37 @@ function createFooter(): Footer {
   });
 }
 
-async function buildDocx(children: (Paragraph | Table)[]): Promise<Uint8Array> {
+async function buildDocx(children: (Paragraph | Table)[], title?: string, subject?: string): Promise<Uint8Array> {
   const doc = new Document({
+    ...(title ? { title } : {}),
+    ...(subject ? { subject } : {}),
+    creator: "ados-helper",
     styles: {
       default: {
         document: {
           run: { font: "Calibri", size: 20, color: SLATE_900 }
         }
-      }
+      },
+      paragraphStyles: [
+        {
+          id: "Heading2",
+          name: "Heading 2",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
+          run: { font: "Calibri", size: 26, bold: true },
+          paragraph: { keepNext: true }
+        },
+        {
+          id: "Heading3",
+          name: "Heading 3",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
+          run: { font: "Calibri", size: 22, bold: true },
+          paragraph: { keepNext: true }
+        }
+      ]
     },
     sections: [
       {
@@ -171,7 +207,7 @@ async function buildDocx(children: (Paragraph | Table)[]): Promise<Uint8Array> {
 
 export async function generateAcceptanceCriteriaDocxReport(saveFile: (data: Uint8Array, filename: string, mimeType: string) => Promise<void>, origin: string, collection: string, project: string, team: string, sprint: string, workItems: WorkItem[]) {
   const context: DocxReportContext = { origin, collection, project, sprint };
-  const data = await buildDocx(createTeamContent(team, workItems, context));
+  const data = await buildDocx(createTeamContent(team, workItems, context), `${team} - ${sprint} - Acceptance Criteria`, "Acceptance Criteria");
   await saveFile(data, `${team} - ${sprint} - Acceptance Criteria.docx`, WORD_MIME_TYPE);
 }
 
@@ -194,6 +230,6 @@ export async function generateMultiTeamAcceptanceCriteriaDocxReport(
   });
 
   const teamNames = teamWorkItems.map(t => t.team).join(", ");
-  const data = await buildDocx(children);
+  const data = await buildDocx(children, `Multi-Team (${teamNames}) - ${sprint} - Acceptance Criteria`, "Acceptance Criteria");
   await saveFile(data, `Multi-Team (${teamNames}) - ${sprint} - Acceptance Criteria.docx`, WORD_MIME_TYPE);
 }
