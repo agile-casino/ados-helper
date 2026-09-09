@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.22.0] - 2026-09-09
+
 ### Added
 
 - Added MS Word option to the acceptance criteria report via a PDF/Word split button for single and multi-team tabs.
