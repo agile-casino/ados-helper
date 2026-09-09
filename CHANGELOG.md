@@ -7,6 +7,16 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.21.0] - 2026-09-09
+
+### Added
+
+- Added loading state to the sprint report split button and consolidated the export buttons into it.
+
+### Changed
+
+- Updated dependencies (Tauri to v2.11.5, Serde, PostCSS, pnpm to v11.26.0, and GitHub Actions).
+
 ## [2.20.0] - 2026-09-08
 
 ### Added
