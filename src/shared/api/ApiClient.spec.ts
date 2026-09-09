@@ -208,7 +208,8 @@ describe("ApiClient", () => {
       expect(workItems).toHaveLength(0);
       const wiqlCall = fetchSpy.mock.calls.find(([url]) => (url as string).includes("/_apis/wit/wiql"));
       expect(wiqlCall).toBeDefined();
-      const body = JSON.parse((wiqlCall?.[1] as RequestInit).body as string) as { query: string };
+      if (!wiqlCall) return;
+      const body = JSON.parse((wiqlCall[1] as RequestInit).body as string) as { query: string };
       expect(body.query).toContain("AND [System.State] <> 'Removed'");
       expect(body.query).toContain("AND NOT [System.Tags] CONTAINS 'Sprint 13-'");
       expect(body.query).toContain("[System.AreaPath] UNDER 'Contoso\\Engineering\\team'");
