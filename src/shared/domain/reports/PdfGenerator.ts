@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { toPlainText } from "../../utils/toPlainText";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
+import { getWorkItemTypePrefix } from "./workItemType";
 
 export interface TeamWorkItems {
   team: string;
@@ -35,21 +36,6 @@ function cleanTextForPdf(text: string): string {
     .replace(/™/g, "(TM)")
     .replace(/©/g, "(C)")
     .replace(/®/g, "(R)");
-}
-
-function getWorkItemTypePrefix(workItemType: string): string {
-  switch (workItemType) {
-    case "Product Backlog Item":
-      return "PBI";
-    case "User Story":
-      return "Story";
-    case "Bug":
-      return "Bug";
-    case "Task":
-      return "Task";
-    default:
-      return workItemType;
-  }
 }
 
 function getRowStyles(workItem: WorkItem, sprintStartDate?: Date) {

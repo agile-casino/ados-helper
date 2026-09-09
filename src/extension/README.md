@@ -11,7 +11,7 @@ The **Sprint Report Generator Extension** integrates directly into your organiza
 ### 🌟 Key Features
 
 - **Integrated Reports Tab:** View sprint velocity, cumulative flow, and scope changes directly inside Azure Boards.
-- **High-Fidelity Exports:** Generate detailed PDF summaries and Excel workbooks of your sprint items, commitments, and status changes in one click, including acceptance criteria reports for single and multi-team sprints.
+- **High-Fidelity Exports:** Generate detailed PDF summaries and Excel workbooks of your sprint items, commitments, and status changes in one click, including acceptance criteria reports for single and multi-team sprints in PDF or MS Word format.
 - **Context-Aware Metrics:** Automatically reads active sprint board states and filters metrics by team and iteration dates.
 - **Consistent Styling:** Designed with Mantine UI to match the Azure DevOps visual language, supporting both light and dark mode preferences.
 

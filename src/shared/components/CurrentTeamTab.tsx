@@ -1,21 +1,14 @@
-import { Button, Group, Loader, Text } from "@mantine/core";
+import { Group, Loader, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { usePlatform } from "../context/PlatformContext";
+import { generateAcceptanceCriteriaDocxReport } from "../domain/reports/DocxGenerator";
 import { generateAcceptanceCriteriaReport, generatePdfReport } from "../domain/reports/PdfGenerator";
 import { generateReport } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
+import { AcceptanceCriteriaReportSplitButton } from "./AcceptanceCriteriaReportSplitButton";
 import { SprintReportSplitButton } from "./SprintReportSplitButton";
 import { WorkItemTable } from "./WorkItemTable";
-
-const ChecklistIcon = (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <title>Acceptance Criteria Icon</title>
-    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-    <rect x="9" y="3" width="6" height="4" rx="1" />
-    <path d="m9 14 2 2 4-4" />
-  </svg>
-);
 
 interface CurrentTeamTabProps {
   origin: string;
@@ -85,9 +78,10 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
           onExportExcel={() => generateReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}
           onExportPdf={() => generatePdfReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems, sprintStartDate)}
         />
-        <Button leftSection={ChecklistIcon} onClick={() => generateAcceptanceCriteriaReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems)}>
-          Acceptance Criteria Report
-        </Button>
+        <AcceptanceCriteriaReportSplitButton
+          onExportPdf={() => generateAcceptanceCriteriaReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems)}
+          onExportWord={() => generateAcceptanceCriteriaDocxReport(platform.saveFile, props.origin, props.collection, props.project, props.team, props.sprint, workItems)}
+        />
       </div>
     </div>
   );

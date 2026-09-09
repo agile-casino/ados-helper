@@ -2,9 +2,11 @@ import { Button, Checkbox, ColorInput, Group, Stack, Text, TextInput, Title } fr
 import { Fragment, useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { usePlatform } from "../context/PlatformContext";
+import { generateMultiTeamAcceptanceCriteriaDocxReport } from "../domain/reports/DocxGenerator";
 import { generateMultiTeamAcceptanceCriteriaReport, generateMultiTeamPdfReport } from "../domain/reports/PdfGenerator";
 import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
+import { AcceptanceCriteriaReportSplitButton } from "./AcceptanceCriteriaReportSplitButton";
 import { SprintReportSplitButton } from "./SprintReportSplitButton";
 import { WorkItemTable } from "./WorkItemTable";
 
@@ -19,15 +21,6 @@ const DEFAULT_TEAM_COLORS: Record<string, string> = {
 function getDefaultTeamColor(teamName: string): string | undefined {
   return DEFAULT_TEAM_COLORS[teamName];
 }
-
-const ChecklistIcon = (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <title>Acceptance Criteria Icon</title>
-    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-    <rect x="9" y="3" width="6" height="4" rx="1" />
-    <path d="m9 14 2 2 4-4" />
-  </svg>
-);
 
 interface MultiTeamTabProps {
   origin: string;
@@ -205,11 +198,11 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
     setIsLoading(false);
   };
 
-  const handleGenerateCombinedReport = () => {
+  const getValidTeamWorkItems = (): TeamWorkItems[] => {
     const validTeamData = teamData.filter(t => t.workItems.length > 0 && !t.error);
-    if (validTeamData.length === 0) return;
+    if (validTeamData.length === 0) return [];
 
-    const teamWorkItems: TeamWorkItems[] = validTeamData.map(t => {
+    return validTeamData.map(t => {
       const teamSelection = teams.find(ts => ts.name === t.team);
       return {
         team: t.team,
@@ -218,42 +211,22 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
         sprintStartDate: t.sprintStartDate
       };
     });
+  };
 
-    generateMultiTeamReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, teamWorkItems);
+  const handleGenerateCombinedReport = () => {
+    generateMultiTeamReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, getValidTeamWorkItems());
   };
 
   const handleGenerateCombinedPdfReport = () => {
-    const validTeamData = teamData.filter(t => t.workItems.length > 0 && !t.error);
-    if (validTeamData.length === 0) return;
-
-    const teamWorkItems: TeamWorkItems[] = validTeamData.map(t => {
-      const teamSelection = teams.find(ts => ts.name === t.team);
-      return {
-        team: t.team,
-        workItems: t.workItems,
-        backgroundColor: teamSelection?.backgroundColor,
-        sprintStartDate: t.sprintStartDate
-      };
-    });
-
-    generateMultiTeamPdfReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, teamWorkItems);
+    generateMultiTeamPdfReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, getValidTeamWorkItems());
   };
 
   const handleGenerateCombinedAcceptanceCriteriaReport = () => {
-    const validTeamData = teamData.filter(t => t.workItems.length > 0 && !t.error);
-    if (validTeamData.length === 0) return;
+    generateMultiTeamAcceptanceCriteriaReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, getValidTeamWorkItems());
+  };
 
-    const teamWorkItems: TeamWorkItems[] = validTeamData.map(t => {
-      const teamSelection = teams.find(ts => ts.name === t.team);
-      return {
-        team: t.team,
-        workItems: t.workItems,
-        backgroundColor: teamSelection?.backgroundColor,
-        sprintStartDate: t.sprintStartDate
-      };
-    });
-
-    generateMultiTeamAcceptanceCriteriaReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, teamWorkItems);
+  const handleGenerateCombinedAcceptanceCriteriaDocxReport = () => {
+    generateMultiTeamAcceptanceCriteriaDocxReport(platform.saveFile, props.origin, props.collection, props.project, props.sprint, getValidTeamWorkItems());
   };
 
   const selectedTeamsCount = teams.filter(t => t.selected).length;
@@ -338,9 +311,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
           {hasLoadedData && (
             <>
               <SprintReportSplitButton onExportExcel={handleGenerateCombinedReport} onExportPdf={handleGenerateCombinedPdfReport} disabled={!canGenerateReport} />
-              <Button leftSection={ChecklistIcon} onClick={handleGenerateCombinedAcceptanceCriteriaReport} disabled={!canGenerateReport}>
-                Acceptance Criteria Report
-              </Button>
+              <AcceptanceCriteriaReportSplitButton onExportPdf={handleGenerateCombinedAcceptanceCriteriaReport} onExportWord={handleGenerateCombinedAcceptanceCriteriaDocxReport} disabled={!canGenerateReport} />
             </>
           )}
         </Group>
