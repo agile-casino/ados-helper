@@ -5,6 +5,7 @@ import { usePlatform } from "../context/PlatformContext";
 import { generateMultiTeamAcceptanceCriteriaReport, generateMultiTeamPdfReport } from "../domain/reports/PdfGenerator";
 import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
+import { SprintReportSplitButton } from "./SprintReportSplitButton";
 import { WorkItemTable } from "./WorkItemTable";
 
 const DEFAULT_TEAM_COLORS: Record<string, string> = {
@@ -18,28 +19,6 @@ const DEFAULT_TEAM_COLORS: Record<string, string> = {
 function getDefaultTeamColor(teamName: string): string | undefined {
   return DEFAULT_TEAM_COLORS[teamName];
 }
-
-const ExcelIcon = (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <title>Excel Icon</title>
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-    <path d="M8 13h2v5H8z" />
-    <path d="M12 15h2v3h-2z" />
-    <path d="M16 12h2v6h-2z" />
-  </svg>
-);
-
-const PdfIcon = (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <title>PDF Icon</title>
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-    <path d="M9 15h6" />
-    <path d="M9 11h6" />
-    <path d="M9 18h6" />
-  </svg>
-);
 
 const ChecklistIcon = (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -358,12 +337,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
           </Button>
           {hasLoadedData && (
             <>
-              <Button leftSection={ExcelIcon} onClick={handleGenerateCombinedReport} disabled={!canGenerateReport}>
-                Export Excel
-              </Button>
-              <Button leftSection={PdfIcon} onClick={handleGenerateCombinedPdfReport} disabled={!canGenerateReport}>
-                Export PDF
-              </Button>
+              <SprintReportSplitButton onExportExcel={handleGenerateCombinedReport} onExportPdf={handleGenerateCombinedPdfReport} disabled={!canGenerateReport} />
               <Button leftSection={ChecklistIcon} onClick={handleGenerateCombinedAcceptanceCriteriaReport} disabled={!canGenerateReport}>
                 Acceptance Criteria Report
               </Button>
