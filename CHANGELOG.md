@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.22.1] - 2026-09-10
+
 ### Added
 
 - Added runtime validation of Azure DevOps API responses and stored team selections using Zod. Malformed entries are now skipped instead of crashing the UI.
