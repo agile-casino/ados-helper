@@ -16,6 +16,7 @@ describe("BrowserPlatformService", () => {
 
   afterEach(() => {
     window.open = originalWindowOpen;
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -28,12 +29,10 @@ describe("BrowserPlatformService", () => {
     expect(window.open).toHaveBeenCalledWith("https://example.com", "_blank", "noopener,noreferrer");
   });
 
-  test("saveFile falls back to fallbackBrowserDownload if GM_download fails when called unbound", async () => {
-    const mockGMDownload = vi.fn((options: { url: string; name: string; onload: () => void; onerror: (err: unknown) => void }) => {
-      options.onerror(new Error("GM_download simulated error"));
-    });
-    vi.stubGlobal("GM_download", mockGMDownload);
-
+  test("saveFile downloads via a blob anchor when called unbound", async () => {
+    vi.useFakeTimers();
+    const createObjectURLSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock");
+    const revokeObjectURLSpy = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
     const appendSpy = vi.spyOn(document.body, "appendChild").mockImplementation(() => {
       return {} as unknown as Node;
     });
@@ -45,10 +44,11 @@ describe("BrowserPlatformService", () => {
     const saveFile = service.saveFile;
     await saveFile(data, "test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-    expect(mockGMDownload).toHaveBeenCalled();
+    expect(createObjectURLSpy).toHaveBeenCalled();
     expect(appendSpy).toHaveBeenCalled();
     expect(removeSpy).toHaveBeenCalled();
 
-    vi.unstubAllGlobals();
+    vi.runAllTimers();
+    expect(revokeObjectURLSpy).toHaveBeenCalled();
   });
 });

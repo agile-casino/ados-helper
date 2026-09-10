@@ -11,35 +11,13 @@ export class BrowserPlatformService implements PlatformService {
     const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
     if (!isBrowser) return;
 
-    // Check if running in Tampermonkey with GM_download
-    // @ts-expect-error GM_download is a global in Tampermonkey
-    if (typeof GM_download !== "undefined") {
-      try {
-        const blob = new Blob([data as unknown as BlobPart], { type: mimeType });
-        const blobUrl = URL.createObjectURL(blob);
-        // @ts-expect-error GM_download is a global in Tampermonkey
-        GM_download({
-          url: blobUrl,
-          name: filename,
-          onload: () => {
-            URL.revokeObjectURL(blobUrl);
-          },
-          onerror: (err: unknown) => {
-            console.error("GM_download failed, falling back to standard download:", err);
-            URL.revokeObjectURL(blobUrl);
-            this.fallbackBrowserDownload(data, filename, mimeType);
-          }
-        });
-        return;
-      } catch (err) {
-        console.error("Failed to use GM_download:", err);
-      }
-    }
-
-    this.fallbackBrowserDownload(data, filename, mimeType);
+    // Reports are generated in-memory, so use a page-context blob download.
+    // GM_download cannot reliably read page-created blob: URLs and may fail
+    // silently, which previously left the Word export doing nothing.
+    this.browserDownload(data, filename, mimeType);
   }
 
-  private fallbackBrowserDownload(data: Uint8Array, filename: string, mimeType: string) {
+  private browserDownload(data: Uint8Array, filename: string, mimeType: string) {
     const blob = new Blob([data as unknown as BlobPart], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

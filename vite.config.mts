@@ -15,7 +15,7 @@ const banner = `
 // @icon         https://cdn.vsassets.io/content/icons/favicon.ico
 // @downloadURL  https://github.com/agile-casino/ados-helper/releases/latest/download/sprint-report-generator.user.js
 // @updateURL    https://github.com/agile-casino/ados-helper/releases/latest/download/sprint-report-generator.user.js
-// @grant        GM_download
+// @grant        none
 // ==/UserScript==
 `.trim();
 

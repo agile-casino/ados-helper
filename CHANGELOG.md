@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed report downloads (including the Word acceptance criteria export) silently doing nothing in the production userscript. The bundle now uses a page-context blob download instead of `GM_download`, which could not read page-created blob URLs.
+
 ## [2.22.0] - 2026-09-09
 
 ### Added

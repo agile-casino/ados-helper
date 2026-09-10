@@ -4,8 +4,8 @@
   "description": "Sprint Report Generator",
   "main": "src/userscript/index.tsx",
   "scripts": {
-    "build": "rm -rf node_modules/.vite && vite build",
-    "build:dev": "rm -rf node_modules/.vite && vite build --mode development",
+    "build": "vite build",
+    "build:dev": "vite build --mode development",
     "build:watch": "vite build --watch --mode development",
     "build:extension": "vite build --config vite.extension.config.mts",
     "dev:extension": "vite --config vite.extension.config.mts",
