@@ -1,11 +1,11 @@
 import { Group, Loader, Text } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ApiClient } from "../api/ApiClient";
+import { iterationQueryKey } from "../api/queryKeys";
 import { usePlatform } from "../context/PlatformContext";
 import { generateAcceptanceCriteriaDocxReport } from "../domain/reports/DocxGenerator";
 import { generateAcceptanceCriteriaReport, generatePdfReport } from "../domain/reports/PdfGenerator";
 import { generateReport } from "../domain/reports/ReportGenerator";
-import type { WorkItem } from "../domain/WorkItem";
 import { AcceptanceCriteriaReportSplitButton } from "./AcceptanceCriteriaReportSplitButton";
 import { SprintReportSplitButton } from "./SprintReportSplitButton";
 import { WorkItemTable } from "./WorkItemTable";
@@ -21,45 +21,16 @@ interface CurrentTeamTabProps {
 }
 
 export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
-  const [loading, setLoading] = useState(true);
-  const [workItems, setWorkItems] = useState<WorkItem[]>([]);
-  const [sprintStartDate, setSprintStartDate] = useState<Date | undefined>();
-  const [sprintEndDate, setSprintEndDate] = useState<Date | undefined>();
   const platform = usePlatform();
+  const enabled = Boolean(props.collection && props.project && props.team && props.sprint);
 
-  useEffect(() => {
-    let active = true;
+  const query = useQuery({
+    queryKey: iterationQueryKey(props.origin, props.collection, props.project, props.team, props.iterationPath),
+    enabled,
+    queryFn: () => new ApiClient(props.origin, props.fetchFn).getIteration2(props.collection, props.project, props.team, props.iterationPath)
+  });
 
-    async function updateIteration() {
-      if (props.collection && props.project && props.team && props.sprint) {
-        setLoading(true);
-        try {
-          const apiClient = new ApiClient(props.origin, props.fetchFn);
-
-          const queryResult = await apiClient.getIteration2(props.collection, props.project, props.team, props.iterationPath);
-
-          if (active) {
-            setWorkItems(queryResult.workItems);
-            setSprintStartDate(queryResult.sprintStartDate);
-            setSprintEndDate(queryResult.sprintEndDate);
-          }
-        } finally {
-          if (active) {
-            setLoading(false);
-          }
-        }
-      } else {
-        setLoading(false);
-      }
-    }
-    updateIteration().catch((e: unknown) => console.error(e));
-
-    return () => {
-      active = false;
-    };
-  }, [props.collection, props.project, props.team, props.sprint, props.iterationPath, props.origin, props.fetchFn]);
-
-  if (loading) {
+  if (query.isPending && enabled) {
     return (
       <Group justify="center" align="center" style={{ height: "100%", minHeight: "200px" }}>
         <Loader size="lg" />
@@ -69,6 +40,10 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
       </Group>
     );
   }
+
+  const workItems = query.data?.workItems ?? [];
+  const sprintStartDate = query.data?.sprintStartDate;
+  const sprintEndDate = query.data?.sprintEndDate;
 
   return (
     <div style={{ height: "100%", overflowY: "scroll" }}>

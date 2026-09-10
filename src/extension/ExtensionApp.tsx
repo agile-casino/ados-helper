@@ -1,7 +1,9 @@
 import { ActionIcon, MantineProvider, Tabs, Title, Tooltip } from "@mantine/core";
+import { QueryClientProvider } from "@tanstack/react-query";
 import * as SDK from "azure-devops-extension-sdk";
 import * as React from "react";
 import { createAuthFetch } from "../shared/api/authFetch";
+import { queryClient } from "../shared/api/queryClient";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
@@ -12,6 +14,10 @@ import { ExtensionPlatformService } from "./ExtensionPlatformService";
 import "../shared/styles/mantine.css";
 
 const platformService = new ExtensionPlatformService();
+
+// authFetch fetches a fresh token per call, so a single instance is safe to
+// reuse across queries and refreshes.
+const authFetch = createAuthFetch(() => SDK.getAccessToken());
 
 export interface ExtensionContext {
   origin: string;
@@ -148,7 +154,6 @@ export const ExtensionApp = () => {
   const [loading, setLoading] = React.useState(true);
   const [context, setContext] = React.useState<ExtensionContext | null>(null);
   const [colorScheme, setColorScheme] = React.useState<"light" | "dark">("light");
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const hasNotified = React.useRef(false);
 
   React.useEffect(() => {
@@ -192,11 +197,6 @@ export const ExtensionApp = () => {
     };
   }, []);
 
-  // Recreate authFetch on refresh: the tabs' effects depend on fetchFn, so a
-  // new identity re-triggers their data fetching.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is intentionally an extra dependency to invalidate the memoized fetch on refresh
-  const authFetch = React.useMemo(() => createAuthFetch(() => SDK.getAccessToken()), [refreshKey]);
-
   if (loading) {
     return <div style={{ padding: "20px", fontFamily: "sans-serif" }}>Loading Sprint Report Generator context...</div>;
   }
@@ -206,41 +206,43 @@ export const ExtensionApp = () => {
   }
 
   return (
-    <PlatformProvider value={platformService}>
-      <MantineProvider forceColorScheme={colorScheme}>
-        <div style={{ padding: "16px", height: "100vh", display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "1rem" }}>
-            <Title order={3} fw={400} style={{ flexGrow: 1 }}>
-              <span>{context.sprint} Reports</span>
-            </Title>
-            <Tooltip label="Refresh data for current sprint">
-              <ActionIcon variant="subtle" onClick={() => setRefreshKey(c => c + 1)} aria-label="Refresh">
-                &#x21bb;
-              </ActionIcon>
-            </Tooltip>
+    <QueryClientProvider client={queryClient}>
+      <PlatformProvider value={platformService}>
+        <MantineProvider forceColorScheme={colorScheme}>
+          <div style={{ padding: "16px", height: "100vh", display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "1rem" }}>
+              <Title order={3} fw={400} style={{ flexGrow: 1 }}>
+                <span>{context.sprint} Reports</span>
+              </Title>
+              <Tooltip label="Refresh data for current sprint">
+                <ActionIcon variant="subtle" onClick={() => queryClient.invalidateQueries()} aria-label="Refresh">
+                  &#x21bb;
+                </ActionIcon>
+              </Tooltip>
+            </div>
+
+            <Tabs defaultValue="current-team" style={{ flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+              <Tabs.List>
+                <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
+                <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
+                <Tabs.Tab value="sprint-stats">Sprint Stats</Tabs.Tab>
+              </Tabs.List>
+
+              <Tabs.Panel value="current-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
+                <CurrentTeamTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
+              </Tabs.Panel>
+
+              <Tabs.Panel value="multi-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
+                <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
+              </Tabs.Panel>
+
+              <Tabs.Panel value="sprint-stats" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
+                <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
+              </Tabs.Panel>
+            </Tabs>
           </div>
-
-          <Tabs defaultValue="current-team" style={{ flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <Tabs.List>
-              <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
-              <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
-              <Tabs.Tab value="sprint-stats">Sprint Stats</Tabs.Tab>
-            </Tabs.List>
-
-            <Tabs.Panel value="current-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <CurrentTeamTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
-            </Tabs.Panel>
-
-            <Tabs.Panel value="multi-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
-            </Tabs.Panel>
-
-            <Tabs.Panel value="sprint-stats" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-              <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
-            </Tabs.Panel>
-          </Tabs>
-        </div>
-      </MantineProvider>
-    </PlatformProvider>
+        </MantineProvider>
+      </PlatformProvider>
+    </QueryClientProvider>
   );
 };

@@ -1,4 +1,5 @@
 import { ActionIcon, Alert, Box, Button, Card, Group, MantineProvider, Select, Stack, Tabs, Text, TextInput, Title, useMantineColorScheme } from "@mantine/core";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -6,6 +7,7 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
+import { queryClient } from "../shared/api/queryClient";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
@@ -531,11 +533,13 @@ const DesktopAppContent = () => {
 
 export const DesktopApp = () => {
   return (
-    <PlatformProvider value={platformService}>
-      <MantineProvider defaultColorScheme="auto">
-        <DesktopAppContent />
-      </MantineProvider>
-    </PlatformProvider>
+    <QueryClientProvider client={queryClient}>
+      <PlatformProvider value={platformService}>
+        <MantineProvider defaultColorScheme="auto">
+          <DesktopAppContent />
+        </MantineProvider>
+      </PlatformProvider>
+    </QueryClientProvider>
   );
 };
 

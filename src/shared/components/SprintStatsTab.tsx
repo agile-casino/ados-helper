@@ -1,6 +1,7 @@
 import { Alert, Badge, Box, Card, Group, Loader, Paper, RingProgress, SimpleGrid, Stack, Table, Text, Title, Tooltip } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ApiClient } from "../api/ApiClient";
+import { sprintStatsQueryKey } from "../api/queryKeys";
 import { usePlatform } from "../context/PlatformContext";
 import type { WorkItem } from "../domain/WorkItem";
 
@@ -74,185 +75,169 @@ const InfoIcon = () => (
   </svg>
 );
 
-export const SprintStatsTab = (props: SprintStatsTabProps) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [dates, setDates] = useState<{ startDate?: Date; endDate?: Date }>({});
-  const [committedDate, setCommittedDate] = useState<Date | null>(null);
-  const [snapshotEndDate, setSnapshotEndDate] = useState<Date | null>(null);
-  const [initialItems, setInitialItems] = useState<WorkItem[]>([]);
-  const [finalItems, setFinalItems] = useState<WorkItem[]>([]);
-  const [prevSprintsData, setPrevSprintsData] = useState<{ name: string; completedPoints: number }[]>([]);
-  const [transitionDates, setTransitionDates] = useState<Record<number, Date | null>>({});
-  const platform = usePlatform();
+interface SprintStatsData {
+  dates: { startDate?: Date; endDate?: Date };
+  committedDate: Date | null;
+  snapshotEndDate: Date | null;
+  initialItems: WorkItem[];
+  finalItems: WorkItem[];
+  prevSprintsData: { name: string; completedPoints: number }[];
+  transitionDates: Record<number, Date | null>;
+}
 
-  useEffect(() => {
-    let active = true;
+const fetchSprintStats = async (origin: string, fetchFn: typeof globalThis.fetch | undefined, collection: string, project: string, team: string, sprint: string, iterationPath: string): Promise<SprintStatsData> => {
+  const apiClient = new ApiClient(origin, fetchFn);
 
-    async function fetchStats() {
-      setLoading(true);
-      setError(null);
+  // 1. Fetch dates
+  const sprintName = iterationPath.split("/").pop() ?? sprint;
+  const iterDates = await apiClient.getIterationDates(collection, project, team, sprintName);
 
-      try {
-        const apiClient = new ApiClient(props.origin, props.fetchFn);
+  if (!iterDates.startDate || !iterDates.finishDate) {
+    return {
+      dates: {},
+      committedDate: null,
+      snapshotEndDate: null,
+      initialItems: [],
+      finalItems: [],
+      prevSprintsData: [],
+      transitionDates: {}
+    };
+  }
 
-        // 1. Fetch dates
-        const sprintName = props.iterationPath.split("/").pop() ?? props.sprint;
-        const iterDates = await apiClient.getIterationDates(props.collection, props.project, props.team, sprintName);
+  const start = new Date(iterDates.startDate);
+  const finish = new Date(iterDates.finishDate);
 
-        if (!iterDates.startDate || !iterDates.finishDate) {
-          if (active) {
-            setDates({});
-            setLoading(false);
-          }
-          return;
+  // 2. Calculate snapshot dates
+  // Committed Date = startDate + 1 day (end of Day 2)
+  const commitDate = new Date(start.getTime() + 1 * 24 * 60 * 60 * 1000);
+  commitDate.setUTCHours(23, 59, 59, 999);
+
+  // Snapshot End Date = finishDate - 1 day (end of day before last)
+  const endSnapDate = new Date(finish.getTime() - 1 * 24 * 60 * 60 * 1000);
+  endSnapDate.setUTCHours(23, 59, 59, 999);
+
+  // If sprint is in progress, use current date/time as the final snapshot date
+  const now = new Date();
+  const actualEndDate = now < endSnapDate ? now : endSnapDate;
+
+  // 3. Fetch snapshots and iterations list in parallel
+  const [initialResult, finalResult, allIterations] = await Promise.all([
+    apiClient.getSprintSnapshot(collection, project, team, sprint, iterationPath, commitDate),
+    apiClient.getSprintSnapshot(collection, project, team, sprint, iterationPath, actualEndDate),
+    apiClient.getIterations(collection, project, team)
+  ]);
+
+  // 4. Filter and sort iterations to find the previous 6 sprints
+  const iterationsWithDates = allIterations.filter(iter => iter.attributes?.startDate && iter.attributes?.finishDate);
+  const sortedIterations = [...iterationsWithDates].sort((a, b) => {
+    const aDate = a.attributes?.startDate;
+    const bDate = b.attributes?.startDate;
+    if (!aDate || !bDate) return 0;
+    return new Date(aDate).getTime() - new Date(bDate).getTime();
+  });
+
+  const currentIndex = sortedIterations.findIndex(iter => iter.name === sprint || iter.path.endsWith(sprint));
+  const previousSprints = currentIndex !== -1 ? sortedIterations.slice(Math.max(0, currentIndex - 6), currentIndex) : [];
+
+  // 5. Fetch completed points for previous sprints in parallel
+  const historyData = await Promise.all(
+    previousSprints.map(async s => {
+      const sFinishDate = s.attributes?.finishDate;
+      const sFinish = sFinishDate ? new Date(sFinishDate) : new Date();
+      const sEndSnapDate = new Date(sFinish.getTime() - 1 * 24 * 60 * 60 * 1000);
+      sEndSnapDate.setUTCHours(23, 59, 59, 999);
+
+      const normPath = normalizeIterationPath(s.path, project);
+      const sItems = await apiClient.getSprintSnapshot(collection, project, team, s.name, normPath, sEndSnapDate);
+
+      const completedPoints = calculateCompletedPoints(sItems);
+      return {
+        name: s.name,
+        completedPoints
+      };
+    })
+  );
+
+  // Calculate added and removed items to fetch transition dates
+  const initialActive = getActiveItems(initialResult);
+  const finalActive = getActiveItems(finalResult);
+  const removedItems = initialActive.filter(i => !finalActive.some(f => f.id === i.id));
+  const addedItems = finalActive.filter(f => !initialActive.some(i => i.id === f.id));
+
+  const itemIdsToFetch = [...new Set([...addedItems.map(i => i.id), ...removedItems.map(i => i.id)])];
+  const updatesResults = await Promise.all(
+    itemIdsToFetch.map(async id => {
+      const updates = (await apiClient.getWorkItemUpdates(collection, project, id)) as WorkItemUpdate[];
+      return { id, updates };
+    })
+  );
+
+  const newTransitionDates: Record<number, Date | null> = {};
+  const sprintPathLower = iterationPath.toLowerCase().replace(/\//g, "\\");
+
+  const isItemInSprint = (path: string) => {
+    const normalized = path.toLowerCase().replace(/\//g, "\\");
+    return normalized === sprintPathLower || normalized.endsWith(`\\${sprintPathLower}`);
+  };
+
+  for (const { id, updates } of updatesResults) {
+    const isAdded = addedItems.some(i => i.id === id);
+    let transitionDate: Date | null = null;
+
+    if (isAdded) {
+      for (const u of updates) {
+        const iterField = u.fields?.["System.IterationPath"];
+        if (iterField?.newValue && isItemInSprint(iterField.newValue)) {
+          transitionDate = new Date(u.revisedDate);
+          break;
         }
-
-        const start = new Date(iterDates.startDate);
-        const finish = new Date(iterDates.finishDate);
-
-        if (active) {
-          setDates({ startDate: start, endDate: finish });
+      }
+      const firstUpdate = updates[0];
+      if (!transitionDate && firstUpdate) {
+        transitionDate = new Date(firstUpdate.revisedDate);
+      }
+    } else {
+      for (const u of updates) {
+        const iterField = u.fields?.["System.IterationPath"];
+        if (iterField?.oldValue && isItemInSprint(iterField.oldValue) && (!iterField.newValue || !isItemInSprint(iterField.newValue))) {
+          transitionDate = new Date(u.revisedDate);
         }
-
-        // 2. Calculate snapshot dates
-        // Committed Date = startDate + 1 day (end of Day 2)
-        const commitDate = new Date(start.getTime() + 1 * 24 * 60 * 60 * 1000);
-        commitDate.setUTCHours(23, 59, 59, 999);
-
-        // Snapshot End Date = finishDate - 1 day (end of day before last)
-        const endSnapDate = new Date(finish.getTime() - 1 * 24 * 60 * 60 * 1000);
-        endSnapDate.setUTCHours(23, 59, 59, 999);
-
-        // If sprint is in progress, use current date/time as the final snapshot date
-        const now = new Date();
-        const actualEndDate = now < endSnapDate ? now : endSnapDate;
-
-        if (active) {
-          setCommittedDate(commitDate);
-          setSnapshotEndDate(actualEndDate);
+        const stateField = u.fields?.["System.State"];
+        if (stateField?.newValue === "Removed") {
+          transitionDate = new Date(u.revisedDate);
         }
-
-        // 3. Fetch snapshots and iterations list in parallel
-        const [initialResult, finalResult, allIterations] = await Promise.all([
-          apiClient.getSprintSnapshot(props.collection, props.project, props.team, props.sprint, props.iterationPath, commitDate),
-          apiClient.getSprintSnapshot(props.collection, props.project, props.team, props.sprint, props.iterationPath, actualEndDate),
-          apiClient.getIterations(props.collection, props.project, props.team)
-        ]);
-
-        // 4. Filter and sort iterations to find the previous 6 sprints
-        const iterationsWithDates = allIterations.filter(iter => iter.attributes?.startDate && iter.attributes?.finishDate);
-        const sortedIterations = [...iterationsWithDates].sort((a, b) => {
-          const aDate = a.attributes?.startDate;
-          const bDate = b.attributes?.startDate;
-          if (!aDate || !bDate) return 0;
-          return new Date(aDate).getTime() - new Date(bDate).getTime();
-        });
-
-        const currentIndex = sortedIterations.findIndex(iter => iter.name === props.sprint || iter.path.endsWith(props.sprint));
-        const previousSprints = currentIndex !== -1 ? sortedIterations.slice(Math.max(0, currentIndex - 6), currentIndex) : [];
-
-        // 5. Fetch completed points for previous sprints in parallel
-        const historyData = await Promise.all(
-          previousSprints.map(async s => {
-            const sFinishDate = s.attributes?.finishDate;
-            const sFinish = sFinishDate ? new Date(sFinishDate) : new Date();
-            const sEndSnapDate = new Date(sFinish.getTime() - 1 * 24 * 60 * 60 * 1000);
-            sEndSnapDate.setUTCHours(23, 59, 59, 999);
-
-            const normPath = normalizeIterationPath(s.path, props.project);
-            const sItems = await apiClient.getSprintSnapshot(props.collection, props.project, props.team, s.name, normPath, sEndSnapDate);
-
-            const completedPoints = calculateCompletedPoints(sItems);
-            return {
-              name: s.name,
-              completedPoints
-            };
-          })
-        );
-
-        // Calculate added and removed items to fetch transition dates
-        const initialActive = getActiveItems(initialResult);
-        const finalActive = getActiveItems(finalResult);
-        const removedItems = initialActive.filter(i => !finalActive.some(f => f.id === i.id));
-        const addedItems = finalActive.filter(f => !initialActive.some(i => i.id === f.id));
-
-        const itemIdsToFetch = [...new Set([...addedItems.map(i => i.id), ...removedItems.map(i => i.id)])];
-        const updatesResults = await Promise.all(
-          itemIdsToFetch.map(async id => {
-            const updates = (await apiClient.getWorkItemUpdates(props.collection, props.project, id)) as WorkItemUpdate[];
-            return { id, updates };
-          })
-        );
-
-        const newTransitionDates: Record<number, Date | null> = {};
-        const sprintPathLower = props.iterationPath.toLowerCase().replace(/\//g, "\\");
-
-        const isItemInSprint = (path: string) => {
-          const normalized = path.toLowerCase().replace(/\//g, "\\");
-          return normalized === sprintPathLower || normalized.endsWith(`\\${sprintPathLower}`);
-        };
-
-        for (const { id, updates } of updatesResults) {
-          const isAdded = addedItems.some(i => i.id === id);
-          let transitionDate: Date | null = null;
-
-          if (isAdded) {
-            for (const u of updates) {
-              const iterField = u.fields?.["System.IterationPath"];
-              if (iterField?.newValue && isItemInSprint(iterField.newValue)) {
-                transitionDate = new Date(u.revisedDate);
-                break;
-              }
-            }
-            const firstUpdate = updates[0];
-            if (!transitionDate && firstUpdate) {
-              transitionDate = new Date(firstUpdate.revisedDate);
-            }
-          } else {
-            for (const u of updates) {
-              const iterField = u.fields?.["System.IterationPath"];
-              if (iterField?.oldValue && isItemInSprint(iterField.oldValue) && (!iterField.newValue || !isItemInSprint(iterField.newValue))) {
-                transitionDate = new Date(u.revisedDate);
-              }
-              const stateField = u.fields?.["System.State"];
-              if (stateField?.newValue === "Removed") {
-                transitionDate = new Date(u.revisedDate);
-              }
-            }
-            const lastUpdate = updates[updates.length - 1];
-            if (!transitionDate && lastUpdate) {
-              transitionDate = new Date(lastUpdate.revisedDate);
-            }
-          }
-
-          newTransitionDates[id] = transitionDate;
-        }
-
-        if (active) {
-          setInitialItems(initialResult);
-          setFinalItems(finalResult);
-          setPrevSprintsData(historyData);
-          setTransitionDates(newTransitionDates);
-          setLoading(false);
-        }
-      } catch (e: unknown) {
-        console.error("Failed to fetch sprint snapshots:", e);
-        if (active) {
-          setError(e instanceof Error ? e.message : "An unknown error occurred while fetching sprint stats.");
-          setLoading(false);
-        }
+      }
+      const lastUpdate = updates[updates.length - 1];
+      if (!transitionDate && lastUpdate) {
+        transitionDate = new Date(lastUpdate.revisedDate);
       }
     }
 
-    fetchStats().catch(console.error);
+    newTransitionDates[id] = transitionDate;
+  }
 
-    return () => {
-      active = false;
-    };
-  }, [props.collection, props.project, props.team, props.sprint, props.iterationPath, props.origin, props.fetchFn]);
+  return {
+    dates: { startDate: start, endDate: finish },
+    committedDate: commitDate,
+    snapshotEndDate: actualEndDate,
+    initialItems: initialResult,
+    finalItems: finalResult,
+    prevSprintsData: historyData,
+    transitionDates: newTransitionDates
+  };
+};
 
-  if (loading) {
+export const SprintStatsTab = (props: SprintStatsTabProps) => {
+  const platform = usePlatform();
+  const enabled = Boolean(props.collection && props.project && props.team && props.sprint);
+
+  const query = useQuery({
+    queryKey: sprintStatsQueryKey(props.origin, props.collection, props.project, props.team, props.sprint, props.iterationPath),
+    enabled,
+    queryFn: () => fetchSprintStats(props.origin, props.fetchFn, props.collection, props.project, props.team, props.sprint, props.iterationPath)
+  });
+
+  if (query.isPending && enabled) {
     return (
       <Group justify="center" align="center" style={{ height: "100%", minHeight: "200px" }}>
         <Loader size="lg" />
@@ -263,13 +248,23 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
     );
   }
 
-  if (error) {
+  if (query.error) {
     return (
       <Alert color="red" title="Error Loading Stats" m="md">
-        {error}
+        {query.error instanceof Error ? query.error.message : "An unknown error occurred while fetching sprint stats."}
       </Alert>
     );
   }
+
+  const { dates, committedDate, snapshotEndDate, initialItems, finalItems, prevSprintsData, transitionDates } = query.data ?? {
+    dates: {},
+    committedDate: null,
+    snapshotEndDate: null,
+    initialItems: [],
+    finalItems: [],
+    prevSprintsData: [],
+    transitionDates: {}
+  };
 
   if (!dates.startDate || !dates.endDate) {
     return (

@@ -48,6 +48,9 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     setupFiles: "tests/setup.ts",
-    pool: "threads"
+    pool: "threads",
+    // CurrentTeamTab.spec renders Mantine Tabs (React 19 <Activity>) together
+    // with the full tab DOM, which crashes vitest's threads pool natively.
+    poolMatchGlobs: [["**/CurrentTeamTab.spec.tsx", "forks"]]
   }
 }));
