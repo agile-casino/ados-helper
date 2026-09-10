@@ -1,22 +1,24 @@
 import { WorkItem } from "../domain/WorkItem";
+import {
+  type AzureDevOpsIteration,
+  AzureDevOpsIterationSchema,
+  parseValueArray,
+  type RawWorkItem,
+  RawWorkItemSchema,
+  salvageArray,
+  TeamFieldValuesResponseSchema,
+  WorkItemRefSchema,
+  WorkItemRelationSchema,
+  type WorkItemUpdate,
+  WorkItemUpdateSchema
+} from "./schemas";
 import type { WorkItemDto } from "./WorkItemDto";
+import { WorkItemDtoSchema } from "./WorkItemDto";
 
 interface IterationData {
   workItems: WorkItem[];
   sprintStartDate: Date | undefined;
   sprintEndDate: Date | undefined;
-}
-
-export interface AzureDevOpsIteration {
-  name: string;
-  path: string;
-  attributes: { startDate?: string; finishDate?: string } | undefined;
-}
-
-interface RawWorkItem {
-  id: number;
-  fields?: Record<string, unknown>;
-  relations?: { rel: string; url: string }[];
 }
 
 const WORK_ITEM_FIELDS = [
@@ -57,25 +59,25 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 
 function rawWorkItemToDto(wi: RawWorkItem, children: WorkItemDto[] = [], links: string[] = []): WorkItemDto {
   const f = wi.fields ?? {};
-  const acceptanceCriteria = (f["Microsoft.VSTS.Common.AcceptanceCriteria"] as string | undefined) ?? "";
-  const activatedDate = f["Microsoft.VSTS.Common.ActivatedDate"] as string | undefined;
+  const acceptanceCriteria = f["Microsoft.VSTS.Common.AcceptanceCriteria"] ?? "";
+  const activatedDate = f["Microsoft.VSTS.Common.ActivatedDate"] ?? undefined;
   return {
     System: {
-      Id: (f["System.Id"] as number) ?? wi.id,
-      WorkItemType: (f["System.WorkItemType"] as string) ?? "",
-      TeamProject: (f["System.TeamProject"] as string) ?? "",
-      Rev: (f["System.Rev"] as number) ?? 0,
-      Tags: (f["System.Tags"] as string) ?? "",
-      State: (f["System.State"] as string) ?? "",
+      Id: f["System.Id"] ?? wi.id,
+      WorkItemType: f["System.WorkItemType"] ?? "",
+      TeamProject: f["System.TeamProject"] ?? "",
+      Rev: f["System.Rev"] ?? 0,
+      Tags: f["System.Tags"] ?? "",
+      State: f["System.State"] ?? "",
       AssignedTo: (() => {
         const assignedTo = f["System.AssignedTo"];
         if (assignedTo == null) return null;
         if (typeof assignedTo === "string") return assignedTo;
-        return (assignedTo as { displayName?: string }).displayName ?? null;
+        return assignedTo.displayName ?? null;
       })(),
-      Title: (f["System.Title"] as string) ?? "",
-      IterationPath: (f["System.IterationPath"] as string) ?? "",
-      HyperLinkCount: (f["System.HyperLinkCount"] as number) ?? 0
+      Title: f["System.Title"] ?? "",
+      IterationPath: f["System.IterationPath"] ?? "",
+      HyperLinkCount: f["System.HyperLinkCount"] ?? 0
     },
     Microsoft: {
       VSTS: {
@@ -87,10 +89,10 @@ function rawWorkItemToDto(wi: RawWorkItem, children: WorkItemDto[] = [], links: 
               }
             : undefined,
         Scheduling: {
-          Effort: (f["Microsoft.VSTS.Scheduling.Effort"] as number) ?? 0,
-          RemainingWork: f["Microsoft.VSTS.Scheduling.RemainingWork"] as number | undefined,
-          OriginalEstimate: f["Microsoft.VSTS.Scheduling.OriginalEstimate"] as number | undefined,
-          CompletedWork: f["Microsoft.VSTS.Scheduling.CompletedWork"] as number | undefined
+          Effort: f["Microsoft.VSTS.Scheduling.Effort"] ?? 0,
+          RemainingWork: f["Microsoft.VSTS.Scheduling.RemainingWork"] ?? undefined,
+          OriginalEstimate: f["Microsoft.VSTS.Scheduling.OriginalEstimate"] ?? undefined,
+          CompletedWork: f["Microsoft.VSTS.Scheduling.CompletedWork"] ?? undefined
         }
       }
     },
@@ -116,7 +118,7 @@ export class ApiClient {
       throw new Error(`Failed to fetch iterations: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
-    return data.value ?? [];
+    return parseValueArray(AzureDevOpsIterationSchema, data, "iterations");
   }
 
   public async getIterationDates(collection: string, project: string, team: string, iteration: string): Promise<{ startDate: Date | undefined; finishDate: Date | undefined }> {
@@ -137,8 +139,9 @@ export class ApiClient {
       const response = await this._fetch(url);
       if (response.ok) {
         const data = await response.json();
-        if (data.defaultValue) {
-          return data.defaultValue;
+        const parsed = TeamFieldValuesResponseSchema.safeParse(data);
+        if (parsed.success && parsed.data.defaultValue) {
+          return parsed.data.defaultValue;
         }
       }
     } catch (error) {
@@ -320,7 +323,7 @@ export class ApiClient {
     };
   }
 
-  public async getWorkItemUpdates(collection: string, project: string, id: number): Promise<unknown[]> {
+  public async getWorkItemUpdates(collection: string, project: string, id: number): Promise<WorkItemUpdate[]> {
     // Resilience: called inside Promise.all in SprintStatsTab; a single failure
     // should not block transitions for other work items.
     try {
@@ -330,7 +333,7 @@ export class ApiClient {
         throw new Error(`Failed to fetch updates for work item ${id}: ${response.status} ${response.statusText}`);
       }
       const data = await response.json();
-      return data.value ?? [];
+      return parseValueArray(WorkItemUpdateSchema, data, `updates(${id})`);
     } catch (error) {
       console.warn(`Failed to fetch updates for work item ${id}:`, error);
       return [];
@@ -352,12 +355,18 @@ export class ApiClient {
 
     const result = await response.json();
 
+    const envelope = result && typeof result === "object" ? (result as { workItemRelations?: unknown; workItems?: unknown }) : {};
+    // Salvage each list independently so one malformed relation/item is dropped
+    // instead of zeroing out the whole query.
+    const relations = salvageArray(WorkItemRelationSchema, envelope.workItemRelations, "workItemRelations");
+    const flatItems = salvageArray(WorkItemRefSchema, envelope.workItems, "workItems");
+
     const ids: number[] = [];
     const parentMap = new Map<number, number>();
     const seen = new Set<number>();
 
-    if (result.workItemRelations && result.workItemRelations.length > 0) {
-      for (const link of result.workItemRelations) {
+    if (relations.length > 0) {
+      for (const link of relations) {
         if (link.source && !seen.has(link.source.id)) {
           ids.push(link.source.id);
           seen.add(link.source.id);
@@ -370,8 +379,8 @@ export class ApiClient {
           parentMap.set(link.target.id, link.source.id);
         }
       }
-    } else if (result.workItems) {
-      for (const ref of result.workItems) {
+    } else {
+      for (const ref of flatItems) {
         if (!seen.has(ref.id)) {
           ids.push(ref.id);
           seen.add(ref.id);
@@ -391,12 +400,12 @@ export class ApiClient {
         });
         if (orphanResponse.ok) {
           const orphanResult = await orphanResponse.json();
-          if (orphanResult.workItems) {
-            for (const ref of orphanResult.workItems) {
-              if (!seen.has(ref.id)) {
-                ids.push(ref.id);
-                seen.add(ref.id);
-              }
+          const orphanEnvelope = orphanResult && typeof orphanResult === "object" ? (orphanResult as { workItems?: unknown }) : {};
+          const orphanItems = salvageArray(WorkItemRefSchema, orphanEnvelope.workItems, "orphanWorkItems");
+          for (const ref of orphanItems) {
+            if (!seen.has(ref.id)) {
+              ids.push(ref.id);
+              seen.add(ref.id);
             }
           }
         }
@@ -465,7 +474,17 @@ export class ApiClient {
         }
 
         const data = await response.json();
-        return (data.value ?? []).map((wi: RawWorkItem) => rawWorkItemToDto(wi));
+        const rawItems = parseValueArray(RawWorkItemSchema, data, "workItemsBatch");
+        const dtos: WorkItemDto[] = [];
+        for (const raw of rawItems) {
+          const parsed = WorkItemDtoSchema.safeParse(rawWorkItemToDto(raw));
+          if (parsed.success) {
+            dtos.push(parsed.data);
+          } else {
+            console.warn("Dropping invalid WorkItemDto", parsed.error.issues);
+          }
+        }
+        return dtos;
       })
     );
 
@@ -495,7 +514,8 @@ export class ApiClient {
         }
 
         const data = await response.json();
-        return (data.value ?? []).map((wi: { id: number; relations?: { rel: string; url: string }[] }) => ({
+        const rawItems = parseValueArray(RawWorkItemSchema, data, "workItemRelations");
+        return rawItems.map(wi => ({
           id: wi.id,
           hasParent: wi.relations?.some(r => r.rel === "System.LinkTypes.Hierarchy-Reverse") ?? false,
           links: wi.relations?.map(r => r.url) ?? []

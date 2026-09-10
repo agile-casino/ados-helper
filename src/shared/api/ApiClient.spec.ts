@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiClient } from "./ApiClient";
 
 function mockFetch(data: unknown, ok = true): typeof globalThis.fetch {
@@ -297,6 +297,88 @@ describe("ApiClient", () => {
       expect(result.workItems[0]?.title).toBe("Standalone PBI");
       expect(result.sprintStartDate).toBeUndefined();
       expect(result.sprintEndDate).toBeUndefined();
+    });
+  });
+
+  describe("lenient validation", () => {
+    beforeEach(() => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+    });
+
+    it("getIterations returns [] instead of throwing on a malformed payload", async () => {
+      const fetchSpy = createApiMock({ iterations: { value: null } });
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const iterations = await client.getIterations("coll", "proj", "team");
+
+      expect(iterations).toEqual([]);
+    });
+
+    it("getIterations drops a malformed entry while keeping valid ones", async () => {
+      const fetchSpy = createApiMock({
+        iterations: {
+          value: [{ name: "Sprint 1", path: "proj\\team\\Sprint 1" }, { path: "no-name" }]
+        }
+      });
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const iterations = await client.getIterations("coll", "proj", "team");
+
+      expect(iterations).toHaveLength(1);
+      expect(iterations[0]?.name).toBe("Sprint 1");
+    });
+
+    it("drops a batch item missing an id but keeps the rest", async () => {
+      const fetchSpy = createApiMock({
+        wiql: { workItems: [{ id: 1 }, { id: 2 }] },
+        batchFields: {
+          value: [{ id: 1, fields: { ...commonFields, "System.Id": 1, "System.Title": "Kept" } }, { fields: { ...commonFields, "System.Id": 2, "System.Title": "Dropped" } }]
+        }
+      });
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const workItems = await client.getSprintSnapshot("coll", "proj", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
+
+      expect(workItems).toHaveLength(1);
+      expect(workItems[0]?.title).toBe("Kept");
+    });
+
+    it("normalizes null scheduling fields to undefined on mapped DTOs", async () => {
+      const fetchSpy = createApiMock({
+        teamFieldValues: { defaultValue: "proj\\Engineering\\team" },
+        wiql: { workItemRelations: [{ source: { id: 301 }, target: { id: 302 } }] },
+        batchFields: {
+          value: [
+            { id: 301, fields: { ...commonFields, "System.Id": 301, "System.Title": "Parent", "System.WorkItemType": "Product Backlog Item", "Microsoft.VSTS.Scheduling.RemainingWork": null } },
+            { id: 302, fields: { ...commonFields, "System.Id": 302, "System.Title": "Task", "System.WorkItemType": "Task", "Microsoft.VSTS.Scheduling.RemainingWork": null } }
+          ]
+        },
+        batchRelations: {
+          value: [{ id: 302, relations: [{ rel: "System.LinkTypes.Hierarchy-Reverse", url: "http://vso/parent/301" }] }]
+        },
+        iterations: mockIters
+      });
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const result = await client.getIteration2("coll", "proj", "team", "Sprint 13");
+
+      const task = result.workItems[0]?.tasks[0];
+      expect(task?.Microsoft.VSTS.Scheduling.RemainingWork).toBeUndefined();
+    });
+
+    it("drops malformed updates while keeping valid ones", async () => {
+      const fetchSpy = mockFetch({
+        value: [
+          { id: 1, rev: 1, revisedDate: "2026-06-01" },
+          { rev: 2, revisedDate: "2026-06-05" }
+        ]
+      });
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const updates = await client.getWorkItemUpdates("coll", "proj", 123);
+
+      expect(updates).toHaveLength(1);
+      expect(updates[0]?.id).toBe(1);
     });
   });
 });

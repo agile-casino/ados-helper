@@ -74,7 +74,8 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "typescript-plugin-css-modules": "^5.2.0",
-    "xlsx-js-style": "^1.2.0"
+    "xlsx-js-style": "^1.2.0",
+    "zod": "^4.5.4"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json}": "biome check --write",

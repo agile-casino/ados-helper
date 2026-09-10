@@ -8,6 +8,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { queryClient } from "../shared/api/queryClient";
+import { AccountSchema, ProfileSchema, parseOrThrow, parseValueArray } from "../shared/api/schemas";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
@@ -61,10 +62,7 @@ if (isTauri && !window.desktopAPI) {
         if (!profileRes.ok) {
           throw new Error(`Profile fetch failed: ${profileRes.status} ${profileRes.statusText}`);
         }
-        const profile = await profileRes.json();
-        if (!profile?.id) {
-          throw new Error("Failed to retrieve profile ID");
-        }
+        const profile = parseOrThrow(ProfileSchema, await profileRes.json(), "profile");
 
         const accountsUrl = `https://vssps.dev.azure.com/_apis/accounts?memberId=${profile.id}&api-version=6.0`;
         const accountsRes = await fetch(accountsUrl);
@@ -73,13 +71,10 @@ if (isTauri && !window.desktopAPI) {
         }
         const accountsData = await accountsRes.json();
 
-        if (accountsData?.value) {
-          return accountsData.value.map((acc: { accountName: string; accountUri: string }) => ({
-            name: acc.accountName,
-            uri: acc.accountUri
-          }));
-        }
-        return [];
+        return parseValueArray(AccountSchema, accountsData, "accounts").map(acc => ({
+          name: acc.accountName,
+          uri: acc.accountUri ?? ""
+        }));
       } catch (err) {
         console.error("Error fetching organizations in Tauri:", err);
         return [];

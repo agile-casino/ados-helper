@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Added runtime validation of Azure DevOps API responses and stored team selections using Zod. Malformed entries are now skipped instead of crashing the UI.
+
 ### Fixed
 
 - Fixed report downloads (including the Word acceptance criteria export) silently doing nothing in the production userscript. The bundle now uses a page-context blob download instead of `GM_download`, which could not read page-created blob URLs.

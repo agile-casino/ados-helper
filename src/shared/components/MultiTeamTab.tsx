@@ -6,6 +6,7 @@ import { generateMultiTeamAcceptanceCriteriaDocxReport } from "../domain/reports
 import { generateMultiTeamAcceptanceCriteriaReport, generateMultiTeamPdfReport } from "../domain/reports/PdfGenerator";
 import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/ReportGenerator";
 import type { WorkItem } from "../domain/WorkItem";
+import { loadTeamsFromStorage, saveTeamsToStorage, type TeamSelection } from "../utils/teamStorage";
 import { AcceptanceCriteriaReportSplitButton } from "./AcceptanceCriteriaReportSplitButton";
 import { SprintReportSplitButton } from "./SprintReportSplitButton";
 import { WorkItemTable } from "./WorkItemTable";
@@ -32,12 +33,6 @@ interface MultiTeamTabProps {
   fetchFn?: typeof globalThis.fetch;
 }
 
-interface TeamSelection {
-  name: string;
-  selected: boolean;
-  backgroundColor?: string | undefined;
-}
-
 interface TeamData {
   team: string;
   workItems: WorkItem[];
@@ -46,37 +41,6 @@ interface TeamData {
   loading: boolean;
   error: string | null;
 }
-
-const STORAGE_KEY_PREFIX = "sprint-report-generator-multi-team-";
-
-const getStorageKey = (collection: string, project: string): string => {
-  return `${STORAGE_KEY_PREFIX}${collection}-${project}`;
-};
-
-const loadTeamsFromStorage = (collection: string, project: string): TeamSelection[] | null => {
-  try {
-    const key = getStorageKey(collection, project);
-    let stored = localStorage.getItem(key);
-    if (!stored) {
-      // Fallback to old storage key prefix
-      stored = localStorage.getItem(`ados-helper-multi-team-${collection}-${project}`);
-    }
-    if (stored) {
-      return JSON.parse(stored) as TeamSelection[];
-    }
-  } catch {
-    // Ignore storage errors
-  }
-  return null;
-};
-
-const saveTeamsToStorage = (collection: string, project: string, teams: TeamSelection[]): void => {
-  try {
-    localStorage.setItem(getStorageKey(collection, project), JSON.stringify(teams));
-  } catch {
-    // Ignore storage errors
-  }
-};
 
 export const MultiTeamTab = (props: MultiTeamTabProps) => {
   const [teamInput, setTeamInput] = useState<string>("");
@@ -207,7 +171,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
       return {
         team: t.team,
         workItems: t.workItems,
-        backgroundColor: teamSelection?.backgroundColor,
+        backgroundColor: teamSelection?.backgroundColor ?? undefined,
         sprintStartDate: t.sprintStartDate
       };
     });

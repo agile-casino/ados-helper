@@ -1,27 +1,41 @@
-export interface WorkItemDto {
-  Microsoft: {
-    VSTS: {
-      Common: { ActivatedDate: string | undefined; AcceptanceCriteria?: string } | undefined;
-      Scheduling: {
-        Effort: number;
-        RemainingWork: number | undefined;
-        OriginalEstimate: number | undefined;
-        CompletedWork: number | undefined;
-      };
-    };
-  };
-  System: {
-    Id: number;
-    WorkItemType: string;
-    TeamProject: string;
-    Rev: number;
-    Tags: string;
-    State: string;
-    AssignedTo: string | null;
-    Title: string;
-    IterationPath: string;
-    HyperLinkCount: number;
-  };
+import { z } from "zod";
+
+const BaseWorkItemDtoSchema = z.object({
+  Microsoft: z.object({
+    VSTS: z.object({
+      Common: z
+        .object({
+          ActivatedDate: z.string().optional(),
+          AcceptanceCriteria: z.string().optional()
+        })
+        .optional(),
+      Scheduling: z.object({
+        Effort: z.number(),
+        RemainingWork: z.number().optional(),
+        OriginalEstimate: z.number().optional(),
+        CompletedWork: z.number().optional()
+      })
+    })
+  }),
+  System: z.object({
+    Id: z.number(),
+    WorkItemType: z.string(),
+    TeamProject: z.string(),
+    Rev: z.number(),
+    Tags: z.string(),
+    State: z.string(),
+    AssignedTo: z.string().nullable(),
+    Title: z.string(),
+    IterationPath: z.string(),
+    HyperLinkCount: z.number()
+  }),
+  links: z.array(z.string())
+});
+
+export type WorkItemDto = z.infer<typeof BaseWorkItemDtoSchema> & {
   children: WorkItemDto[];
-  links: string[];
-}
+};
+
+export const WorkItemDtoSchema: z.ZodType<WorkItemDto> = BaseWorkItemDtoSchema.extend({
+  children: z.lazy(() => z.array(WorkItemDtoSchema))
+});

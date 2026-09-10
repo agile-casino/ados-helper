@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { NamedValueSchema, OrganizationSchema, parseValueArray, SprintSchema, salvageArray } from "../shared/api/schemas";
 
 export interface Sprint {
   name: string;
@@ -37,8 +38,9 @@ export const useAdoState = () => {
   const loadOrgs = useCallback(async () => {
     try {
       const orgList = await window.desktopAPI.getOrganizations();
-      if (orgList && orgList.length > 0) {
-        const orgNames = orgList.map(o => o.name);
+      const orgs = salvageArray(OrganizationSchema, orgList, "organizations");
+      if (orgs.length > 0) {
+        const orgNames = orgs.map(o => o.name);
         setOrganizations(orgNames);
 
         // If our current org is in the list, keep it. Otherwise default to first list item
@@ -130,7 +132,7 @@ export const useAdoState = () => {
           throw new Error(`Failed to load projects: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        const projectList: string[] = data.value?.map((p: { name: string }) => p.name) || [];
+        const projectList: string[] = parseValueArray(NamedValueSchema, data, "projects").map(p => p.name);
         setProjects(projectList);
 
         // Restore saved project
@@ -164,7 +166,7 @@ export const useAdoState = () => {
           throw new Error(`Failed to load teams: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        const teamList: string[] = data.value?.map((t: { name: string }) => t.name) || [];
+        const teamList: string[] = parseValueArray(NamedValueSchema, data, "teams").map(t => t.name);
         setTeams(teamList);
 
         // Restore saved team
@@ -199,8 +201,8 @@ export const useAdoState = () => {
         }
         const data = await response.json();
         const sprintList =
-          data.value?.map((i: { name: string; path: string }) => {
-            let path = i.path;
+          parseValueArray(SprintSchema, data, "sprints").map(i => {
+            let path = i.path ?? i.name;
             const normalizedPath = path.replace(/\//g, "\\");
             const prefix = `${selectedProject}\\`.toLowerCase().replace(/\//g, "\\");
             if (normalizedPath.toLowerCase().startsWith(prefix)) {

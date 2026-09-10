@@ -5,21 +5,6 @@ import { sprintStatsQueryKey } from "../api/queryKeys";
 import { usePlatform } from "../context/PlatformContext";
 import type { WorkItem } from "../domain/WorkItem";
 
-interface WorkItemFieldUpdate<T = string> {
-  oldValue?: T;
-  newValue?: T;
-}
-
-interface WorkItemUpdate {
-  id: number;
-  rev: number;
-  revisedDate: string;
-  fields?: {
-    "System.IterationPath"?: WorkItemFieldUpdate;
-    "System.State"?: WorkItemFieldUpdate;
-  };
-}
-
 interface SprintStatsTabProps {
   origin: string;
   collection: string;
@@ -167,7 +152,7 @@ const fetchSprintStats = async (origin: string, fetchFn: typeof globalThis.fetch
   const itemIdsToFetch = [...new Set([...addedItems.map(i => i.id), ...removedItems.map(i => i.id)])];
   const updatesResults = await Promise.all(
     itemIdsToFetch.map(async id => {
-      const updates = (await apiClient.getWorkItemUpdates(collection, project, id)) as WorkItemUpdate[];
+      const updates = await apiClient.getWorkItemUpdates(collection, project, id);
       return { id, updates };
     })
   );
