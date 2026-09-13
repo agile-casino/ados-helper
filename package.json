@@ -35,7 +35,7 @@
   "homepage": "https://github.com/agile-casino/ados-helper#readme",
   "packageManager": "pnpm@11.26.0+sha512.fc0e2bf890b9f983611f1ab68c0637bce914390653699f83c1a78b005ed25f2c81e77920c8fd8eee2ecf0b58b28cdcb00a84d97f69bcf7c56b2f344710238664",
   "devDependencies": {
-    "@biomejs/biome": "2.5.12",
+    "@biomejs/biome": "2.5.13",
     "@tauri-apps/cli": "^2.11.4",
     "@testing-library/react": "^16.3.3",
     "@tsconfig/strictest": "^2.0.8",
