@@ -1,8 +1,10 @@
+import type { KNOWN_PBI_STATES } from "../shared/domain/WorkItemState";
+
 interface MockWorkItem {
   id: number;
   type: "Product Backlog Item" | "Bug" | "Task";
   title: string;
-  state: "New" | "Approved" | "Committed" | "In Progress" | "Done" | "Staging" | "Released" | "Removed" | "To Do";
+  state: (typeof KNOWN_PBI_STATES)[number] | "In Progress" | "To Do" | "In Review" | "Deployed" | "Rejected";
   assignedTo: string | null;
   tags?: string;
   effort?: number;
@@ -60,6 +62,48 @@ const SCENARIOS = {
           assignedTo: null,
           tags: "Sprint 13",
           effort: 2,
+          children: []
+        },
+        {
+          id: 109,
+          type: "Product Backlog Item",
+          title: "[Ready] Refine backlog grooming workflow",
+          state: "Ready",
+          assignedTo: "Alice Green",
+          tags: "Sprint 13",
+          effort: 3,
+          children: []
+        },
+        {
+          id: 110,
+          type: "Product Backlog Item",
+          title: "[Blocked] Waiting on external API credentials",
+          state: "Blocked",
+          assignedTo: "Bob Miller",
+          tags: "Sprint 13",
+          effort: 5,
+          activatedDate: "2026-06-02T09:00:00Z",
+          children: []
+        },
+        {
+          id: 111,
+          type: "Product Backlog Item",
+          title: "[Testing] Verify report export edge cases",
+          state: "Testing",
+          assignedTo: "Alice Green",
+          tags: "Sprint 13",
+          effort: 2,
+          activatedDate: "2026-06-03T09:00:00Z",
+          children: []
+        },
+        {
+          id: 112,
+          type: "Product Backlog Item",
+          title: "[Committed] Scheduled for upcoming sprint work",
+          state: "Committed",
+          assignedTo: "Bob Miller",
+          tags: "Sprint 13",
+          effort: 8,
           children: []
         }
       ]
@@ -185,6 +229,46 @@ const SCENARIOS = {
           tags: "Sprint 13-",
           effort: 3,
           activatedDate: "2026-06-01T09:00:00Z",
+          children: []
+        }
+      ]
+    }
+  },
+  customstates: {
+    name: "Custom PBI States",
+    description: "Uses custom ADO states (In Review, Deployed, Rejected) to exercise the Settings state mapping.",
+    data: {
+      "DE_BK_Green": [
+        {
+          id: 601,
+          type: "Product Backlog Item",
+          title: "[Review] Awaiting code review",
+          state: "In Review",
+          assignedTo: "Alice Green",
+          tags: "Sprint 13",
+          effort: 3,
+          activatedDate: "2026-06-02T09:00:00Z",
+          children: []
+        },
+        {
+          id: 602,
+          type: "Product Backlog Item",
+          title: "[Deployed] Shipped to production",
+          state: "Deployed",
+          assignedTo: "Bob Miller",
+          tags: "Sprint 13",
+          effort: 5,
+          activatedDate: "2026-06-01T09:00:00Z",
+          children: []
+        },
+        {
+          id: 603,
+          type: "Product Backlog Item",
+          title: "[Rejected] Out of scope",
+          state: "Rejected",
+          assignedTo: "Bob Miller",
+          tags: "Sprint 13",
+          effort: 2,
           children: []
         }
       ]
@@ -391,6 +475,39 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
     const res = { value };
 
     return new Response(JSON.stringify(res), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
+  // Intercept Work Item Type States API
+  if (urlStr.includes("/_apis/wit/workitemtypes/") && urlStr.includes("/states")) {
+    state.addLog("GET", urlStr, 200);
+
+    const typeMatch = urlStr.match(/workitemtypes\/([^/]+)\/states/i);
+    const workItemType = typeMatch?.[1] ? decodeURIComponent(typeMatch[1]) : "";
+
+    const commonStates = [
+      { name: "New", color: "b2b2b2", category: "Proposed" },
+      { name: "Ready", color: "b2b2b2", category: "Proposed" },
+      { name: "Approved", color: "b2b2b2", category: "Proposed" },
+      { name: "Committed", color: "b2b2b2", category: "Proposed" },
+      { name: "Blocked", color: "ff0000", category: "InProgress" },
+      { name: "Testing", color: "007acc", category: "InProgress" },
+      { name: "Staging", color: "339947", category: "Resolved" },
+      { name: "Released", color: "339947", category: "Completed" },
+      { name: "Done", color: "339947", category: "Completed" },
+      { name: "Removed", color: "ff0000", category: "Removed" }
+    ];
+    const customStates = [
+      { name: "In Review", color: "007acc", category: "InProgress" },
+      { name: "Deployed", color: "339947", category: "Completed" },
+      { name: "Rejected", color: "ff0000", category: "Removed" }
+    ];
+
+    const value = workItemType === "Product Backlog Item" ? [...commonStates, ...customStates] : commonStates;
+
+    return new Response(JSON.stringify({ count: value.length, value }), {
       status: 200,
       headers: { "Content-Type": "application/json" }
     });

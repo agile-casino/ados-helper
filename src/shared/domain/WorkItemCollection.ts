@@ -1,7 +1,8 @@
 import sortBy from "lodash/sortBy";
 import type { WorkItem } from "./WorkItem";
+import type { WorkItemCategory } from "./WorkItemState";
 
-type WorkItemCategoryName = "Not Started" | "In Progress" | "Done" | "Removed" | "Study Time";
+type WorkItemCategoryName = WorkItemCategory | "Study Time";
 
 export class WorkItemCollection {
   public get done() {
@@ -90,13 +91,16 @@ export class WorkItemCollection {
   ) {}
 
   public getWorkItemCategory(workItem: WorkItem): WorkItemCategoryName {
+    // Category precedence: Study Time -> Done -> Removed -> In Progress -> Not Started.
+    // The getters on WorkItem map states onto these categories using the active
+    // WorkItemStateConfig (see WorkItemState.ts), injected at WorkItem construction.
     if (workItem.title.startsWith("[Study Time]")) {
       return "Study Time";
     } else if (workItem.isDone) {
       return "Done";
     } else if (workItem.isRemoved) {
       return "Removed";
-    } else if (workItem.isInProgress && !workItem.isRemoved) {
+    } else if (workItem.isInProgress) {
       return "In Progress";
     }
     return "Not Started";

@@ -3,9 +3,13 @@ import maxBy from "lodash/maxBy";
 import type { WorkItemDto } from "../api/WorkItemDto";
 import { parseAzureDate } from "../utils/parseAzureDate";
 import { Tag } from "./Tag";
+import { categorizeState, DEFAULT_WORK_ITEM_STATE_CONFIG, type WorkItemStateConfig } from "./WorkItemState";
 
 export class WorkItem {
-  constructor(private dto: WorkItemDto) {}
+  constructor(
+    private dto: WorkItemDto,
+    private stateConfig: WorkItemStateConfig = DEFAULT_WORK_ITEM_STATE_CONFIG
+  ) {}
 
   public get assignedTo(): string | null {
     return this.dto.System.AssignedTo;
@@ -46,15 +50,15 @@ export class WorkItem {
   }
 
   public get isDone(): boolean {
-    return ["Done", "Staging", "Released"].includes(this.dto.System.State);
+    return categorizeState(this.state, this.stateConfig) === "Done";
   }
 
   public get isInProgress(): boolean {
-    return !this.isDone && this.tasks.some(task => task.System.State !== "To Do");
+    return !this.isDone && !this.isRemoved && (categorizeState(this.state, this.stateConfig) === "In Progress" || this.tasks.some(task => task.System.State !== "To Do"));
   }
 
   public get isRemoved(): boolean {
-    return this.sprintTag?.sprintSuffix === "-";
+    return categorizeState(this.state, this.stateConfig) === "Removed" || this.sprintTag?.sprintSuffix === "-";
   }
 
   public get remainingWork(): number {

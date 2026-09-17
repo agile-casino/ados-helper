@@ -64,6 +64,20 @@ describe("WorkItemCollection - Commitment Tracking", () => {
     expect(collection.commitmentPercentage).toBe(113); // 18/16 = 112.5% rounded to 113 (>100% because of pulled-in item)
   });
 
+  it("should exclude Removed-state items from commitment and completion totals", () => {
+    const sprintStart = new Date("2026-01-13T00:00:00Z");
+
+    const committedDone = createMockWorkItem(1, "2026-01-13T08:00:00Z", 5, "Done");
+    const removed = createMockWorkItem(2, "2026-01-13T09:00:00Z", 8, "Removed");
+
+    const collection = new WorkItemCollection([committedDone, removed], sprintStart);
+
+    expect(collection.committedWorkItems().map(w => w.id)).toEqual([1]);
+    expect(collection.committedEffort).toBe(5);
+    expect(collection.completedEffort).toBe(5);
+    expect(collection.removed.map(w => w.id)).toEqual([2]);
+  });
+
   it("should handle items without activation dates", () => {
     const dto: WorkItemDto = {
       System: {

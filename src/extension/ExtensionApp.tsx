@@ -6,8 +6,10 @@ import { createAuthFetch } from "../shared/api/authFetch";
 import { queryClient } from "../shared/api/queryClient";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
+import { SettingsTab } from "../shared/components/SettingsTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
 import { PlatformProvider } from "../shared/context/PlatformContext";
+import { SettingsProvider } from "../shared/context/SettingsContext";
 import { ExtensionPlatformService } from "./ExtensionPlatformService";
 
 // Import Mantine Styles for the extension package
@@ -221,25 +223,34 @@ export const ExtensionApp = () => {
               </Tooltip>
             </div>
 
-            <Tabs defaultValue="current-team" style={{ flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-              <Tabs.List>
-                <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
-                <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
-                <Tabs.Tab value="sprint-stats">Sprint Stats</Tabs.Tab>
-              </Tabs.List>
+            <SettingsProvider key={`${context.collection}-${context.project}`} collection={context.collection} project={context.project}>
+              <Tabs defaultValue="current-team" style={{ flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+                <Tabs.List>
+                  <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
+                  <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
+                  <Tabs.Tab value="sprint-stats">Sprint Stats</Tabs.Tab>
+                  <Tabs.Tab value="settings" ml="auto">
+                    Settings
+                  </Tabs.Tab>
+                </Tabs.List>
 
-              <Tabs.Panel value="current-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-                <CurrentTeamTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
-              </Tabs.Panel>
+                <Tabs.Panel value="current-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
+                  <CurrentTeamTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
+                </Tabs.Panel>
 
-              <Tabs.Panel value="multi-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-                <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
-              </Tabs.Panel>
+                <Tabs.Panel value="multi-team" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
+                  <MultiTeamTab origin={context.origin} collection={context.collection} project={context.project} currentTeam={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
+                </Tabs.Panel>
 
-              <Tabs.Panel value="sprint-stats" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
-                <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
-              </Tabs.Panel>
-            </Tabs>
+                <Tabs.Panel value="sprint-stats" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
+                  <SprintStatsTab origin={context.origin} collection={context.collection} project={context.project} team={context.team} sprint={context.sprint} iterationPath={context.iterationPath} fetchFn={authFetch} />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="settings" pt="md" style={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}>
+                  <SettingsTab origin={context.origin} collection={context.collection} project={context.project} fetchFn={authFetch} />
+                </Tabs.Panel>
+              </Tabs>
+            </SettingsProvider>
           </div>
         </MantineProvider>
       </PlatformProvider>

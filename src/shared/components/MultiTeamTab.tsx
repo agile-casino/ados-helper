@@ -2,6 +2,7 @@ import { Button, Checkbox, ColorInput, Group, Stack, Text, TextInput, Title } fr
 import { Fragment, useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { usePlatform } from "../context/PlatformContext";
+import { useSettings } from "../context/SettingsContext";
 import { generateMultiTeamAcceptanceCriteriaDocxReport } from "../domain/reports/DocxGenerator";
 import { generateMultiTeamAcceptanceCriteriaReport, generateMultiTeamPdfReport } from "../domain/reports/PdfGenerator";
 import { generateMultiTeamReport, type TeamWorkItems } from "../domain/reports/ReportGenerator";
@@ -48,6 +49,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
   const [teamData, setTeamData] = useState<TeamData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const platform = usePlatform();
+  const { stateConfig } = useSettings();
   const [initialized, setInitialized] = useState(false);
 
   // Load teams from localStorage on mount, or fallback to current team
@@ -130,7 +132,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
 
     setIsLoading(true);
 
-    const apiClient = new ApiClient(props.origin, props.fetchFn);
+    const apiClient = new ApiClient(props.origin, props.fetchFn, stateConfig);
 
     const results: TeamData[] = [];
 

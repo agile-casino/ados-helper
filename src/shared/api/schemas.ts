@@ -151,6 +151,16 @@ export const OrganizationSchema = z.object({
 
 export const NamedValueSchema = z.object({ name: z.string() });
 
+// `category` is ADO's own state category and is not required to render the
+// Settings tab, so it is optional to avoid dropping otherwise-valid states.
+export const WorkItemTypeStateSchema = z.object({
+  name: z.string(),
+  color: z.string().optional(),
+  category: z.string().optional()
+});
+
+export type WorkItemTypeState = z.infer<typeof WorkItemTypeStateSchema>;
+
 // The accounts lookup is unusable without a profile id, so this is a hard
 // boundary validated with `parseOrThrow`.
 export const ProfileSchema = z.object({ id: z.string() });

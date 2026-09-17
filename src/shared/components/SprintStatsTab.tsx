@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { ApiClient } from "../api/ApiClient";
 import { sprintStatsQueryKey } from "../api/queryKeys";
 import { usePlatform } from "../context/PlatformContext";
+import { useSettings } from "../context/SettingsContext";
 import type { WorkItem } from "../domain/WorkItem";
+import { categorizeState, type WorkItemStateConfig } from "../domain/WorkItemState";
 
 interface SprintStatsTabProps {
   origin: string;
@@ -25,7 +27,7 @@ const normalizeIterationPath = (path: string, project: string) => {
 };
 
 const calculateCompletedPoints = (items: WorkItem[]) => {
-  const active = items.filter(w => w.state !== "Removed" && w.sprintTag?.sprintSuffix !== "-");
+  const active = items.filter(w => !w.isRemoved);
   const completed = active.filter(w => w.isDone);
   return completed.reduce((sum, w) => sum + (w.effort || 0), 0);
 };
@@ -37,7 +39,7 @@ const calculateStdev = (values: number[], mean: number): number => {
 };
 
 const getActiveItems = (items: WorkItem[]) => {
-  return items.filter(w => w.state !== "Removed" && w.sprintTag?.sprintSuffix !== "-");
+  return items.filter(w => !w.isRemoved);
 };
 
 const InfoIcon = () => (
@@ -70,8 +72,8 @@ interface SprintStatsData {
   transitionDates: Record<number, Date | null>;
 }
 
-const fetchSprintStats = async (origin: string, fetchFn: typeof globalThis.fetch | undefined, collection: string, project: string, team: string, sprint: string, iterationPath: string): Promise<SprintStatsData> => {
-  const apiClient = new ApiClient(origin, fetchFn);
+const fetchSprintStats = async (origin: string, fetchFn: typeof globalThis.fetch | undefined, collection: string, project: string, team: string, sprint: string, iterationPath: string, stateConfig: WorkItemStateConfig): Promise<SprintStatsData> => {
+  const apiClient = new ApiClient(origin, fetchFn, stateConfig);
 
   // 1. Fetch dates
   const sprintName = iterationPath.split("/").pop() ?? sprint;
@@ -188,7 +190,7 @@ const fetchSprintStats = async (origin: string, fetchFn: typeof globalThis.fetch
           transitionDate = new Date(u.revisedDate);
         }
         const stateField = u.fields?.["System.State"];
-        if (stateField?.newValue === "Removed") {
+        if (stateField?.newValue && categorizeState(stateField.newValue, stateConfig) === "Removed") {
           transitionDate = new Date(u.revisedDate);
         }
       }
@@ -214,12 +216,14 @@ const fetchSprintStats = async (origin: string, fetchFn: typeof globalThis.fetch
 
 export const SprintStatsTab = (props: SprintStatsTabProps) => {
   const platform = usePlatform();
+  const { stateConfig } = useSettings();
+  const configKey = JSON.stringify(stateConfig.states);
   const enabled = Boolean(props.collection && props.project && props.team && props.sprint);
 
   const query = useQuery({
-    queryKey: sprintStatsQueryKey(props.origin, props.collection, props.project, props.team, props.sprint, props.iterationPath),
+    queryKey: sprintStatsQueryKey(props.origin, props.collection, props.project, props.team, props.sprint, props.iterationPath, configKey),
     enabled,
-    queryFn: () => fetchSprintStats(props.origin, props.fetchFn, props.collection, props.project, props.team, props.sprint, props.iterationPath)
+    queryFn: () => fetchSprintStats(props.origin, props.fetchFn, props.collection, props.project, props.team, props.sprint, props.iterationPath, stateConfig)
   });
 
   if (query.isPending && enabled) {

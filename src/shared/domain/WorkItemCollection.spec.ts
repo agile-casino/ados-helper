@@ -77,6 +77,27 @@ describe("WorkItemCollection", () => {
       expect(collection.getWorkItemCategory(workItem)).toBe("Done");
     });
 
+    test("categorizes every state in the new PBI state list", () => {
+      const cases: [string, string][] = [
+        ["New", "Not Started"],
+        ["Ready", "Not Started"],
+        ["Approved", "Not Started"],
+        ["Committed", "Not Started"],
+        ["Blocked", "In Progress"],
+        ["Testing", "In Progress"],
+        ["Staging", "Done"],
+        ["Released", "Done"],
+        ["Done", "Done"],
+        ["Removed", "Removed"]
+      ];
+
+      for (const [state, expected] of cases) {
+        const workItem = new WorkItem(createWorkItemDto({ state }));
+        const collection = new WorkItemCollection([workItem]);
+        expect(collection.getWorkItemCategory(workItem), `${state} should map to ${expected}`).toBe(expected);
+      }
+    });
+
     test("returns 'Removed' for work item with sprint tag ending in minus", () => {
       const dto = createWorkItemDto({ tags: "Sprint 23-" });
       const workItem = new WorkItem(dto);

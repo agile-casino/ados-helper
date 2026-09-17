@@ -6,6 +6,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { PlatformProvider } from "../context/PlatformContext";
+import { SettingsProvider } from "../context/SettingsContext";
 import type { PlatformService } from "../services/PlatformService";
 import { CurrentTeamTab } from "./CurrentTeamTab";
 
@@ -70,7 +71,11 @@ function renderInProviders(ui: ReactElement, queryClient: QueryClient) {
   return render(
     <QueryClientProvider client={queryClient}>
       <PlatformProvider value={platformService}>
-        <MantineProvider>{ui}</MantineProvider>
+        <MantineProvider>
+          <SettingsProvider collection="coll" project="proj">
+            {ui}
+          </SettingsProvider>
+        </MantineProvider>
       </PlatformProvider>
     </QueryClientProvider>
   );

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ApiClient } from "../api/ApiClient";
 import { iterationQueryKey } from "../api/queryKeys";
 import { usePlatform } from "../context/PlatformContext";
+import { useSettings } from "../context/SettingsContext";
 import { generateAcceptanceCriteriaDocxReport } from "../domain/reports/DocxGenerator";
 import { generateAcceptanceCriteriaReport, generatePdfReport } from "../domain/reports/PdfGenerator";
 import { generateReport } from "../domain/reports/ReportGenerator";
@@ -22,12 +23,14 @@ interface CurrentTeamTabProps {
 
 export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
   const platform = usePlatform();
+  const { stateConfig } = useSettings();
+  const configKey = JSON.stringify(stateConfig.states);
   const enabled = Boolean(props.collection && props.project && props.team && props.sprint);
 
   const query = useQuery({
-    queryKey: iterationQueryKey(props.origin, props.collection, props.project, props.team, props.iterationPath),
+    queryKey: iterationQueryKey(props.origin, props.collection, props.project, props.team, props.iterationPath, configKey),
     enabled,
-    queryFn: () => new ApiClient(props.origin, props.fetchFn).getIteration2(props.collection, props.project, props.team, props.iterationPath)
+    queryFn: () => new ApiClient(props.origin, props.fetchFn, stateConfig).getIteration2(props.collection, props.project, props.team, props.iterationPath)
   });
 
   if (query.isPending && enabled) {

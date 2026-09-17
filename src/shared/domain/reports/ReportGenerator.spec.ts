@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { read, utils } from "xlsx-js-style";
 import type { WorkItemDto } from "../../api/WorkItemDto";
 import { WorkItem } from "../WorkItem";
 import { generateMultiTeamReport, generateReport, type TeamWorkItems } from "./ReportGenerator";
@@ -92,6 +93,54 @@ describe("ReportGenerator", () => {
     await generateReport(saveFileMock, "https://dev.azure.com", "mycoll", "myproj", "MyTeam", "Sprint 1", workItems, new Date("2026-07-01"));
 
     expect(saveFileMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("should render new-state PBIs under the correct sections", async () => {
+    const saveFileMock = vi.fn().mockResolvedValue(undefined);
+
+    const workItems = [
+      createWorkItem({ id: 1, state: "Testing", title: "Testing PBI" }),
+      createWorkItem({ id: 2, state: "Blocked", title: "Blocked PBI" }),
+      createWorkItem({ id: 3, state: "Committed", title: "Committed PBI" }),
+      createWorkItem({ id: 4, state: "Removed", title: "Removed PBI" })
+    ];
+
+    await generateReport(saveFileMock, "https://dev.azure.com", "mycoll", "myproj", "MyTeam", "Sprint 1", workItems, new Date("2026-07-01"));
+
+    const data = saveFileMock.mock.calls[0]?.[0] as Uint8Array;
+    const workbook = read(data, { type: "array" });
+    const sheet = workbook.Sheets["Sprint 1"];
+    if (!sheet) throw new Error("Expected a 'Sprint 1' worksheet");
+
+    const rows = utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
+    const sectionTitles = rows.map(row => String(row[0] ?? ""));
+    const sectionNames = ["Completed", "In Progress", "Not Started", "Removed", "Study Time"];
+
+    const inProgressStart = sectionTitles.indexOf("In Progress");
+    const notStartedStart = sectionTitles.indexOf("Not Started");
+    const removedStart = sectionTitles.indexOf("Removed");
+
+    expect(inProgressStart).toBeGreaterThanOrEqual(0);
+    expect(notStartedStart).toBeGreaterThan(inProgressStart);
+    expect(removedStart).toBeGreaterThan(notStartedStart);
+
+    const nextSectionStart = (start: number) => {
+      for (let i = start + 1; i < sectionTitles.length; i++) {
+        if (sectionNames.includes(sectionTitles[i] ?? "")) return i;
+      }
+      return rows.length;
+    };
+    const descriptionsInRange = (start: number, end: number) => rows.slice(start, end).map(row => String(row[2] ?? ""));
+
+    const inProgressDescriptions = descriptionsInRange(inProgressStart, notStartedStart);
+    expect(inProgressDescriptions).toContain("Testing PBI");
+    expect(inProgressDescriptions).toContain("Blocked PBI");
+
+    const notStartedDescriptions = descriptionsInRange(notStartedStart, removedStart);
+    expect(notStartedDescriptions).toContain("Committed PBI");
+
+    const removedDescriptions = descriptionsInRange(removedStart, nextSectionStart(removedStart));
+    expect(removedDescriptions).toContain("Removed PBI");
   });
 
   it("should generate a multi-team report and call saveFile", async () => {

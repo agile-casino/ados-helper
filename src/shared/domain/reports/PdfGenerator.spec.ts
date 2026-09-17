@@ -313,6 +313,25 @@ describe("PdfGenerator", () => {
     expect(studyTimeCall).toBeDefined();
   });
 
+  test("renders Blocked/Testing PBIs under In Progress and Committed under Not Started", () => {
+    const workItems = [
+      new WorkItem(createWorkItemDto({ id: 1, state: "Testing", title: "Testing PBI" })),
+      new WorkItem(createWorkItemDto({ id: 2, state: "Blocked", title: "Blocked PBI" })),
+      new WorkItem(createWorkItemDto({ id: 3, state: "Committed", title: "Committed PBI" }))
+    ];
+
+    generatePdfReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", workItems);
+
+    expect(mockAutoTable).toHaveBeenCalledTimes(2);
+    const calls = mockAutoTable.mock.calls;
+
+    const firstBody = calls[0]?.[1]?.body as { description: string }[];
+    expect(firstBody.map(row => row.description)).toEqual(expect.arrayContaining(["Testing PBI", "Blocked PBI"]));
+
+    const secondBody = calls[1]?.[1]?.body as { description: string }[];
+    expect(secondBody.map(row => row.description)).toEqual(["Committed PBI"]);
+  });
+
   test("generates multi-team PDF report successfully", async () => {
     const w1 = new WorkItem(createWorkItemDto({ id: 1, state: "Done", title: "PBI Team 1" }));
     const w2 = new WorkItem(createWorkItemDto({ id: 2, state: "Done", title: "PBI Team 2" }));

@@ -11,8 +11,10 @@ import { queryClient } from "../shared/api/queryClient";
 import { AccountSchema, ProfileSchema, parseOrThrow, parseValueArray } from "../shared/api/schemas";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
+import { SettingsTab } from "../shared/components/SettingsTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
 import { PlatformProvider } from "../shared/context/PlatformContext";
+import { SettingsProvider } from "../shared/context/SettingsContext";
 import { isTauri } from "../shared/utils/isTauri";
 import { TauriPlatformService } from "./TauriPlatformService";
 import { useAdoState } from "./useAdoState";
@@ -493,25 +495,34 @@ const DesktopAppContent = () => {
 
             {/* Tab Panel */}
             {selectedProject && selectedTeam && selectedSprint && selectedSprintObj ? (
-              <Tabs defaultValue="current-team" style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                <Tabs.List>
-                  <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
-                  <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
-                  <Tabs.Tab value="sprint-stats">Sprint Stats</Tabs.Tab>
-                </Tabs.List>
+              <SettingsProvider key={`${collection}-${selectedProject}`} collection={collection} project={selectedProject}>
+                <Tabs defaultValue="current-team" style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                  <Tabs.List>
+                    <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
+                    <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
+                    <Tabs.Tab value="sprint-stats">Sprint Stats</Tabs.Tab>
+                    <Tabs.Tab value="settings" ml="auto">
+                      Settings
+                    </Tabs.Tab>
+                  </Tabs.List>
 
-                <Tabs.Panel value="current-team" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
-                  <CurrentTeamTab origin={origin} collection={collection} project={selectedProject} team={selectedTeam} sprint={selectedSprint} iterationPath={selectedSprintObj.path} />
-                </Tabs.Panel>
+                  <Tabs.Panel value="current-team" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
+                    <CurrentTeamTab origin={origin} collection={collection} project={selectedProject} team={selectedTeam} sprint={selectedSprint} iterationPath={selectedSprintObj.path} />
+                  </Tabs.Panel>
 
-                <Tabs.Panel value="multi-team" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
-                  <MultiTeamTab origin={origin} collection={collection} project={selectedProject} currentTeam={selectedTeam} sprint={selectedSprint} iterationPath={selectedSprintObj.path} />
-                </Tabs.Panel>
+                  <Tabs.Panel value="multi-team" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
+                    <MultiTeamTab origin={origin} collection={collection} project={selectedProject} currentTeam={selectedTeam} sprint={selectedSprint} iterationPath={selectedSprintObj.path} />
+                  </Tabs.Panel>
 
-                <Tabs.Panel value="sprint-stats" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
-                  <SprintStatsTab origin={origin} collection={collection} project={selectedProject} team={selectedTeam} sprint={selectedSprint} iterationPath={selectedSprintObj.path} />
-                </Tabs.Panel>
-              </Tabs>
+                  <Tabs.Panel value="sprint-stats" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
+                    <SprintStatsTab origin={origin} collection={collection} project={selectedProject} team={selectedTeam} sprint={selectedSprint} iterationPath={selectedSprintObj.path} />
+                  </Tabs.Panel>
+
+                  <Tabs.Panel value="settings" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
+                    <SettingsTab origin={origin} collection={collection} project={selectedProject} />
+                  </Tabs.Panel>
+                </Tabs>
+              </SettingsProvider>
             ) : (
               <Group justify="center" align="center" style={{ flex: 1 }}>
                 <Alert color="blue" title="Selection Required" w="100%">

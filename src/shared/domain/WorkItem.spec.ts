@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import type { WorkItemDto } from "../api/WorkItemDto";
 import { WorkItem } from "./WorkItem";
+import type { WorkItemStateConfig } from "./WorkItemState";
 
 function createWorkItemDto(
   overrides: Partial<{
@@ -190,6 +191,7 @@ describe("WorkItem", () => {
       expect(new WorkItem(createWorkItemDto({ state: "Staging" })).isDone).toBe(true);
       expect(new WorkItem(createWorkItemDto({ state: "Released" })).isDone).toBe(true);
       expect(new WorkItem(createWorkItemDto({ state: "New" })).isDone).toBe(false);
+      expect(new WorkItem(createWorkItemDto({ state: "Testing" })).isDone).toBe(false);
     });
 
     test("isInProgress returns correct boolean", () => {
@@ -218,6 +220,17 @@ describe("WorkItem", () => {
       expect(inProgressItem.isInProgress).toBe(true);
     });
 
+    test("isInProgress returns true for Blocked and Testing states with no started tasks", () => {
+      expect(new WorkItem(createWorkItemDto({ state: "Blocked" })).isInProgress).toBe(true);
+      expect(new WorkItem(createWorkItemDto({ state: "Testing" })).isInProgress).toBe(true);
+    });
+
+    test("isInProgress returns false for not started states", () => {
+      for (const state of ["New", "Ready", "Approved", "Committed"]) {
+        expect(new WorkItem(createWorkItemDto({ state })).isInProgress).toBe(false);
+      }
+    });
+
     test("isRemoved returns true if sprintTag suffix is '-'", () => {
       const dto = createWorkItemDto();
       dto.System.Tags = "Sprint 23-";
@@ -227,6 +240,11 @@ describe("WorkItem", () => {
       dto.System.Tags = "Sprint 23+";
       const workItem2 = new WorkItem(dto);
       expect(workItem2.isRemoved).toBe(false);
+    });
+
+    test("isRemoved returns true for the Removed state", () => {
+      expect(new WorkItem(createWorkItemDto({ state: "Removed" })).isRemoved).toBe(true);
+      expect(new WorkItem(createWorkItemDto({ state: "Testing" })).isRemoved).toBe(false);
     });
 
     test("sprint returns Tag representing the iteration path tail", () => {
@@ -320,6 +338,47 @@ describe("WorkItem", () => {
       const workItem3 = new WorkItem(dto);
       expect(workItem3.wiseLink).toBe("http://wise/abc");
       expect(workItem3.wiseNumber).toBeUndefined();
+    });
+  });
+
+  describe("custom state configuration", () => {
+    const config: WorkItemStateConfig = {
+      states: {
+        "In Review": "In Progress",
+        Deployed: "Done",
+        Rejected: "Removed"
+      }
+    };
+
+    test("isDone honors a custom Done state", () => {
+      expect(new WorkItem(createWorkItemDto({ state: "Deployed" }), config).isDone).toBe(true);
+      expect(new WorkItem(createWorkItemDto({ state: "Done" }), config).isDone).toBe(false);
+    });
+
+    test("isInProgress honors a custom In Progress state", () => {
+      expect(new WorkItem(createWorkItemDto({ state: "In Review" }), config).isInProgress).toBe(true);
+      expect(new WorkItem(createWorkItemDto({ state: "Blocked" }), config).isInProgress).toBe(false);
+    });
+
+    test("isRemoved honors a custom Removed state", () => {
+      expect(new WorkItem(createWorkItemDto({ state: "Rejected" }), config).isRemoved).toBe(true);
+      expect(new WorkItem(createWorkItemDto({ state: "Removed" }), config).isRemoved).toBe(false);
+    });
+
+    test("unlisted states fall back to Not Started", () => {
+      const workItem = new WorkItem(createWorkItemDto({ state: "New" }), config);
+      expect(workItem.isDone).toBe(false);
+      expect(workItem.isInProgress).toBe(false);
+      expect(workItem.isRemoved).toBe(false);
+    });
+
+    test("Removed takes precedence over started tasks", () => {
+      const task = createTaskDto();
+      task.System.State = "In Progress";
+      const workItem = new WorkItem(createWorkItemDto({ state: "Rejected", children: [task] }), config);
+
+      expect(workItem.isRemoved).toBe(true);
+      expect(workItem.isInProgress).toBe(false);
     });
   });
 });

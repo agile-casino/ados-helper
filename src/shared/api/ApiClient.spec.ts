@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { WorkItemStateConfig } from "../domain/WorkItemState";
 import { ApiClient } from "./ApiClient";
 
 function mockFetch(data: unknown, ok = true): typeof globalThis.fetch {
@@ -210,10 +211,84 @@ describe("ApiClient", () => {
       expect(wiqlCall).toBeDefined();
       if (!wiqlCall) return;
       const body = JSON.parse((wiqlCall[1] as RequestInit).body as string) as { query: string };
-      expect(body.query).toContain("AND [System.State] <> 'Removed'");
+      expect(body.query).toContain("AND [System.State] NOT IN ('Removed')");
       expect(body.query).toContain("AND NOT [System.Tags] CONTAINS 'Sprint 13-'");
       expect(body.query).toContain("[System.AreaPath] UNDER 'Contoso\\Engineering\\team'");
       expect(body.query).toContain("ASOF '2026-01-20T00:00:00.000Z'");
+    });
+
+    it("excludes every configured Removed state and escapes single quotes", async () => {
+      const fetchSpy = createApiMock({
+        teamFieldValues: { defaultValue: "Contoso\\Engineering\\team" },
+        wiql: { workItems: [] }
+      });
+      const config: WorkItemStateConfig = { states: { Removed: "Removed", "O'Brien": "Removed", Done: "Done" } };
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy, config);
+      await client.getSprintSnapshot("coll", "Contoso", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
+
+      const wiqlCall = fetchSpy.mock.calls.find(([url]) => (url as string).includes("/_apis/wit/wiql"));
+      expect(wiqlCall).toBeDefined();
+      if (!wiqlCall) return;
+      const body = JSON.parse((wiqlCall[1] as RequestInit).body as string) as { query: string };
+      expect(body.query).toContain("AND [System.State] NOT IN ('Removed', 'O''Brien')");
+    });
+
+    it("applies the configured state mapping to returned work items", async () => {
+      const fetchSpy = createApiMock({
+        teamFieldValues: { defaultValue: "proj\\Engineering\\team" },
+        wiql: { workItems: [{ id: 501 }] },
+        batchFields: {
+          value: [{ id: 501, fields: { ...commonFields, "System.Id": 501, "System.State": "Deployed", "System.WorkItemType": "Product Backlog Item" } }]
+        }
+      });
+      const config: WorkItemStateConfig = { states: { Deployed: "Done" } };
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy, config);
+      const workItems = await client.getSprintSnapshot("coll", "proj", "team", "Sprint 13", "Sprint 13", new Date("2026-01-20"));
+
+      expect(workItems).toHaveLength(1);
+      expect(workItems[0]?.isDone).toBe(true);
+    });
+  });
+
+  describe("getWorkItemStates", () => {
+    it("unions states from all work item types by name", async () => {
+      const respond = (data: unknown) => ({ ok: true, json: async () => data, text: async () => JSON.stringify(data), status: 200, statusText: "OK" }) as Response;
+      const fetchSpy = vi.fn().mockImplementation(async (url: string) => {
+        if (url.includes("Product%20Backlog%20Item/states")) {
+          return respond({
+            value: [
+              { name: "New", category: "Proposed" },
+              { name: "In Review", category: "InProgress" }
+            ]
+          });
+        }
+        if (url.includes("/Bug/states")) {
+          return respond({
+            value: [
+              { name: "New", category: "Proposed" },
+              { name: "Closed", category: "Completed" }
+            ]
+          });
+        }
+        throw new Error(`Unexpected URL: ${url}`);
+      });
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const states = await client.getWorkItemStates("coll", "proj");
+
+      expect(states.map(state => state.name).sort()).toEqual(["Closed", "In Review", "New"]);
+    });
+
+    it("returns an empty array when the states request fails", async () => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      const fetchSpy = mockFetch(null, false);
+
+      const client = new ApiClient("https://dev.azure.com/org", fetchSpy);
+      const states = await client.getWorkItemStates("coll", "proj");
+
+      expect(states).toEqual([]);
     });
   });
 

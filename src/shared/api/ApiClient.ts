@@ -1,4 +1,5 @@
 import { WorkItem } from "../domain/WorkItem";
+import { DEFAULT_WORK_ITEM_STATE_CONFIG, type WorkItemStateConfig } from "../domain/WorkItemState";
 import {
   type AzureDevOpsIteration,
   AzureDevOpsIterationSchema,
@@ -9,6 +10,8 @@ import {
   TeamFieldValuesResponseSchema,
   WorkItemRefSchema,
   WorkItemRelationSchema,
+  type WorkItemTypeState,
+  WorkItemTypeStateSchema,
   type WorkItemUpdate,
   WorkItemUpdateSchema
 } from "./schemas";
@@ -41,6 +44,12 @@ const WORK_ITEM_FIELDS = [
 ];
 
 const PUBLIC_API_VERSION = "7.1";
+
+const WORK_ITEM_TYPES_WITH_STATES = ["Product Backlog Item", "Bug"] as const;
+
+function escapeWiqlString(value: string): string {
+  return value.replace(/'/g, "''");
+}
 
 function encodePathSegment(segment: string): string {
   return segment
@@ -106,7 +115,8 @@ export class ApiClient {
 
   constructor(
     private origin: string,
-    fetchFn?: typeof globalThis.fetch
+    fetchFn?: typeof globalThis.fetch,
+    private stateConfig: WorkItemStateConfig = DEFAULT_WORK_ITEM_STATE_CONFIG
   ) {
     this._fetch = fetchFn ?? globalThis.fetch.bind(globalThis);
   }
@@ -133,6 +143,33 @@ export class ApiClient {
     return { startDate: undefined, finishDate: undefined };
   }
 
+  public async getWorkItemStates(collection: string, project: string): Promise<WorkItemTypeState[]> {
+    // Best-effort: the Settings tab can fall back to defaults + manual entry, so
+    // a failure here must not block rendering.
+    const byName = new Map<string, WorkItemTypeState>();
+    await Promise.all(
+      WORK_ITEM_TYPES_WITH_STATES.map(async type => {
+        try {
+          const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/_apis/wit/workitemtypes/${encodeURIComponent(type)}/states?api-version=${PUBLIC_API_VERSION}`;
+          const response = await this._fetch(url);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch states for ${type}: ${response.status} ${response.statusText}`);
+          }
+          const data = await response.json();
+          const states = parseValueArray(WorkItemTypeStateSchema, data, `states(${type})`);
+          for (const state of states) {
+            if (!byName.has(state.name)) {
+              byName.set(state.name, state);
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch work item states for ${type}:`, error);
+        }
+      })
+    );
+    return [...byName.values()];
+  }
+
   public async getTeamAreaPath(collection: string, project: string, team: string): Promise<string> {
     try {
       const url = `${this.origin}/${encodePathSegment(collection)}/${encodePathSegment(project)}/${encodePathSegment(team)}/_apis/work/teamsettings/teamfieldvalues?api-version=${PUBLIC_API_VERSION}`;
@@ -157,6 +194,10 @@ export class ApiClient {
 
     const areaPath = await this.getTeamAreaPath(collection, project, team);
     const adoIterationPath = `${project}\\${iterationPath.replace(/\//g, "\\")}`;
+    const removedStates = Object.entries(this.stateConfig.states)
+      .filter(([, category]) => category === "Removed")
+      .map(([state]) => state);
+    const removedStateExclusion = removedStates.length > 0 ? `AND [System.State] NOT IN (${removedStates.map(state => `'${escapeWiqlString(state)}'`).join(", ")})` : "";
     // Note: ASOF only makes the returned ID set historical — field values are
     // fetched separately via the batch endpoint, which always returns current
     // values. The active-item filters (state, removal tag) therefore live in
@@ -179,7 +220,7 @@ export class ApiClient {
           [System.WorkItemType] = 'Product Backlog Item' OR
           [System.WorkItemType] = 'Bug'
         )
-        AND [System.State] <> 'Removed'
+        ${removedStateExclusion}
         AND NOT [System.Tags] CONTAINS '${sprintNumber}-'
         AND [System.AreaPath] UNDER '${areaPath}'
         AND (
@@ -197,7 +238,7 @@ export class ApiClient {
       .trim();
 
     const dtos = await this.executeWiqlQuery(collection, project, query);
-    return dtos.map(x => new WorkItem(x));
+    return dtos.map(x => new WorkItem(x, this.stateConfig));
   }
 
   public async getIteration2(collection: string, project: string, team: string, iteration: string): Promise<IterationData> {
@@ -317,7 +358,7 @@ export class ApiClient {
     const dates = await datesPromise;
 
     return {
-      workItems: filteredWorkItemDtos.map(x => new WorkItem(x)),
+      workItems: filteredWorkItemDtos.map(x => new WorkItem(x, this.stateConfig)),
       sprintStartDate: dates.startDate,
       sprintEndDate: dates.finishDate
     };
