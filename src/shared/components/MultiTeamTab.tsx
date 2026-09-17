@@ -13,9 +13,9 @@ import { SprintReportSplitButton } from "./SprintReportSplitButton";
 import { WorkItemTable } from "./WorkItemTable";
 
 const DEFAULT_TEAM_COLORS: Record<string, string> = {
-  "DE_BK_Green": "#94ff8f",
-  "DE_BK_Blue": "#4a9eff",
-  "DE_EX_Yellow": "#ffe491",
+  "DE_WCS_Green": "#94ff8f",
+  "DE_WCS_Blue": "#4a9eff",
+  "DE_WCS_Yellow": "#ffe491",
   "DE_EX_UX": "#e4dfec",
   "DE_EX_TechDoc": "#feddb7"
 };

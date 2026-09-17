@@ -61,20 +61,20 @@ describe("WorkItemCollection", () => {
       expect(collection.getWorkItemCategory(workItem)).toBe("Done");
     });
 
-    test("returns 'Done' for work item with Staging state", () => {
+    test("returns 'In Progress' for work item with Staging state", () => {
       const dto = createWorkItemDto({ state: "Staging" });
       const workItem = new WorkItem(dto);
       const collection = new WorkItemCollection([workItem]);
 
-      expect(collection.getWorkItemCategory(workItem)).toBe("Done");
+      expect(collection.getWorkItemCategory(workItem)).toBe("In Progress");
     });
 
-    test("returns 'Done' for work item with Released state", () => {
+    test("returns 'In Progress' for work item with Released state", () => {
       const dto = createWorkItemDto({ state: "Released" });
       const workItem = new WorkItem(dto);
       const collection = new WorkItemCollection([workItem]);
 
-      expect(collection.getWorkItemCategory(workItem)).toBe("Done");
+      expect(collection.getWorkItemCategory(workItem)).toBe("In Progress");
     });
 
     test("categorizes every state in the new PBI state list", () => {
@@ -85,8 +85,8 @@ describe("WorkItemCollection", () => {
         ["Committed", "Not Started"],
         ["Blocked", "In Progress"],
         ["Testing", "In Progress"],
-        ["Staging", "Done"],
-        ["Released", "Done"],
+        ["Staging", "In Progress"],
+        ["Released", "In Progress"],
         ["Done", "Done"],
         ["Removed", "Removed"]
       ];
@@ -150,22 +150,6 @@ describe("WorkItemCollection", () => {
       expect(collection.done[0]?.title).toBe("Done Item");
     });
 
-    test("returns work items with Staging state", () => {
-      const dto = createWorkItemDto({ id: 1, state: "Staging", title: "Staging Item" });
-      const collection = new WorkItemCollection([new WorkItem(dto)]);
-
-      expect(collection.done).toHaveLength(1);
-      expect(collection.done[0]?.title).toBe("Staging Item");
-    });
-
-    test("returns work items with Released state", () => {
-      const dto = createWorkItemDto({ id: 1, state: "Released", title: "Released Item" });
-      const collection = new WorkItemCollection([new WorkItem(dto)]);
-
-      expect(collection.done).toHaveLength(1);
-      expect(collection.done[0]?.title).toBe("Released Item");
-    });
-
     test("sorts done items by title", () => {
       const dto1 = createWorkItemDto({ id: 1, state: "Done", title: "Zebra" });
       const dto2 = createWorkItemDto({ id: 2, state: "Done", title: "Alpha" });
@@ -190,6 +174,22 @@ describe("WorkItemCollection", () => {
 
       expect(collection.inProgress).toHaveLength(1);
       expect(collection.inProgress[0]?.title).toBe("In Progress Item");
+    });
+
+    test("returns work items with Staging state", () => {
+      const dto = createWorkItemDto({ id: 1, state: "Staging", title: "Staging Item" });
+      const collection = new WorkItemCollection([new WorkItem(dto)]);
+
+      expect(collection.inProgress).toHaveLength(1);
+      expect(collection.inProgress[0]?.title).toBe("Staging Item");
+    });
+
+    test("returns work items with Released state", () => {
+      const dto = createWorkItemDto({ id: 1, state: "Released", title: "Released Item" });
+      const collection = new WorkItemCollection([new WorkItem(dto)]);
+
+      expect(collection.inProgress).toHaveLength(1);
+      expect(collection.inProgress[0]?.title).toBe("Released Item");
     });
   });
 

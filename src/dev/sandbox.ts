@@ -14,15 +14,25 @@ interface MockWorkItem {
   completedWork?: number;
   children?: MockWorkItem[];
   links?: string[];
+  // Sprint timeline metadata. Used to simulate historical `ASOF` snapshots so
+  // the Sprint Stats tab can show added/removed items and velocity variance.
+  // `sprint` is the sprint the item's lifecycle belongs to (defaults to the
+  // configured sprint), while `currentSprint` overrides where the item lives
+  // now (e.g. "Backlog" for an item dropped mid-sprint). Dates bound when the
+  // item entered/left the sprint.
+  sprint?: string;
+  currentSprint?: string;
+  sprintAddedDate?: string;
+  sprintRemovedDate?: string;
 }
 
 // Default mock data scenarios
 const SCENARIOS = {
   standard: {
     name: "Standard Sprint",
-    description: "Active sprint with normal mix of PBIs, tasks, and typical completion rates.",
+    description: "Active sprint with normal mix of PBIs, tasks, and typical completion rates. Includes an item added and one dropped mid-sprint plus six historical sprints so Sprint Stats shows churn and velocity variance.",
     data: {
-      "DE_BK_Green": [
+      "DE_WCS_Green": [
         {
           id: 101,
           type: "Product Backlog Item",
@@ -105,7 +115,51 @@ const SCENARIOS = {
           tags: "Sprint 13",
           effort: 8,
           children: []
-        }
+        },
+        {
+          id: 113,
+          type: "Product Backlog Item",
+          title: "[Added] Scope increase pulled in after sprint start",
+          state: "In Progress",
+          assignedTo: "Alice Green",
+          tags: "Sprint 13+",
+          effort: 5,
+          activatedDate: "2026-06-05T09:00:00Z",
+          sprintAddedDate: "2026-06-05T09:00:00Z",
+          children: []
+        },
+        {
+          id: 114,
+          type: "Product Backlog Item",
+          title: "[Dropped] Deprioritized and moved back to the backlog",
+          state: "Committed",
+          assignedTo: "Bob Miller",
+          tags: "Sprint 13",
+          effort: 3,
+          activatedDate: "2026-06-01T09:00:00Z",
+          sprintRemovedDate: "2026-06-08T14:00:00Z",
+          currentSprint: "Backlog",
+          children: []
+        },
+        {
+          id: 115,
+          type: "Product Backlog Item",
+          title: "[Core] Ship telemetry dashboard",
+          state: "Done",
+          assignedTo: "Alice Green",
+          tags: "Sprint 13; Core",
+          effort: 8,
+          activatedDate: "2026-06-01T09:00:00Z",
+          children: []
+        },
+        // Historical sprints, one completed PBI each with varying effort so the
+        // Sprint Stats velocity average/variance is non-zero.
+        { id: 120, type: "Product Backlog Item", title: "[Sprint 7] Legacy import cleanup", state: "Done", assignedTo: "Alice Green", tags: "Sprint 7", effort: 10, sprint: "Sprint 7", activatedDate: "2026-03-09T09:00:00Z", children: [] },
+        { id: 121, type: "Product Backlog Item", title: "[Sprint 8] Billing reconciliation", state: "Done", assignedTo: "Bob Miller", tags: "Sprint 8", effort: 15, sprint: "Sprint 8", activatedDate: "2026-03-23T09:00:00Z", children: [] },
+        { id: 122, type: "Product Backlog Item", title: "[Sprint 9] Audit logging", state: "Done", assignedTo: "Alice Green", tags: "Sprint 9", effort: 7, sprint: "Sprint 9", activatedDate: "2026-04-06T09:00:00Z", children: [] },
+        { id: 123, type: "Product Backlog Item", title: "[Sprint 10] Offline sync engine", state: "Done", assignedTo: "Bob Miller", tags: "Sprint 10", effort: 22, sprint: "Sprint 10", activatedDate: "2026-04-20T09:00:00Z", children: [] },
+        { id: 124, type: "Product Backlog Item", title: "[Sprint 11] Search indexing rework", state: "Done", assignedTo: "Alice Green", tags: "Sprint 11", effort: 13, sprint: "Sprint 11", activatedDate: "2026-05-04T09:00:00Z", children: [] },
+        { id: 125, type: "Product Backlog Item", title: "[Sprint 12] Notification service", state: "Done", assignedTo: "Bob Miller", tags: "Sprint 12", effort: 18, sprint: "Sprint 12", activatedDate: "2026-05-18T09:00:00Z", children: [] }
       ]
     }
   },
@@ -113,7 +167,7 @@ const SCENARIOS = {
     name: "Multi-Team Setup",
     description: "Configured with multiple active teams to test combining data in the Multi-Team tab.",
     data: {
-      "DE_BK_Green": [
+      "DE_WCS_Green": [
         {
           id: 201,
           type: "Product Backlog Item",
@@ -126,7 +180,7 @@ const SCENARIOS = {
           children: [{ id: 202, type: "Task", title: "Code frontend", state: "Done", assignedTo: "Alice Green", remainingWork: 0, originalEstimate: 8, completedWork: 8 }]
         }
       ],
-      "DE_BK_Blue": [
+      "DE_WCS_Blue": [
         {
           id: 301,
           type: "Product Backlog Item",
@@ -175,7 +229,7 @@ const SCENARIOS = {
     name: "Edge Cases & Color Codes",
     description: "Contains items pulled in late, items activated early, and custom suffixes (+, !) to test color highlights.",
     data: {
-      "DE_BK_Green": [
+      "DE_WCS_Green": [
         {
           id: 501,
           type: "Product Backlog Item",
@@ -238,7 +292,7 @@ const SCENARIOS = {
     name: "Custom PBI States",
     description: "Uses custom ADO states (In Review, Deployed, Rejected) to exercise the Settings state mapping.",
     data: {
-      "DE_BK_Green": [
+      "DE_WCS_Green": [
         {
           id: 601,
           type: "Product Backlog Item",
@@ -278,7 +332,7 @@ const SCENARIOS = {
     name: "Empty Sprint",
     description: "A completely empty sprint with no work items recorded.",
     data: {
-      "DE_BK_Green": []
+      "DE_WCS_Green": []
     }
   }
 };
@@ -293,7 +347,7 @@ class SandboxState {
   public currentUrlParams = {
     collection: "DefaultCollection",
     project: "Contoso",
-    team: "DE_BK_Green",
+    team: "DE_WCS_Green",
     sprint: "Sprint 13",
     iterationPath: "Sprint 13"
   };
@@ -357,6 +411,46 @@ class SandboxState {
 }
 
 const state = new SandboxState();
+
+function findMockItem(items: MockWorkItem[], id: number): MockWorkItem | undefined {
+  for (const item of items) {
+    if (item.id === id) return item;
+    if (item.children) {
+      const found = findMockItem(item.children, id);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+function findMockItemAcrossTeams(id: number): MockWorkItem | undefined {
+  for (const teamKey of Object.keys(state.mockData)) {
+    const found = findMockItem(state.mockData[teamKey] ?? [], id);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+// The item's effective current sprint, used for non-historical queries and the
+// iteration path reported by the batch endpoint.
+function currentSprintOf(item: MockWorkItem): string {
+  return item.currentSprint ?? item.sprint ?? state.currentUrlParams.sprint;
+}
+
+// The sprint an item's lifecycle belongs to, used when answering `ASOF`
+// snapshot queries.
+function lifecycleSprintOf(item: MockWorkItem): string {
+  return item.sprint ?? state.currentUrlParams.sprint;
+}
+
+// A snapshot `ASOF` date determines whether an item was part of the sprint at
+// that point in time. Missing date bounds mean the item was present throughout.
+function isInSprintAsOf(item: MockWorkItem, sprintName: string, asOf: Date): boolean {
+  if (lifecycleSprintOf(item) !== sprintName) return false;
+  if (item.sprintAddedDate && new Date(item.sprintAddedDate) > asOf) return false;
+  if (item.sprintRemovedDate && new Date(item.sprintRemovedDate) <= asOf) return false;
+  return true;
+}
 
 // Fetch interception
 const originalFetch = window.fetch;
@@ -550,8 +644,13 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
       }
     }
 
-    const itemsForTeam = state.mockData[teamKey] || [];
+    const allItemsForTeam = state.mockData[teamKey] || [];
     const isLinkQuery = wiql.includes("WorkItemLinks");
+
+    // Regular (non-snapshot) queries only return the currently configured
+    // sprint's items; historical fixtures are reserved for `ASOF` snapshots.
+    const configuredSprint = state.currentUrlParams.sprint;
+    const itemsForTeam = allItemsForTeam.filter(item => currentSprintOf(item) === configuredSprint);
 
     if (isLinkQuery) {
       const relations: { source: { id: number }; target: { id: number } }[] = [];
@@ -580,25 +679,42 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
         status: 200,
         headers: { "Content-Type": "application/json" }
       });
-    } else {
-      const items: { id: number }[] = [];
-      function collectItemIds(item: MockWorkItem) {
-        items.push({ id: item.id });
-        if (item.children) {
-          for (const child of item.children) {
-            collectItemIds(child);
-          }
-        }
-      }
-      for (const item of itemsForTeam) {
-        collectItemIds(item);
-      }
+    }
 
-      return new Response(JSON.stringify({ workItems: items }), {
+    const asOfMatch = wiql.match(/ASOF\s*'([^']+)'/i);
+    if (asOfMatch?.[1]) {
+      // `ASOF` snapshot query (Sprint Stats). The real API evaluates the query
+      // as of the snapshot date, so items added after it or removed before it
+      // are excluded. Return top-level PBIs/Bugs only, matching the WIQL type
+      // filters the client sends.
+      const asOf = new Date(asOfMatch[1]);
+      const iterationMatch = wiql.match(/\[System\.IterationPath\]\s*UNDER\s*'([^']+)'/i);
+      const requestedSprint = iterationMatch?.[1]?.split("\\").pop() ?? configuredSprint;
+      const snapshotItems = allItemsForTeam.filter(item => item.type !== "Task" && isInSprintAsOf(item, requestedSprint, asOf)).map(item => ({ id: item.id }));
+
+      return new Response(JSON.stringify({ workItems: snapshotItems }), {
         status: 200,
         headers: { "Content-Type": "application/json" }
       });
     }
+
+    const items: { id: number }[] = [];
+    function collectItemIds(item: MockWorkItem) {
+      items.push({ id: item.id });
+      if (item.children) {
+        for (const child of item.children) {
+          collectItemIds(child);
+        }
+      }
+    }
+    for (const item of itemsForTeam) {
+      collectItemIds(item);
+    }
+
+    return new Response(JSON.stringify({ workItems: items }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   // 4. Intercept WorkItems Batch API
@@ -643,7 +759,8 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           url: link
         })) || [];
 
-      const iterationPath = `${state.currentUrlParams.project}\\${state.currentUrlParams.team}\\${state.currentUrlParams.sprint}`;
+      const itemSprint = match ? currentSprintOf(match) : state.currentUrlParams.sprint;
+      const iterationPath = `${state.currentUrlParams.project}\\${state.currentUrlParams.team}\\${itemSprint}`;
 
       return {
         id: id,
@@ -777,18 +894,43 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
         }
       ];
     } else {
-      value = [
-        {
-          id: 1,
-          rev: 1,
-          revisedDate: "2026-06-01T09:00:00Z",
-          fields: {
-            "System.IterationPath": {
-              newValue: "Contoso\\Sprint 13"
+      const item = findMockItemAcrossTeams(id);
+      if (item && (item.sprintAddedDate || item.sprintRemovedDate)) {
+        const baseSprint = item.sprint ?? state.currentUrlParams.sprint;
+        const inPath = `${state.currentUrlParams.project}\\${state.currentUrlParams.team}\\${baseSprint}`;
+        const outPath = `${state.currentUrlParams.project}\\Backlog`;
+        const generated: unknown[] = [];
+        if (item.sprintAddedDate) {
+          generated.push({
+            id: 1,
+            rev: 1,
+            revisedDate: item.sprintAddedDate,
+            fields: { "System.IterationPath": { oldValue: outPath, newValue: inPath } }
+          });
+        }
+        if (item.sprintRemovedDate) {
+          generated.push({
+            id: generated.length + 1,
+            rev: generated.length + 1,
+            revisedDate: item.sprintRemovedDate,
+            fields: { "System.IterationPath": { oldValue: inPath, newValue: outPath } }
+          });
+        }
+        value = generated;
+      } else {
+        value = [
+          {
+            id: 1,
+            rev: 1,
+            revisedDate: "2026-06-01T09:00:00Z",
+            fields: {
+              "System.IterationPath": {
+                newValue: "Contoso\\Sprint 13"
+              }
             }
           }
-        }
-      ];
+        ];
+      }
     }
 
     return new Response(JSON.stringify({ count: value.length, value }), {

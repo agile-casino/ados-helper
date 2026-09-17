@@ -186,10 +186,10 @@ describe("WorkItem", () => {
       expect(new WorkItem(createWorkItemDto({ children: tasks2 })).allTasksDone).toBe(false);
     });
 
-    test("isDone returns true for Done, Staging, Released states", () => {
+    test("isDone returns true only for the Done state", () => {
       expect(new WorkItem(createWorkItemDto({ state: "Done" })).isDone).toBe(true);
-      expect(new WorkItem(createWorkItemDto({ state: "Staging" })).isDone).toBe(true);
-      expect(new WorkItem(createWorkItemDto({ state: "Released" })).isDone).toBe(true);
+      expect(new WorkItem(createWorkItemDto({ state: "Staging" })).isDone).toBe(false);
+      expect(new WorkItem(createWorkItemDto({ state: "Released" })).isDone).toBe(false);
       expect(new WorkItem(createWorkItemDto({ state: "New" })).isDone).toBe(false);
       expect(new WorkItem(createWorkItemDto({ state: "Testing" })).isDone).toBe(false);
     });
@@ -220,9 +220,11 @@ describe("WorkItem", () => {
       expect(inProgressItem.isInProgress).toBe(true);
     });
 
-    test("isInProgress returns true for Blocked and Testing states with no started tasks", () => {
+    test("isInProgress returns true for Blocked, Testing, Staging and Released states with no started tasks", () => {
       expect(new WorkItem(createWorkItemDto({ state: "Blocked" })).isInProgress).toBe(true);
       expect(new WorkItem(createWorkItemDto({ state: "Testing" })).isInProgress).toBe(true);
+      expect(new WorkItem(createWorkItemDto({ state: "Staging" })).isInProgress).toBe(true);
+      expect(new WorkItem(createWorkItemDto({ state: "Released" })).isInProgress).toBe(true);
     });
 
     test("isInProgress returns false for not started states", () => {

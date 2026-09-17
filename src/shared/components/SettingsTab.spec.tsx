@@ -87,10 +87,6 @@ describe("SettingsTab", () => {
 
   test("reset restores the default mapping", async () => {
     localStorage.setItem(storageKey, JSON.stringify({ states: { "In Review": "Done" } }));
-    vi.stubGlobal(
-      "confirm",
-      vi.fn(() => true)
-    );
 
     renderSettings(createStatesFetchMock());
 
@@ -99,7 +95,7 @@ describe("SettingsTab", () => {
       expect(screen.getByTestId("probe").textContent).toContain('"In Review":"Done"');
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Reset to defaults" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset state mappings to defaults" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("probe").textContent).toBe(JSON.stringify(DEFAULT_WORK_ITEM_STATE_CONFIG.states));

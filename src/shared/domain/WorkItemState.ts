@@ -1,5 +1,5 @@
-const DONE_STATES = ["Done", "Staging", "Released"];
-const IN_PROGRESS_STATES = ["Blocked", "Testing"];
+const DONE_STATES = ["Done"];
+const IN_PROGRESS_STATES = ["Blocked", "Staging", "Released", "Testing"];
 const REMOVED_STATE = "Removed";
 
 export const KNOWN_PBI_STATES = ["New", "Ready", "Approved", "Blocked", "Committed", "Testing", "Staging", "Released", "Done", "Removed"] as const;

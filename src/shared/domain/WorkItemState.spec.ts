@@ -10,8 +10,8 @@ describe("WorkItemState", () => {
       ["Committed", "Not Started"],
       ["Blocked", "In Progress"],
       ["Testing", "In Progress"],
-      ["Staging", "Done"],
-      ["Released", "Done"],
+      ["Staging", "In Progress"],
+      ["Released", "In Progress"],
       ["Done", "Done"],
       ["Removed", "Removed"]
     ];
