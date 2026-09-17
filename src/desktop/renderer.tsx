@@ -15,6 +15,7 @@ import { SettingsTab } from "../shared/components/SettingsTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
 import { PlatformProvider } from "../shared/context/PlatformContext";
 import { SettingsProvider } from "../shared/context/SettingsContext";
+import { theme } from "../shared/styles/theme";
 import { isTauri } from "../shared/utils/isTauri";
 import { TauriPlatformService } from "./TauriPlatformService";
 import { useAdoState } from "./useAdoState";
@@ -541,7 +542,7 @@ export const DesktopApp = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <PlatformProvider value={platformService}>
-        <MantineProvider defaultColorScheme="auto">
+        <MantineProvider theme={theme} defaultColorScheme="auto">
           <DesktopAppContent />
         </MantineProvider>
       </PlatformProvider>

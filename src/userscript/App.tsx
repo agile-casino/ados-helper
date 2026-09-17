@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { queryClient } from "../shared/api/queryClient";
 import { PlatformProvider } from "../shared/context/PlatformContext";
+import { theme } from "../shared/styles/theme";
 import { BrowserPlatformService } from "./BrowserPlatformService";
 import { ReportDialog } from "./ReportDialog";
 
@@ -47,7 +48,7 @@ export const App = () => {
     return (
       <QueryClientProvider client={queryClient}>
         <PlatformProvider value={platformService}>
-          <MantineProvider defaultColorScheme={colorScheme}>
+          <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
             <button type="button" onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", margin: "auto 8px", background: "none", border: "1px solid rgb(234,234,234)" }}>
               Reports
             </button>

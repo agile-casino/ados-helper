@@ -10,6 +10,7 @@ import { SettingsTab } from "../shared/components/SettingsTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
 import { PlatformProvider } from "../shared/context/PlatformContext";
 import { SettingsProvider } from "../shared/context/SettingsContext";
+import { theme } from "../shared/styles/theme";
 import { ExtensionPlatformService } from "./ExtensionPlatformService";
 
 // Import Mantine Styles for the extension package
@@ -210,7 +211,7 @@ export const ExtensionApp = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <PlatformProvider value={platformService}>
-        <MantineProvider forceColorScheme={colorScheme}>
+        <MantineProvider theme={theme} forceColorScheme={colorScheme}>
           <div style={{ padding: "16px", height: "100vh", display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "1rem" }}>
               <Title order={3} fw={400} style={{ flexGrow: 1 }}>
