@@ -34,7 +34,7 @@ importers:
         version: 9.7.1
       happy-dom:
         specifier: ^20.14.0
-        version: 20.14.0
+        version: 20.14.5
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
@@ -125,7 +125,7 @@ importers:
         version: 5.0.2(vite@8.2.2(@types/node@24.13.3)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.104.0)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.0))
       vitest:
         specifier: ^5.0.0
-        version: 5.0.0(@types/node@24.13.3)(happy-dom@20.14.0)(vite@8.2.2(@types/node@24.13.3)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.104.0)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.0))
+        version: 5.0.0(@types/node@24.13.3)(happy-dom@20.14.5)(vite@8.2.2(@types/node@24.13.3)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.104.0)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.0))
 
 packages:
 
@@ -1555,8 +1555,8 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  happy-dom@20.14.0:
-    resolution: {integrity: sha512-4bRh1KzRvKDnFNTlLhzT1RZTpkKhQbQDl9j+7GXszWsvuspYdo29k6OHRf4PwiM6oLb8r/pMWeYiJjkfod5AvQ==}
+  happy-dom@20.14.5:
+    resolution: {integrity: sha512-x/RzkpWO40bTjIoT30iQtt64FLLmH/iRcUCN2X//bLx7H3ifkdfPXyqsro/OYtqzIAhiLMMA7mmiOR9C3NOKjQ==}
     engines: {node: '>=20.0.0'}
 
   has-bigints@1.1.0:
@@ -4342,9 +4342,9 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  happy-dom@20.14.0:
+  happy-dom@20.14.5:
     dependencies:
-      '@types/node': 25.9.5
+      '@types/node': 24.13.3
       '@types/whatwg-mimetype': 3.0.2
       '@types/ws': 8.18.1
       buffer-image-size: 0.6.4
@@ -5778,7 +5778,7 @@ snapshots:
       sugarss: 5.0.1(postcss@8.5.28)
       yaml: 2.9.0
 
-  vitest@5.0.0(@types/node@24.13.3)(happy-dom@20.14.0)(vite@8.2.2(@types/node@24.13.3)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.104.0)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.0)):
+  vitest@5.0.0(@types/node@24.13.3)(happy-dom@20.14.5)(vite@8.2.2(@types/node@24.13.3)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.104.0)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.0)):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/mocker': 5.0.0(vite@8.2.2(@types/node@24.13.3)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.104.0)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.0))
@@ -5796,7 +5796,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.13.3
-      happy-dom: 20.14.0
+      happy-dom: 20.14.5
     transitivePeerDependencies:
       - msw
 
