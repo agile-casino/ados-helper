@@ -289,7 +289,7 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
   const completedCommittedItems = completedItems.filter(c => initialActive.some(i => i.id === c.id));
   const completedCommittedPoints = completedCommittedItems.reduce((sum, w) => sum + (w.effort || 0), 0);
   const completedCommittedCount = completedCommittedItems.length;
-  const sayDoPct = committedPoints > 0 ? Math.round((completedCommittedPoints / committedPoints) * 100) : 0;
+  const sayDoPct = committedPoints > 0 ? Math.round((completedCommittedPoints / committedPoints) * 100) : null;
 
   // 6. Churn Calculation
   const churnPct = committedPoints > 0 ? Math.round(((addedPoints + removedPoints) / committedPoints) * 100) : 0;
@@ -310,10 +310,17 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
   };
 
   // Visual cues for Say-Do
-  const getSayDoColor = (pct: number) => {
+  const getSayDoColor = (pct: number | null) => {
+    if (pct === null) return "gray";
     if (pct >= 90) return "green";
     if (pct >= 70) return "yellow";
     return "red";
+  };
+  const getSayDoLabel = (pct: number | null) => {
+    if (pct === null) return "No Commitment";
+    if (pct < 70) return "Low Reliability";
+    if (pct < 90) return "Moderate Reliability";
+    return "High Reliability";
   };
 
   const formatLocalDate = (date: Date) => {
@@ -374,10 +381,10 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
                   </Group>
                 </Tooltip>
                 <Title order={2} style={{ fontSize: "2rem" }}>
-                  {sayDoPct}%
+                  {sayDoPct === null ? "N/A" : `${sayDoPct}%`}
                 </Title>
                 <Badge size="md" color={getSayDoColor(sayDoPct)}>
-                  {sayDoPct < 70 ? "Low Reliability" : sayDoPct < 90 ? "Moderate Reliability" : "High Reliability"}
+                  {getSayDoLabel(sayDoPct)}
                 </Badge>
                 <Text size="xs" c="dimmed" style={{ marginTop: "4px" }}>
                   {completedCommittedPoints} of {committedPoints} planned pts ({completedCommittedCount} items)
@@ -387,10 +394,10 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
                 size={110}
                 thickness={10}
                 roundCaps={true}
-                sections={[{ value: Math.min(sayDoPct, 100), color: getSayDoColor(sayDoPct) }]}
+                sections={[{ value: sayDoPct === null ? 0 : Math.min(sayDoPct, 100), color: getSayDoColor(sayDoPct) }]}
                 label={
                   <Text size="xs" ta="center" fw={700}>
-                    {sayDoPct}%
+                    {sayDoPct === null ? "N/A" : `${sayDoPct}%`}
                   </Text>
                 }
               />
