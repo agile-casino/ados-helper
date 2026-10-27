@@ -46,7 +46,7 @@ importers:
         version: 4.18.1
       postcss:
         specifier: ^8.5.28
-        version: 8.5.28
+        version: 8.5.32
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -101,7 +101,7 @@ importers:
         version: 17.6.0
       postcss-preset-mantine:
         specifier: ^1.18.0
-        version: 1.18.0(postcss@8.5.28)
+        version: 1.18.0(postcss@8.5.32)
       prettier:
         specifier: ^3.9.9
         version: 3.9.9
@@ -116,16 +116,16 @@ importers:
         version: 6.0.3
       vite:
         specifier: ^8.3.2
-        version: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1)
+        version: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1)
       vite-plugin-banner:
         specifier: ^0.8.1
         version: 0.8.1
       vite-plugin-css-injected-by-js:
         specifier: ^5.0.2
-        version: 5.0.2(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1))
+        version: 5.0.2(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1))
       vitest:
         specifier: ^5.0.3
-        version: 5.0.3(@types/node@24.19.1)(happy-dom@20.14.5)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1))
+        version: 5.0.3(@types/node@24.19.1)(happy-dom@20.14.5)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1))
 
 packages:
 
@@ -2071,8 +2071,8 @@ packages:
   mute-stream@0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
 
-  nanoid@3.3.19:
-    resolution: {integrity: sha512-Y2tUNy4ouw6tq5oDSKeQYGOyhkUBhNOcGV/02KC+6kd9eDGqdZd++mjMiIDilrBYvjEnCYvVtsuHCuP+okSfug==}
+  nanoid@3.3.20:
+    resolution: {integrity: sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -2282,8 +2282,12 @@ packages:
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
-  postcss@8.5.28:
-    resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
+  postcss@8.5.31:
+    resolution: {integrity: sha512-YUbWYCgErwnMAVkjUnYa+KlMBzGpHwiIt/DE7f0G33AuX2LH9UcTk6KgWxd3zRU+pN3u/C+Xl3EnMLM4Hea7Sg==}
+    engines: {node: ^10 || ^12 || >=14}
+
+  postcss@8.5.32:
+    resolution: {integrity: sha512-LJlKCCAUFKOuZxipUdYw1NzIITEsPcgyOG9LkvRJvuKj/bRzbuRY0ARXvL0pWGpsZvn8jku+LMep2eU0seHp8g==}
     engines: {node: ^10 || ^12 || >=14}
 
   prettier@3.9.9:
@@ -3566,11 +3570,11 @@ snapshots:
 
   '@types/postcss-modules-local-by-default@4.0.2':
     dependencies:
-      postcss: 8.5.28
+      postcss: 8.5.31
 
   '@types/postcss-modules-scope@3.0.4':
     dependencies:
-      postcss: 8.5.28
+      postcss: 8.5.31
 
   '@types/raf@3.4.3':
     optional: true
@@ -3600,14 +3604,14 @@ snapshots:
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@vitest/mocker@5.0.3(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1))':
+  '@vitest/mocker@5.0.3(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.0.3
       estree-walker: 3.0.3
       magic-string: 1.4.3
     optionalDependencies:
-      vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1)
+      vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1)
 
   '@vitest/spy@5.0.3': {}
 
@@ -4401,9 +4405,9 @@ snapshots:
 
   icss-replace-symbols@1.1.0: {}
 
-  icss-utils@5.1.0(postcss@8.5.28):
+  icss-utils@5.1.0(postcss@8.5.31):
     dependencies:
-      postcss: 8.5.28
+      postcss: 8.5.31
 
   ieee754@1.2.1: {}
 
@@ -4837,7 +4841,7 @@ snapshots:
 
   mute-stream@0.0.8: {}
 
-  nanoid@3.3.19: {}
+  nanoid@3.3.20: {}
 
   nanoid@6.0.1: {}
 
@@ -5002,72 +5006,78 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  postcss-js@4.1.0(postcss@8.5.28):
+  postcss-js@4.1.0(postcss@8.5.32):
     dependencies:
       camelcase-css: 2.0.1
-      postcss: 8.5.28
+      postcss: 8.5.32
 
-  postcss-load-config@3.1.4(postcss@8.5.28):
+  postcss-load-config@3.1.4(postcss@8.5.31):
     dependencies:
       lilconfig: 2.1.0
       yaml: 1.10.3
     optionalDependencies:
-      postcss: 8.5.28
+      postcss: 8.5.31
 
-  postcss-mixins@12.1.2(postcss@8.5.28):
+  postcss-mixins@12.1.2(postcss@8.5.32):
     dependencies:
-      postcss: 8.5.28
-      postcss-js: 4.1.0(postcss@8.5.28)
-      postcss-simple-vars: 7.0.1(postcss@8.5.28)
-      sugarss: 5.0.1(postcss@8.5.28)
+      postcss: 8.5.32
+      postcss-js: 4.1.0(postcss@8.5.32)
+      postcss-simple-vars: 7.0.1(postcss@8.5.32)
+      sugarss: 5.0.1(postcss@8.5.32)
       tinyglobby: 0.2.17
 
-  postcss-modules-extract-imports@3.1.0(postcss@8.5.28):
+  postcss-modules-extract-imports@3.1.0(postcss@8.5.31):
     dependencies:
-      postcss: 8.5.28
+      postcss: 8.5.31
 
-  postcss-modules-local-by-default@4.2.0(postcss@8.5.28):
+  postcss-modules-local-by-default@4.2.0(postcss@8.5.31):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.5.28)
-      postcss: 8.5.28
+      icss-utils: 5.1.0(postcss@8.5.31)
+      postcss: 8.5.31
       postcss-selector-parser: 7.1.6
       postcss-value-parser: 4.2.0
 
-  postcss-modules-scope@3.2.1(postcss@8.5.28):
+  postcss-modules-scope@3.2.1(postcss@8.5.31):
     dependencies:
-      postcss: 8.5.28
+      postcss: 8.5.31
       postcss-selector-parser: 7.1.6
 
-  postcss-modules-values@4.0.0(postcss@8.5.28):
+  postcss-modules-values@4.0.0(postcss@8.5.31):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.5.28)
-      postcss: 8.5.28
+      icss-utils: 5.1.0(postcss@8.5.31)
+      postcss: 8.5.31
 
-  postcss-nested@7.0.2(postcss@8.5.28):
+  postcss-nested@7.0.2(postcss@8.5.32):
     dependencies:
-      postcss: 8.5.28
+      postcss: 8.5.32
       postcss-selector-parser: 7.1.6
 
-  postcss-preset-mantine@1.18.0(postcss@8.5.28):
+  postcss-preset-mantine@1.18.0(postcss@8.5.32):
     dependencies:
-      postcss: 8.5.28
-      postcss-mixins: 12.1.2(postcss@8.5.28)
-      postcss-nested: 7.0.2(postcss@8.5.28)
+      postcss: 8.5.32
+      postcss-mixins: 12.1.2(postcss@8.5.32)
+      postcss-nested: 7.0.2(postcss@8.5.32)
 
   postcss-selector-parser@7.1.6:
     dependencies:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
 
-  postcss-simple-vars@7.0.1(postcss@8.5.28):
+  postcss-simple-vars@7.0.1(postcss@8.5.32):
     dependencies:
-      postcss: 8.5.28
+      postcss: 8.5.32
 
   postcss-value-parser@4.2.0: {}
 
-  postcss@8.5.28:
+  postcss@8.5.31:
     dependencies:
-      nanoid: 3.3.19
+      nanoid: 3.3.20
+      picocolors: 1.1.1
+      source-map-js: 1.2.2
+
+  postcss@8.5.32:
+    dependencies:
+      nanoid: 3.3.20
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
@@ -5491,9 +5501,9 @@ snapshots:
       - supports-color
     optional: true
 
-  sugarss@5.0.1(postcss@8.5.28):
+  sugarss@5.0.1(postcss@8.5.32):
     dependencies:
-      postcss: 8.5.28
+      postcss: 8.5.32
 
   supports-color@7.2.0:
     dependencies:
@@ -5646,11 +5656,11 @@ snapshots:
       icss-replace-symbols: 1.1.0
       is-there: 4.5.2
       mkdirp: 3.0.1
-      postcss: 8.5.28
-      postcss-modules-extract-imports: 3.1.0(postcss@8.5.28)
-      postcss-modules-local-by-default: 4.2.0(postcss@8.5.28)
-      postcss-modules-scope: 3.2.1(postcss@8.5.28)
-      postcss-modules-values: 4.0.0(postcss@8.5.28)
+      postcss: 8.5.31
+      postcss-modules-extract-imports: 3.1.0(postcss@8.5.31)
+      postcss-modules-local-by-default: 4.2.0(postcss@8.5.31)
+      postcss-modules-scope: 3.2.1(postcss@8.5.31)
+      postcss-modules-values: 4.0.0(postcss@8.5.31)
       yargs: 17.7.3
 
   typed-rest-client@3.1.2:
@@ -5666,14 +5676,14 @@ snapshots:
       '@types/postcss-modules-local-by-default': 4.0.2
       '@types/postcss-modules-scope': 3.0.4
       dotenv: 16.6.1
-      icss-utils: 5.1.0(postcss@8.5.28)
+      icss-utils: 5.1.0(postcss@8.5.31)
       less: 4.9.1(supports-color@7.2.0)
       lodash.camelcase: 4.3.0
-      postcss: 8.5.28
-      postcss-load-config: 3.1.4(postcss@8.5.28)
-      postcss-modules-extract-imports: 3.1.0(postcss@8.5.28)
-      postcss-modules-local-by-default: 4.2.0(postcss@8.5.28)
-      postcss-modules-scope: 3.2.1(postcss@8.5.28)
+      postcss: 8.5.31
+      postcss-load-config: 3.1.4(postcss@8.5.31)
+      postcss-modules-extract-imports: 3.1.0(postcss@8.5.31)
+      postcss-modules-local-by-default: 4.2.0(postcss@8.5.31)
+      postcss-modules-scope: 3.2.1(postcss@8.5.31)
       reserved-words: 0.1.2
       sass: 1.105.1
       source-map-js: 1.2.2
@@ -5745,15 +5755,15 @@ snapshots:
 
   vite-plugin-banner@0.8.1: {}
 
-  vite-plugin-css-injected-by-js@5.0.2(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1)):
+  vite-plugin-css-injected-by-js@5.0.2(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1)):
     dependencies:
-      vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1)
+      vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1)
 
-  vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1):
+  vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
-      postcss: 8.5.28
+      postcss: 8.5.31
       rolldown: 1.2.12
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -5763,13 +5773,13 @@ snapshots:
       less: 4.9.1(supports-color@7.2.0)
       sass: 1.105.1
       stylus: 0.62.0(supports-color@7.2.0)
-      sugarss: 5.0.1(postcss@8.5.28)
+      sugarss: 5.0.1(postcss@8.5.32)
       yaml: 2.9.1
 
-  vitest@5.0.3(@types/node@24.19.1)(happy-dom@20.14.5)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1)):
+  vitest@5.0.3(@types/node@24.19.1)(happy-dom@20.14.5)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.3(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1))
+      '@vitest/mocker': 5.0.3(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -5780,7 +5790,7 @@ snapshots:
       tinybench: 6.2.0
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1)
+      vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.32))(yaml@2.9.1)
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 24.19.1
