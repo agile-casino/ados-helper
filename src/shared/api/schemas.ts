@@ -103,6 +103,7 @@ const WorkItemFieldsSchema = z
     "System.AssignedTo": z.union([z.string(), z.object({ displayName: z.string().optional() }), z.null()]).catch(null),
     "System.Title": z.string(),
     "System.IterationPath": z.string(),
+    "System.ChangedDate": z.string().nullish(),
     "System.HyperLinkCount": z.coerce.number(),
     "Microsoft.VSTS.Common.ActivatedDate": z.string().nullish(),
     "Microsoft.VSTS.Common.AcceptanceCriteria": z.string().nullish(),
@@ -128,6 +129,13 @@ const WorkItemFieldUpdateSchema = z.object({
   newValue: z.string().nullish()
 });
 
+// Numeric fields (hours, points) arrive as numbers in the updates API; coerce so
+// a stringified number is still usable. `null` means the field was cleared/unset.
+const WorkItemNumericFieldUpdateSchema = z.object({
+  oldValue: z.coerce.number().nullish(),
+  newValue: z.coerce.number().nullish()
+});
+
 export const WorkItemUpdateSchema = z.object({
   id: z.number(),
   rev: z.number(),
@@ -135,7 +143,10 @@ export const WorkItemUpdateSchema = z.object({
   fields: z
     .object({
       "System.IterationPath": WorkItemFieldUpdateSchema.optional(),
-      "System.State": WorkItemFieldUpdateSchema.optional()
+      "System.State": WorkItemFieldUpdateSchema.optional(),
+      "Microsoft.VSTS.Scheduling.RemainingWork": WorkItemNumericFieldUpdateSchema.optional(),
+      "Microsoft.VSTS.Scheduling.CompletedWork": WorkItemNumericFieldUpdateSchema.optional(),
+      "Microsoft.VSTS.Scheduling.Effort": WorkItemNumericFieldUpdateSchema.optional()
     })
     .optional()
 });

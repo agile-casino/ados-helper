@@ -33,6 +33,7 @@ const WORK_ITEM_FIELDS = [
   "System.WorkItemType",
   "System.TeamProject",
   "System.Rev",
+  "System.ChangedDate",
   "System.Tags",
   "Microsoft.VSTS.Scheduling.Effort",
   "Microsoft.VSTS.Scheduling.RemainingWork",
@@ -86,6 +87,7 @@ function rawWorkItemToDto(wi: RawWorkItem, children: WorkItemDto[] = [], links: 
       })(),
       Title: f["System.Title"] ?? "",
       IterationPath: f["System.IterationPath"] ?? "",
+      ChangedDate: f["System.ChangedDate"] ?? undefined,
       HyperLinkCount: f["System.HyperLinkCount"] ?? 0
     },
     Microsoft: {

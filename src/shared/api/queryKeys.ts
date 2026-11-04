@@ -4,3 +4,6 @@ export const sprintStatsQueryKey = (origin: string, collection: string, project:
   ["sprint-stats", origin, collection, project, team, sprint, iterationPath, configKey] as const;
 
 export const workItemStatesQueryKey = (origin: string, collection: string, project: string) => ["work-item-states", origin, collection, project] as const;
+
+export const recentActivityQueryKey = (origin: string, collection: string, project: string, team: string, iterationPath: string, lookbackHours: number, configKey: string) =>
+  ["recent-activity", origin, collection, project, team, iterationPath, lookbackHours, configKey] as const;

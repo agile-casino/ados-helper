@@ -27,6 +27,7 @@ const BaseWorkItemDtoSchema = z.object({
     AssignedTo: z.string().nullable(),
     Title: z.string(),
     IterationPath: z.string(),
+    ChangedDate: z.string().optional(),
     HyperLinkCount: z.number()
   }),
   links: z.array(z.string())

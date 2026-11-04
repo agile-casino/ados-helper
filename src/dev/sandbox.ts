@@ -423,6 +423,12 @@ function findMockItem(items: MockWorkItem[], id: number): MockWorkItem | undefin
   return undefined;
 }
 
+// Deterministic "last changed" time for mock items, spread over the last ~60h so
+// the Recent Activity tab has something to show for several lookback windows.
+function recentChangeDate(id: number): Date {
+  return new Date(Date.now() - ((id * 7) % 60) * 60 * 60 * 1000);
+}
+
 function findMockItemAcrossTeams(id: number): MockWorkItem | undefined {
   for (const teamKey of Object.keys(state.mockData)) {
     const found = findMockItem(state.mockData[teamKey] ?? [], id);
@@ -771,6 +777,7 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           "System.State": match?.state ?? "",
           "System.AssignedTo": match?.assignedTo ?? null,
           "System.IterationPath": iterationPath,
+          "System.ChangedDate": recentChangeDate(id).toISOString(),
           "System.WorkItemType": match?.type ?? "",
           "System.TeamProject": state.currentUrlParams.project,
           "System.Tags": match?.tags ?? "",
@@ -930,6 +937,16 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
             }
           }
         ];
+        // Recent edit consistent with the item's current state, for the Recent Activity tab.
+        if (item) {
+          const recent = recentChangeDate(id).toISOString();
+          const fields: Record<string, { oldValue: string | number | null; newValue: string | number | null }> = {};
+          if (item.state === "Done") fields["System.State"] = { oldValue: item.type === "Task" ? "In Progress" : "Testing", newValue: "Done" };
+          if (item.type === "Task" && item.remainingWork !== undefined) {
+            fields["Microsoft.VSTS.Scheduling.RemainingWork"] = { oldValue: item.remainingWork + (id % 3) + 1, newValue: item.remainingWork };
+          }
+          if (Object.keys(fields).length > 0) value.push({ id: 2, rev: 2, revisedDate: recent, fields });
+        }
       }
     }
 

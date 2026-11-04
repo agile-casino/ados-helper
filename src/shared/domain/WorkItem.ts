@@ -103,6 +103,15 @@ export class WorkItem {
     return this.dto.System.Tags ? this.dto.System.Tags.split(";").map(x => new Tag(x.trim())) : [];
   }
 
+  public get changedDate(): Date | null {
+    return parseAzureDate(this.dto.System.ChangedDate);
+  }
+
+  /** Every child task, including removed ones (unlike `tasks`). */
+  public get allTasks(): WorkItemDto[] {
+    return this.dto.children;
+  }
+
   public get tasks(): WorkItemDto[] {
     return this.dto.children.filter(task => task.System.State !== "Removed");
   }
