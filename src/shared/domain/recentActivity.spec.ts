@@ -99,6 +99,28 @@ describe("buildRecentActivity", () => {
     expect(byId[63]?.events.map(e => e.text)).toEqual(["Completed", "Remaining 3h → 0h", "Logged +3h"]);
   });
 
+  test("uses the hours set in a follow-up edit as the starting hours of an added task", () => {
+    const added = dto(71, "Task", "To Do");
+    added.System.Title = "Created first, estimated after";
+    const result = build([pbi(7, [added])], {
+      // Rev 1 is just the title; the 9h estimate arrives in a later edit.
+      71: [update(inside, { "System.State": { newValue: "To Do" } }, 1), update(inside, { "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: 9 } }, 2)]
+    });
+    expect(result[0]?.tasks[0]?.events).toEqual([{ text: "Added · 9h", tone: "neutral" }]);
+  });
+
+  test("shows later hour changes after the starting estimate", () => {
+    const added = dto(72, "Task", "To Do");
+    const result = build([pbi(7, [added])], {
+      72: [
+        update(inside, { "System.State": { newValue: "To Do" } }, 1),
+        update(inside, { "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: 9 } }, 2),
+        update(inside, { "Microsoft.VSTS.Scheduling.RemainingWork": { oldValue: 9, newValue: 5 } }, 3)
+      ]
+    });
+    expect(result[0]?.tasks[0]?.events.map(e => e.text)).toEqual(["Added · 9h", "Remaining 9h → 5h"]);
+  });
+
   test("reports effort changes and nets out a state change that was reverted", () => {
     const result = build([pbi(7)], {
       7: [

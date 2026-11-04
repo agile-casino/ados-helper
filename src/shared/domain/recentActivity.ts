@@ -93,12 +93,17 @@ const netNumericChange = (entries: ReturnType<typeof windowed>, field: "Remainin
 const describeTask = (task: { id: number; title: string; assignedTo: string | null }, entries: ReturnType<typeof windowed>, config: WorkItemStateConfig): TaskActivity | null => {
   const events: ActivityLine[] = [];
   const creation = entries.find(e => e.update.rev === 1);
-  // Hours are reported relative to creation so "Added" shows what the task started with.
   const afterCreation = entries.filter(e => e !== creation);
 
+  // Tasks are often created with just a title and estimated in the next edit, so
+  // the starting hours are the first estimate set in the window, not only rev 1's.
+  const estimateIndex = creation ? entries.findIndex(e => e.update.fields?.[`${SCHEDULING}.RemainingWork`]?.newValue != null) : -1;
+  const estimate = estimateIndex >= 0 ? entries[estimateIndex]?.update.fields?.[`${SCHEDULING}.RemainingWork`]?.newValue : null;
+  // Hour changes are reported relative to that starting estimate.
+  const afterEstimate = estimateIndex >= 0 ? entries.slice(estimateIndex + 1) : afterCreation;
+
   if (creation) {
-    const hours = creation.update.fields?.[`${SCHEDULING}.RemainingWork`]?.newValue;
-    events.push({ text: hours ? `Added · ${formatPlainHours(hours)}` : "Added · no hours set", tone: hours ? "neutral" : "negative" });
+    events.push({ text: estimate ? `Added · ${formatPlainHours(estimate)}` : "Added · no hours set", tone: estimate ? "neutral" : "negative" });
   }
 
   const stateChange = netStateChange(entries);
@@ -111,7 +116,7 @@ const describeTask = (task: { id: number; title: string; assignedTo: string | nu
     else if (stateChange.from === "To Do" && toCategory !== "Done" && toCategory !== "Removed") events.push({ text: "Started", tone: "positive" });
   }
 
-  const remaining = netNumericChange(afterCreation, "RemainingWork");
+  const remaining = netNumericChange(afterEstimate, "RemainingWork");
   if (remaining) {
     const from = remaining.from ?? 0;
     const to = remaining.to ?? 0;
