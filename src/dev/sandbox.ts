@@ -951,6 +951,13 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           } else if (Object.keys(fields).length > 0) {
             value.push({ id: 2, rev: 2, revisedDate: recent, fields });
           }
+          // ADO gives the newest revision a far-future revisedDate (nothing has superseded it yet);
+          // the real edit time is only in the update's System.ChangedDate.
+          const newest = value[value.length - 1] as { revisedDate: string; fields: Record<string, unknown> } | undefined;
+          if (newest && newest.revisedDate === recent) {
+            newest.revisedDate = "9999-01-01T00:00:00Z";
+            newest.fields["System.ChangedDate"] = { oldValue: "2026-06-01T09:00:00Z", newValue: recent };
+          }
         }
       }
     }

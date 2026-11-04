@@ -144,6 +144,7 @@ export const WorkItemUpdateSchema = z.object({
     .object({
       "System.IterationPath": WorkItemFieldUpdateSchema.optional(),
       "System.State": WorkItemFieldUpdateSchema.optional(),
+      "System.ChangedDate": WorkItemFieldUpdateSchema.optional(),
       "Microsoft.VSTS.Scheduling.RemainingWork": WorkItemNumericFieldUpdateSchema.optional(),
       "Microsoft.VSTS.Scheduling.CompletedWork": WorkItemNumericFieldUpdateSchema.optional(),
       "Microsoft.VSTS.Scheduling.Effort": WorkItemNumericFieldUpdateSchema.optional()

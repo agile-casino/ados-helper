@@ -38,17 +38,28 @@ const plural = (n: number, singular: string) => `${n} ${singular}${n === 1 ? "" 
 
 const formatHours = (hours: number) => `${hours > 0 ? "+" : "−"}${Math.round(Math.abs(hours) * 100) / 100}h`;
 
-const inWindow = (update: WorkItemUpdate, since: Date, until: Date): Date | null => {
-  const at = parseAzureDate(update.revisedDate);
-  return at && at >= since && at <= until ? at : null;
+/**
+ * When an update happened. The newest revision of a work item has not been
+ * superseded, so its `revisedDate` can be a far-future sentinel (e.g. 9999-01-01)
+ * that parses to null. Fall back to the update's own System.ChangedDate, then to
+ * the item's current ChangedDate (which, for the newest revision, is that edit).
+ */
+const resolveUpdateTime = (update: WorkItemUpdate, isNewest: boolean, itemChangedDate: Date | null): Date | null => {
+  const revised = parseAzureDate(update.revisedDate);
+  if (revised) return revised;
+  const fieldChanged = parseAzureDate(update.fields?.["System.ChangedDate"]?.newValue ?? undefined);
+  if (fieldChanged) return fieldChanged;
+  return isNewest ? itemChangedDate : null;
 };
 
-/** Updates inside the window, oldest first, paired with their parsed timestamp. */
-const windowed = (updates: WorkItemUpdate[] | undefined, since: Date, until: Date) =>
-  (updates ?? [])
-    .map(update => ({ update, at: inWindow(update, since, until) }))
-    .filter((x): x is { update: WorkItemUpdate; at: Date } => x.at !== null)
-    .sort((a, b) => a.at.getTime() - b.at.getTime());
+/** Updates inside the window, oldest first, paired with their resolved timestamp. */
+const windowed = (updates: WorkItemUpdate[] | undefined, since: Date, until: Date, itemChangedDate: Date | null = null) => {
+  const newestRev = Math.max(...(updates ?? []).map(u => u.rev), 0);
+  return (updates ?? [])
+    .map(update => ({ update, at: resolveUpdateTime(update, update.rev === newestRev, itemChangedDate) }))
+    .filter((x): x is { update: WorkItemUpdate; at: Date } => x.at !== null && x.at >= since && x.at <= until)
+    .sort((a, b) => a.at.getTime() - b.at.getTime() || a.update.rev - b.update.rev);
+};
 
 /** Sum of (new − old) for a numeric field across the window. An unset old value counts as 0. */
 const numericDelta = (entries: ReturnType<typeof windowed>, field: "RemainingWork" | "CompletedWork"): number => {
@@ -90,7 +101,7 @@ const netNumericChange = (entries: ReturnType<typeof windowed>, field: "Remainin
   return { from: from ?? null, to };
 };
 
-const describeTask = (task: { id: number; title: string; assignedTo: string | null }, entries: ReturnType<typeof windowed>, config: WorkItemStateConfig): TaskActivity | null => {
+const describeTask = (task: { id: number; title: string; assignedTo: string | null; currentRemaining: number | undefined }, entries: ReturnType<typeof windowed>, config: WorkItemStateConfig): TaskActivity | null => {
   const events: ActivityLine[] = [];
   const creation = entries.find(e => e.update.rev === 1);
   const afterCreation = entries.filter(e => e !== creation);
@@ -103,7 +114,10 @@ const describeTask = (task: { id: number; title: string; assignedTo: string | nu
   const afterEstimate = estimateIndex >= 0 ? entries.slice(estimateIndex + 1) : afterCreation;
 
   if (creation) {
-    events.push({ text: estimate ? `Added · ${formatPlainHours(estimate)}` : "Added · no hours set", tone: estimate ? "neutral" : "negative" });
+    if (estimate) events.push({ text: `Added · ${formatPlainHours(estimate)}`, tone: "neutral" });
+    // The history shows no estimate, but the task has hours today: report what we can see rather than claim none were set.
+    else if (task.currentRemaining) events.push({ text: `Added · now ${formatPlainHours(task.currentRemaining)}`, tone: "neutral" });
+    else events.push({ text: "Added · no hours set", tone: "negative" });
   }
 
   const stateChange = netStateChange(entries);
@@ -153,7 +167,7 @@ export function buildRecentActivity(items: WorkItem[], updatesById: UpdatesById,
   for (const item of items) {
     const lines: ActivityLine[] = [];
     const timestamps: number[] = [];
-    const pbiEntries = windowed(updatesById[item.id], since, until);
+    const pbiEntries = windowed(updatesById[item.id], since, until, item.changedDate);
     pbiEntries.forEach(e => {
       timestamps.push(e.at.getTime());
     });
@@ -194,7 +208,7 @@ export function buildRecentActivity(items: WorkItem[], updatesById: UpdatesById,
     let loggedDelta = numericDelta(pbiEntries, "CompletedWork");
 
     for (const task of item.allTasks) {
-      const taskEntries = windowed(updatesById[task.System.Id], since, until);
+      const taskEntries = windowed(updatesById[task.System.Id], since, until, parseAzureDate(task.System.ChangedDate));
       if (taskEntries.length === 0) continue;
       taskEntries.forEach(e => {
         timestamps.push(e.at.getTime());
@@ -202,7 +216,7 @@ export function buildRecentActivity(items: WorkItem[], updatesById: UpdatesById,
 
       if (taskEntries.some(e => e.update.rev === 1)) tasksAdded++;
 
-      const detail = describeTask({ id: task.System.Id, title: task.System.Title, assignedTo: task.System.AssignedTo }, taskEntries, config);
+      const detail = describeTask({ id: task.System.Id, title: task.System.Title, assignedTo: task.System.AssignedTo, currentRemaining: task.Microsoft.VSTS.Scheduling.RemainingWork }, taskEntries, config);
       if (detail) taskActivities.push(detail);
 
       const change = netStateChange(taskEntries);

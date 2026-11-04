@@ -121,6 +121,45 @@ describe("buildRecentActivity", () => {
     expect(result[0]?.tasks[0]?.events.map(e => e.text)).toEqual(["Added · 9h", "Remaining 9h → 5h"]);
   });
 
+  describe("latest revision carries a sentinel revisedDate", () => {
+    const sentinel = "9999-01-01T00:00:00Z";
+
+    test("takes the edit time from the update's System.ChangedDate", () => {
+      const added = dto(81, "Task", "To Do");
+      const result = build([pbi(8, [added])], {
+        81: [update(inside, { "System.State": { newValue: "To Do" } }, 1), update(sentinel, { "System.ChangedDate": { oldValue: inside, newValue: "2026-06-10T09:00:00Z" }, "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: 9 } }, 2)]
+      });
+      expect(result[0]?.tasks[0]?.events).toEqual([{ text: "Added · 9h", tone: "neutral" }]);
+    });
+
+    test("falls back to the item's own ChangedDate when the update has none", () => {
+      const added = dto(82, "Task", "To Do", [], "2026-06-10T09:30:00Z");
+      const result = build([pbi(8, [added])], {
+        82: [update(inside, { "System.State": { newValue: "To Do" } }, 1), update(sentinel, { "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: 9 } }, 2)]
+      });
+      expect(result[0]?.tasks[0]?.events).toEqual([{ text: "Added · 9h", tone: "neutral" }]);
+    });
+
+    test("a single-revision task is still reported", () => {
+      const added = dto(83, "Task", "To Do", [], inside);
+      const result = build([pbi(8, [added])], { 83: [update(sentinel, { "System.State": { newValue: "To Do" }, "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: 6 } }, 1)] });
+      expect(result[0]?.tasks[0]?.events).toEqual([{ text: "Added · 6h", tone: "neutral" }]);
+    });
+
+    test("ignores a sentinel update whose real time is outside the window", () => {
+      const old = dto(84, "Task", "To Do", [], outside);
+      const result = build([pbi(8, [old])], { 84: [update(sentinel, { "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: 9 } }, 1)] });
+      expect(result).toEqual([]);
+    });
+  });
+
+  test("never claims 'no hours set' when the task visibly has remaining work", () => {
+    const added = dto(85, "Task", "To Do");
+    added.Microsoft.VSTS.Scheduling.RemainingWork = 9;
+    const result = build([pbi(8, [added])], { 85: [update(inside, { "System.State": { newValue: "To Do" } }, 1)] });
+    expect(result[0]?.tasks[0]?.events).toEqual([{ text: "Added · now 9h", tone: "neutral" }]);
+  });
+
   test("reports effort changes and nets out a state change that was reverted", () => {
     const result = build([pbi(7)], {
       7: [
