@@ -10,11 +10,22 @@ interface ActivityLine {
   tone: ActivityTone;
 }
 
+interface TaskActivity {
+  id: number;
+  title: string;
+  assignedTo: string | null;
+  /** What happened to this task, e.g. "Added · 4h", "Completed", "Remaining 2h → 5h". */
+  events: ActivityLine[];
+  lastActivity: Date;
+}
+
 export interface PbiActivity {
   id: number;
   title: string;
   workItemType: string;
   lines: ActivityLine[];
+  /** Per-task detail behind the "N tasks …" summary lines, most recent first. */
+  tasks: TaskActivity[];
   /** The most recent change (PBI or any of its tasks) inside the window. */
   lastActivity: Date;
 }
@@ -61,6 +72,56 @@ const netStateChange = (entries: ReturnType<typeof windowed>): { from: string | 
   }
   if (to == null || from === to) return null;
   return { from: from ?? null, to };
+};
+
+const formatPlainHours = (hours: number) => `${Math.round(hours * 100) / 100}h`;
+
+/** First old / last new value of a numeric field across the window, or null when nothing changed net. */
+const netNumericChange = (entries: ReturnType<typeof windowed>, field: "RemainingWork" | "CompletedWork"): { from: number | null; to: number | null } | null => {
+  let from: number | null | undefined;
+  let to: number | null | undefined;
+  for (const { update } of entries) {
+    const change = update.fields?.[`${SCHEDULING}.${field}`];
+    if (!change) continue;
+    if (from === undefined) from = change.oldValue ?? null;
+    to = change.newValue ?? null;
+  }
+  if (to === undefined || from === to) return null;
+  return { from: from ?? null, to };
+};
+
+const describeTask = (task: { id: number; title: string; assignedTo: string | null }, entries: ReturnType<typeof windowed>, config: WorkItemStateConfig): TaskActivity | null => {
+  const events: ActivityLine[] = [];
+  const creation = entries.find(e => e.update.rev === 1);
+  // Hours are reported relative to creation so "Added" shows what the task started with.
+  const afterCreation = entries.filter(e => e !== creation);
+
+  if (creation) {
+    const hours = creation.update.fields?.[`${SCHEDULING}.RemainingWork`]?.newValue;
+    events.push({ text: hours ? `Added · ${formatPlainHours(hours)}` : "Added · no hours set", tone: hours ? "neutral" : "negative" });
+  }
+
+  const stateChange = netStateChange(entries);
+  if (stateChange) {
+    const fromCategory = stateChange.from ? categorizeState(stateChange.from, config) : null;
+    const toCategory = categorizeState(stateChange.to, config);
+    if (toCategory === "Done" && fromCategory !== "Done") events.push({ text: "Completed", tone: "positive" });
+    else if (toCategory === "Removed" && fromCategory !== "Removed") events.push({ text: "Removed", tone: "negative" });
+    else if (fromCategory === "Done" && toCategory !== "Done") events.push({ text: "Reopened", tone: "negative" });
+    else if (stateChange.from === "To Do" && toCategory !== "Done" && toCategory !== "Removed") events.push({ text: "Started", tone: "positive" });
+  }
+
+  const remaining = netNumericChange(afterCreation, "RemainingWork");
+  if (remaining) {
+    const from = remaining.from ?? 0;
+    const to = remaining.to ?? 0;
+    events.push({ text: `Remaining ${formatPlainHours(from)} → ${formatPlainHours(to)}`, tone: to > from ? "negative" : "positive" });
+  }
+  const logged = numericDelta(afterCreation, "CompletedWork");
+  if (logged !== 0) events.push({ text: `Logged ${formatHours(logged)}`, tone: "neutral" });
+
+  if (events.length === 0) return null;
+  return { ...task, events, lastActivity: new Date(Math.max(...entries.map(e => e.at.getTime()))) };
 };
 
 const describePbiState = (change: { from: string | null; to: string }, config: WorkItemStateConfig): ActivityLine => {
@@ -123,6 +184,7 @@ export function buildRecentActivity(items: WorkItem[], updatesById: UpdatesById,
     let tasksStarted = 0;
     let tasksRemoved = 0;
     let tasksReopened = 0;
+    const taskActivities: TaskActivity[] = [];
     let remainingDelta = numericDelta(pbiEntries, "RemainingWork");
     let loggedDelta = numericDelta(pbiEntries, "CompletedWork");
 
@@ -134,6 +196,9 @@ export function buildRecentActivity(items: WorkItem[], updatesById: UpdatesById,
       });
 
       if (taskEntries.some(e => e.update.rev === 1)) tasksAdded++;
+
+      const detail = describeTask({ id: task.System.Id, title: task.System.Title, assignedTo: task.System.AssignedTo }, taskEntries, config);
+      if (detail) taskActivities.push(detail);
 
       const change = netStateChange(taskEntries);
       if (change) {
@@ -158,13 +223,14 @@ export function buildRecentActivity(items: WorkItem[], updatesById: UpdatesById,
     // More remaining work than before is a scope signal, so it reads as negative.
     if (remainingDelta !== 0) lines.push({ text: `Remaining work: ${formatHours(remainingDelta)}`, tone: remainingDelta > 0 ? "negative" : "positive" });
 
-    if (lines.length === 0) continue;
+    if (lines.length === 0 && taskActivities.length === 0) continue;
 
     result.push({
       id: item.id,
       title: item.title,
       workItemType: item.workItemType,
       lines,
+      tasks: taskActivities.sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime()),
       lastActivity: new Date(Math.max(...timestamps))
     });
   }

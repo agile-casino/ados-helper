@@ -75,6 +75,30 @@ describe("buildRecentActivity", () => {
     expect(result[0]?.lines.map(l => l.text)).toEqual(["1 task started", "1 task added", "1 task removed"]);
   });
 
+  test("lists each task with its title, hours at creation and what happened after", () => {
+    const added = dto(61, "Task", "To Do");
+    added.System.Title = "Write migration script";
+    added.System.AssignedTo = "Sam";
+    const noHours = dto(62, "Task", "To Do");
+    noHours.System.Title = "Untouched estimate";
+    const burned = dto(63, "Task", "Done");
+    burned.System.Title = "Existing task";
+    const result = build([pbi(6, [added, noHours, burned])], {
+      61: [update(inside, { "System.State": { newValue: "To Do" }, "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: 4 } }, 1), update(inside, { "Microsoft.VSTS.Scheduling.RemainingWork": { oldValue: 4, newValue: 6 } })],
+      62: [update(inside, { "System.State": { newValue: "To Do" } }, 1)],
+      63: [update(inside, { "System.State": { oldValue: "In Progress", newValue: "Done" }, "Microsoft.VSTS.Scheduling.RemainingWork": { oldValue: 3, newValue: 0 }, "Microsoft.VSTS.Scheduling.CompletedWork": { oldValue: 1, newValue: 4 } })]
+    });
+    const tasks = result[0]?.tasks ?? [];
+    const byId = Object.fromEntries(tasks.map(t => [t.id, t]));
+    expect(byId[61]).toMatchObject({ title: "Write migration script", assignedTo: "Sam" });
+    expect(byId[61]?.events).toEqual([
+      { text: "Added · 4h", tone: "neutral" },
+      { text: "Remaining 4h → 6h", tone: "negative" }
+    ]);
+    expect(byId[62]?.events).toEqual([{ text: "Added · no hours set", tone: "negative" }]);
+    expect(byId[63]?.events.map(e => e.text)).toEqual(["Completed", "Remaining 3h → 0h", "Logged +3h"]);
+  });
+
   test("reports effort changes and nets out a state change that was reverted", () => {
     const result = build([pbi(7)], {
       7: [

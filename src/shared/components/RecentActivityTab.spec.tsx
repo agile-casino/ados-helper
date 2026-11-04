@@ -165,5 +165,9 @@ describe("RecentActivityTab freshness", () => {
     render(ui);
     expect(await screen.findByText("1 task added")).toBeTruthy();
     expect(screen.getByText("Remaining work: +4h")).toBeTruthy();
+    // Per-task detail: which task, and how many hours it started with.
+    expect(screen.getByText("Added · 4h")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Task 402" })).toBeTruthy();
+    expect(screen.getByText(/Item 402/)).toBeTruthy();
   });
 });

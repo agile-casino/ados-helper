@@ -945,7 +945,12 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
           if (item.type === "Task" && item.remainingWork !== undefined) {
             fields["Microsoft.VSTS.Scheduling.RemainingWork"] = { oldValue: item.remainingWork + (id % 3) + 1, newValue: item.remainingWork };
           }
-          if (Object.keys(fields).length > 0) value.push({ id: 2, rev: 2, revisedDate: recent, fields });
+          if (item.type === "Task" && id % 4 === 0) {
+            // Pretend this task was created recently, with its starting hours.
+            value[0] = { id: 1, rev: 1, revisedDate: recent, fields: { "System.State": { newValue: "To Do" }, "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: item.originalEstimate ?? item.remainingWork ?? 0 } } };
+          } else if (Object.keys(fields).length > 0) {
+            value.push({ id: 2, rev: 2, revisedDate: recent, fields });
+          }
         }
       }
     }

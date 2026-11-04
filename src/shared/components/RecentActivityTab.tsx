@@ -156,6 +156,31 @@ export const RecentActivityTab = (props: RecentActivityTabProps) => {
                   </Badge>
                 ))}
               </Group>
+              {item.tasks.length > 0 && (
+                <Stack gap={4} mt="xs" ml="md">
+                  {item.tasks.map(task => (
+                    <Group key={task.id} gap="xs" align="center" wrap="wrap">
+                      <Text size="xs">
+                        <a href={itemUrl(task.id)} target="_blank" rel="noopener noreferrer" onClick={e => platform.openExternalLink(itemUrl(task.id), e)}>
+                          Task {task.id}
+                        </a>
+                        : {task.title}
+                        {task.assignedTo ? (
+                          <Text span c="dimmed">
+                            {" "}
+                            ({task.assignedTo})
+                          </Text>
+                        ) : null}
+                      </Text>
+                      {task.events.map(event => (
+                        <Badge key={event.text} size="sm" color={toneColor[event.tone]} variant="outline" tt="none" fw={500}>
+                          {event.text}
+                        </Badge>
+                      ))}
+                    </Group>
+                  ))}
+                </Stack>
+              )}
             </div>
           ))}
         </Stack>
