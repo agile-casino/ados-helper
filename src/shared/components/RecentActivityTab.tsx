@@ -67,18 +67,24 @@ export const RecentActivityTab = (props: RecentActivityTabProps) => {
     saveLookbackHours(props.collection, props.project, hours);
   };
 
-  // Shares its cache entry with the Current Team tab, so the sprint isn't re-fetched.
+  // Shares its cache entry with the Current Team tab, but is always revalidated on
+  // mount: this tab is about what just changed, so the app-wide 5 minute staleTime
+  // would hide tasks added since the sprint was cached.
   const iteration = useQuery({
     queryKey: iterationQueryKey(props.origin, props.collection, props.project, props.team, props.iterationPath, configKey),
     enabled,
+    staleTime: 0,
     queryFn: () => new ApiClient(props.origin, props.fetchFn, stateConfig).getIteration2(props.collection, props.project, props.team, props.iterationPath)
   });
 
   const workItems = iteration.data?.workItems;
 
   const activity = useQuery({
-    queryKey: recentActivityQueryKey(props.origin, props.collection, props.project, props.team, props.iterationPath, lookbackHours, configKey),
-    enabled: enabled && workItems !== undefined,
+    // dataUpdatedAt ties the result to the sprint snapshot it was computed from.
+    queryKey: [...recentActivityQueryKey(props.origin, props.collection, props.project, props.team, props.iterationPath, lookbackHours, configKey), iteration.dataUpdatedAt],
+    // Wait for any revalidation so updates aren't fetched for a stale item list.
+    enabled: enabled && workItems !== undefined && !iteration.isFetching,
+    staleTime: 0,
     queryFn: async (): Promise<{ items: PbiActivity[]; until: Date }> => {
       const items = workItems ?? [];
       const until = new Date();
@@ -92,7 +98,8 @@ export const RecentActivityTab = (props: RecentActivityTabProps) => {
   const itemUrl = (id: number) => `${props.origin}/${props.collection}/${props.project}/_workitems/edit/${id}`;
 
   const error = iteration.error ?? activity.error;
-  const loading = (iteration.isPending || activity.isPending) && enabled && !error;
+  const refreshing = iteration.isFetching || activity.isFetching;
+  const loading = (iteration.isPending || activity.isPending || (refreshing && !activity.data)) && enabled && !error;
   const items = activity.data?.items ?? [];
 
   return (
@@ -106,6 +113,9 @@ export const RecentActivityTab = (props: RecentActivityTabProps) => {
             {preset.label}
           </Button>
         ))}
+        <Button size="compact-sm" variant="subtle" loading={refreshing} onClick={() => iteration.refetch()}>
+          Refresh
+        </Button>
         <NumberInput aria-label="Custom lookback in hours" size="xs" w={110} min={MIN_LOOKBACK_HOURS} max={MAX_LOOKBACK_HOURS} allowDecimal={false} suffix=" hours" value={lookbackHours} onChange={changeLookback} />
       </Group>
 

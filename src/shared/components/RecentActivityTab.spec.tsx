@@ -99,3 +99,71 @@ describe("RecentActivityTab", () => {
     await waitFor(() => expect(screen.getByText(/No work item changes in the last 1 hours/)).toBeTruthy());
   });
 });
+
+describe("RecentActivityTab freshness", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("picks up a task added after the sprint was already cached", async () => {
+    let taskExists = false;
+    const base = createFetchMock();
+    const fetchMock = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.includes("/_apis/wit/wiql")) {
+        const body = JSON.parse((init?.body as string) ?? "{}");
+        if ((body.query as string).includes("WorkItemLinks")) {
+          return respond(
+            taskExists
+              ? {
+                  workItemRelations: [
+                    { rel: null, source: null, target: { id: 401 } },
+                    { rel: "System.LinkTypes.Hierarchy-Forward", source: { id: 401 }, target: { id: 402 } }
+                  ]
+                }
+              : { workItemRelations: [] }
+          );
+        }
+        return respond({ workItems: [{ id: 401 }] });
+      }
+      if (url.includes("/_apis/wit/workitemsbatch")) {
+        const body = JSON.parse((init?.body as string) ?? "{}");
+        if (body.$expand === "relations") return respond({ value: (body.ids as number[]).map(id => ({ id, relations: [] })) });
+        return respond({
+          value: (body.ids as number[]).map(id => ({ id, fields: fields(id, id === 402 ? { "System.WorkItemType": "Task", "System.State": "To Do", "Microsoft.VSTS.Scheduling.RemainingWork": 4 } : {}) }))
+        });
+      }
+      if (url.includes("/_apis/wit/workitems/402/updates")) {
+        return respond({ value: [{ id: 1, rev: 1, revisedDate: hoursAgo(1), fields: { "System.State": { newValue: "To Do" }, "Microsoft.VSTS.Scheduling.RemainingWork": { newValue: 4 } } }] });
+      }
+      return base(url, init);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    // Same long staleTime as the real app's shared QueryClient.
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 5 * 60_000 } } });
+    const ui = (
+      <QueryClientProvider client={queryClient}>
+        <PlatformProvider value={platform}>
+          <MantineProvider env="test">
+            <SettingsProvider collection="coll" project="proj">
+              <RecentActivityTab {...props} />
+            </SettingsProvider>
+          </MantineProvider>
+        </PlatformProvider>
+      </QueryClientProvider>
+    );
+
+    const first = render(ui);
+    expect(await screen.findByText("Effort: 3 → 5")).toBeTruthy();
+    expect(screen.queryByText("1 task added")).toBeNull();
+    first.unmount();
+
+    taskExists = true;
+    render(ui);
+    expect(await screen.findByText("1 task added")).toBeTruthy();
+    expect(screen.getByText("Remaining work: +4h")).toBeTruthy();
+  });
+});
