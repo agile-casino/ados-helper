@@ -1,7 +1,7 @@
-import { MantineProvider } from "@mantine/core";
+import { createTheme, MantineProvider, Portal } from "@mantine/core";
 import { useColorScheme } from "@mantine/hooks";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { queryClient } from "../shared/api/queryClient";
 import { PlatformProvider } from "../shared/context/PlatformContext";
 import { theme } from "../shared/styles/theme";
@@ -10,7 +10,15 @@ import { ReportDialog } from "./ReportDialog";
 
 const platformService = new BrowserPlatformService();
 
-export const App = () => {
+interface AppProps {
+  /** Shadow host element; Mantine applies the colour scheme attribute and CSS variables here. */
+  host: HTMLElement;
+  /** Element inside the shadow root that Mantine portals (menus, tooltips, dialog) render into. */
+  portalTarget: HTMLElement;
+}
+
+export const App = ({ host, portalTarget }: AppProps) => {
+  const shadowTheme = useMemo(() => createTheme({ ...theme, components: { Portal: Portal.extend({ defaultProps: { target: portalTarget } }) } }), [portalTarget]);
   const [url, setUrl] = useState(window.location.href);
   const [origin, setOrigin] = useState(window.__ADO_ORIGIN__ || window.location.origin);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -48,8 +56,8 @@ export const App = () => {
     return (
       <QueryClientProvider client={queryClient}>
         <PlatformProvider value={platformService}>
-          <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
-            <button type="button" onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", margin: "auto 8px", background: "none", border: "1px solid rgb(234,234,234)" }}>
+          <MantineProvider theme={shadowTheme} defaultColorScheme={colorScheme} getRootElement={() => host} cssVariablesSelector=":host">
+            <button type="button" onClick={() => setDialogOpen(!dialogOpen)} style={{ height: "32px", font: "inherit", margin: "auto 8px", background: "none", border: "1px solid rgb(234,234,234)" }}>
               Reports
             </button>
             <ReportDialog origin={origin} collection={collection} project={project} team={team} sprint={sprint} iterationPath={iterationPath} open={dialogOpen} onCloseClicked={() => setDialogOpen(!dialogOpen)} />

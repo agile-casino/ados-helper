@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 // import { analyzer } from "vite-bundle-analyzer";
 import bannerPlugin from "vite-plugin-banner";
-import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import pkg from "./package.json" with { type: "json" };
 
 const banner = `
@@ -22,8 +21,7 @@ const banner = `
 export default defineConfig(({ mode }) => ({
   plugins: [
     // analyzer({ analyzerMode: "static" }),
-    bannerPlugin({ content: banner, verify: false }),
-    cssInjectedByJsPlugin()
+    bannerPlugin({ content: banner, verify: false })
   ],
   build: {
     manifest: true,
