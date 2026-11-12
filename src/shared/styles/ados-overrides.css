@@ -1,0 +1,23 @@
+/*
+ * Azure DevOps ships unlayered global styles, which always beat anything inside
+ * a CSS cascade layer (such as the Mantine layer). These rules are intentionally
+ * unlayered and doubled-up on the class for specificity so they win over ADOS.
+ */
+
+/* Dialog close "X" belongs in the top-right corner. */
+.mantine-Dialog-root .mantine-Dialog-closeButton.mantine-Dialog-closeButton {
+  position: absolute;
+  top: var(--mantine-spacing-md, 1rem);
+  right: var(--mantine-spacing-md, 1rem);
+  left: auto;
+  color: var(--mantine-color-text, inherit);
+}
+
+/* Buttons must use the colour Mantine computes for the variant (white on filled). */
+.mantine-Button-root.mantine-Button-root {
+  color: var(--button-color);
+}
+.mantine-Button-root.mantine-Button-root .mantine-Button-label,
+.mantine-Button-root.mantine-Button-root .mantine-Button-section {
+  color: inherit;
+}

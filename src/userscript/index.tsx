@@ -2,6 +2,7 @@ import * as ReactDOM from "react-dom/client";
 import { isInDocument } from "../shared/utils/isInDocument";
 import { App } from "./App";
 import "../shared/styles/mantine.css";
+import "../shared/styles/ados-overrides.css";
 
 const container = document.createElement("div");
 container.className = "flex";

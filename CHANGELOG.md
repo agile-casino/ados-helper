@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- Userscript: the dialog close button now appears top-right and button text is readable (white on filled buttons); added unlayered overrides so Azure DevOps styles no longer beat the Mantine layer.
+
 ## [2.22.1] - 2026-09-10
 
 ### Added
