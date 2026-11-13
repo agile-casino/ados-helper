@@ -59,7 +59,7 @@ export function parseName(name: string): ParsedName | null {
 
   const comma = clean.indexOf(",");
   if (comma >= 0) {
-    // "Kennedy, Daniel E" -> "Daniel E Kennedy"
+    // "Turner, William E" -> "William E Turner"
     clean = `${clean.slice(comma + 1)} ${clean.slice(0, comma)}`;
   }
 

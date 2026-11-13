@@ -3,30 +3,30 @@ import { namesMatch } from "./namesMatch";
 
 describe("namesMatch", () => {
   test.each([
-    ["Dan K", "Dan K"],
-    ["Dan K", "Dan Kennedy"],
-    ["Dan K", "Daniel Kennedy"],
-    ["Dan K", "Daniel E Kennedy"],
-    ["Daniel K", "Dan K"],
-    ["Daniel K", "Dan Kennedy"],
-    ["Daniel K", "Daniel Kennedy"],
-    ["Danirl K", "Daniel E Kennedy"],
-    ["Kennedy, Daniel E", "Dan K"],
-    ["Daniel Kennedy <dan@example.com>", "Dan K"],
-    ["Danny Kennedy", "Daniel Kennedy"],
-    ["D Kennedy", "Daniel Kennedy"]
+    ["Will T", "Will T"],
+    ["Will T", "Will Turner"],
+    ["Will T", "William Turner"],
+    ["Will T", "William E Turner"],
+    ["William T", "Will T"],
+    ["William T", "Will Turner"],
+    ["William T", "William Turner"],
+    ["Wiliam T", "William E Turner"],
+    ["Turner, William E", "Will T"],
+    ["William Turner <will@example.com>", "Will T"],
+    ["Billy Turner", "William Turner"],
+    ["W Turner", "William Turner"]
   ])("%s matches %s (both directions)", (a, b) => {
     expect(namesMatch(a, b)).toBe(true);
     expect(namesMatch(b, a)).toBe(true);
   });
 
   test.each([
-    ["Dan K", "Dan Smith"],
-    ["Dan K", "David Kennedy"],
-    ["Daniel Kennedy", "Daniel Kent"],
-    ["Dan K", "Dana Kennedy"],
-    [null, "Dan K"],
-    ["", "Dan K"]
+    ["Will T", "Will Baker"],
+    ["Will T", "Wesley Turner"],
+    ["William Turner", "William Tucker"],
+    ["Will T", "Wilma Turner"],
+    [null, "Will T"],
+    ["", "Will T"]
   ])("%s does not match %s", (a, b) => {
     expect(namesMatch(a, b)).toBe(false);
   });
