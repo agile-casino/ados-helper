@@ -40,7 +40,7 @@ importers:
         version: 4.2.1
       jspdf-autotable:
         specifier: ^5.0.8
-        version: 5.0.8(jspdf@4.2.1)
+        version: 5.0.9(jspdf@4.2.1)
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
@@ -1854,8 +1854,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  jspdf-autotable@5.0.8:
-    resolution: {integrity: sha512-Hy05N86yBO7CXBrnSLOge7i1ZYpKH2DjQ94iybaP7vBhSInjvRBgDc99ngKzSbSO8Jc98ZCally8I6n0tj2RJQ==}
+  jspdf-autotable@5.0.9:
+    resolution: {integrity: sha512-wIOG2ggjG6Y7qvqjgFACZZeu+oHxoxrhwCn1lTMxjPhojLVVvu2U2yS2srVCYl0CXe6pqiG/jQMIIS0CFn1ssw==}
     peerDependencies:
       jspdf: ^2 || ^3 || ^4
 
@@ -4634,7 +4634,7 @@ snapshots:
 
   json5@2.2.3: {}
 
-  jspdf-autotable@5.0.8(jspdf@4.2.1):
+  jspdf-autotable@5.0.9(jspdf@4.2.1):
     dependencies:
       jspdf: 4.2.1
 
