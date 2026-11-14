@@ -33,7 +33,7 @@
     "url": "https://github.com/agile-casino/ados-helper/issues"
   },
   "homepage": "https://github.com/agile-casino/ados-helper#readme",
-  "packageManager": "pnpm@11.26.0+sha512.fc0e2bf890b9f983611f1ab68c0637bce914390653699f83c1a78b005ed25f2c81e77920c8fd8eee2ecf0b58b28cdcb00a84d97f69bcf7c56b2f344710238664",
+  "packageManager": "pnpm@12.18.0+sha512.9d7882d5dc82147ecfc4e062aa34834e0ad0296710a1837a1115ae012127d36b7109e321ac1598a1dd0a65597681b1e99917e12ed0d749eae91187943363beb3",
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@tauri-apps/cli": "^2.12.1",
