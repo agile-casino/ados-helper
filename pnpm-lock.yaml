@@ -120,9 +120,6 @@ importers:
       vite-plugin-banner:
         specifier: ^0.8.1
         version: 0.8.1
-      vite-plugin-css-injected-by-js:
-        specifier: ^5.0.2
-        version: 5.0.2(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1))
       vitest:
         specifier: ^5.0.3
         version: 5.0.3(@types/node@24.19.1)(happy-dom@20.14.5)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1))
@@ -2817,11 +2814,6 @@ packages:
 
   vite-plugin-banner@0.8.1:
     resolution: {integrity: sha512-0+gGguHk3MH0HvzMSOCJC6fGgH4+jtY9KlKVZh+hwwE+PBkGVzY8xe657JL74vEgbeUJD37XjVqTrmve8XvZBQ==}
-
-  vite-plugin-css-injected-by-js@5.0.2:
-    resolution: {integrity: sha512-Hvg48QfYsCL53ju9T5zTC0Ofg90XLa8t5zhhKmPYbayoMQieNcQDkkRX8pv4TAcKPZwVisLFiwDy5uBjOn+3Ow==}
-    peerDependencies:
-      vite: '>8.0.0-0'
 
   vite@8.3.2:
     resolution: {integrity: sha512-SQr1x6W5vVSbROg7vsyXIaxK9b0G7zsT68acdWWRmnBUsgDieLCRG+Rep9WdZgcposvv/GSnr4GUUBqB3vXq6w==}
@@ -5744,10 +5736,6 @@ snapshots:
   validator@13.15.35: {}
 
   vite-plugin-banner@0.8.1: {}
-
-  vite-plugin-css-injected-by-js@5.0.2(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1)):
-    dependencies:
-      vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1)
 
   vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(less@4.9.1(supports-color@7.2.0))(sass@1.105.1)(stylus@0.62.0(supports-color@7.2.0))(sugarss@5.0.1(postcss@8.5.28))(yaml@2.9.1):
     dependencies:

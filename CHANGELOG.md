@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- Userscript: the UI now renders inside a shadow root, so Azure DevOps' global styles no longer override ours (fixes the dialog close button appearing top-left and unreadable button text). Mantine portals (menus, tooltips, selects) are routed into the shadow root.
+
 ## [2.22.1] - 2026-09-10
 
 ### Added
