@@ -1,4 +1,4 @@
-import { Alert, Badge, Card, Group, List, Loader, Stack, Text, Title } from "@mantine/core";
+import { Accordion, Alert, Badge, Card, Group, List, Loader, Stack, Text, Title } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { ApiClient } from "../api/ApiClient";
@@ -59,51 +59,48 @@ const getSayDoColor = (pct: number) => {
   return "var(--mantine-color-red-6)";
 };
 
-function SayDoExplanationCard() {
+function SayDoExplanation() {
   return (
-    <Card withBorder p="md" w="100%">
-      <Stack gap="sm">
-        <Title order={4}>Say-Do Ratio</Title>
-        <Text size="sm">The Say-Do Ratio shows how reliably the team finishes the work it commits to. It compares what the team planned at the start of the sprint with what it actually completed by the end.</Text>
-        <Text size="sm" fw={600}>
-          Formula: (Completed committed points ÷ Committed points at start) × 100
-        </Text>
-        <List size="sm" spacing="xs">
-          <List.Item>
-            <Text component="span" size="sm" fw={600}>
-              Committed points
-            </Text>{" "}
-            are the points of active work items in the sprint at the start snapshot (end of Day 2). Items removed from the sprint later still count here, which lowers the ratio.
-          </List.Item>
-          <List.Item>
-            <Text component="span" size="sm" fw={600}>
-              Completed committed points
-            </Text>{" "}
-            are the committed points that are Done by the end of the sprint. Work added after the start snapshot is not counted.
-          </List.Item>
-          <List.Item>
-            <Text component="span" size="sm" fw={600}>
-              Sprint in progress
-            </Text>{" "}
-            is measured up to today.
-          </List.Item>
-        </List>
-        <Group gap="xs">
-          <Badge color="green" variant="light">
-            90% and above: High Reliability
-          </Badge>
-          <Badge color="yellow" variant="light">
-            70% to 89%: Moderate Reliability
-          </Badge>
-          <Badge color="red" variant="light">
-            Below 70%: Low Reliability
-          </Badge>
-        </Group>
-        <Text size="sm" c="dimmed">
-          A steady, high ratio helps planning, because the team's commitments can be trusted. Read the ratio as a trend across the team's sprints, not as a measure of individual performance.
-        </Text>
-      </Stack>
-    </Card>
+    <Stack gap="sm">
+      <Text size="sm">The Say-Do Ratio shows how reliably the team finishes the work it commits to. It compares what the team planned at the start of the sprint with what it actually completed by the end.</Text>
+      <Text size="sm" fw={600}>
+        Formula: (Completed committed points ÷ Committed points at start) × 100
+      </Text>
+      <List size="sm" spacing="xs">
+        <List.Item>
+          <Text component="span" size="sm" fw={600}>
+            Committed points
+          </Text>{" "}
+          are the points of active work items in the sprint at the start snapshot (end of Day 2). Items removed from the sprint later still count here, which lowers the ratio.
+        </List.Item>
+        <List.Item>
+          <Text component="span" size="sm" fw={600}>
+            Completed committed points
+          </Text>{" "}
+          are the committed points that are Done by the end of the sprint. Work added after the start snapshot is not counted.
+        </List.Item>
+        <List.Item>
+          <Text component="span" size="sm" fw={600}>
+            Sprint in progress
+          </Text>{" "}
+          is measured up to today.
+        </List.Item>
+      </List>
+      <Group gap="xs">
+        <Badge color="green" variant="light">
+          90% and above: High Reliability
+        </Badge>
+        <Badge color="yellow" variant="light">
+          70% to 89%: Moderate Reliability
+        </Badge>
+        <Badge color="red" variant="light">
+          Below 70%: Low Reliability
+        </Badge>
+      </Group>
+      <Text size="sm" c="dimmed">
+        A steady, high ratio helps planning, because the team's commitments can be trusted. Read the ratio as a trend across the team's sprints, not as a measure of individual performance.
+      </Text>
+    </Stack>
   );
 }
 
@@ -296,8 +293,6 @@ export const TrendsTab = (props: TrendsTabProps) => {
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "16px" }}>
       <Stack gap="md">
-        <SayDoExplanationCard />
-
         {showCharts && (
           <Group justify="space-between" align="baseline" wrap="wrap">
             <Title order={4}>Sprints: {sprintRange}</Title>
@@ -311,6 +306,14 @@ export const TrendsTab = (props: TrendsTabProps) => {
           <Title order={4} mb="sm">
             Say-Do Ratio
           </Title>
+          <Accordion variant="contained" mb="md">
+            <Accordion.Item value="how-calculated">
+              <Accordion.Control>How is the Say-Do Ratio calculated?</Accordion.Control>
+              <Accordion.Panel>
+                <SayDoExplanation />
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
           {showCharts ? <SayDoChart data={data} /> : body}
         </Card>
 
