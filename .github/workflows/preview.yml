@@ -45,6 +45,15 @@ jobs:
           corepack enable
           pnpm install
 
+      - name: Check Preview Base URL
+        env:
+          PREVIEW_BASE_URL: ${{ vars.PREVIEW_BASE_URL }}
+        run: |
+          if [[ ! "$PREVIEW_BASE_URL" =~ ^https:// ]]; then
+            echo "::error::Repository variable PREVIEW_BASE_URL must be an https:// URL (got '${PREVIEW_BASE_URL}'). Set it under Settings > Secrets and variables > Actions > Variables, e.g. https://<account>.blob.core.windows.net/apps"
+            exit 1
+          fi
+
       - name: Build Preview
         run: pnpm run build:preview
 
@@ -61,11 +70,12 @@ jobs:
       - name: Comment Preview Link on PR
         uses: actions/github-script@v7
         env:
-          PREVIEW_URL: ${{ vars.PREVIEW_BASE_URL }}/${{ env.PREVIEW_PREFIX }}/index.html
+          PREVIEW_BASE_URL: ${{ vars.PREVIEW_BASE_URL }}
         with:
           script: |
             const marker = "<!-- pr-preview -->";
-            const url = process.env.PREVIEW_URL;
+            const base = process.env.PREVIEW_BASE_URL.replace(/\/+$/, "");
+            const url = `${base}/${process.env.PREVIEW_PREFIX}/index.html`;
             const body = [
               marker,
               "### 👀 PR preview is ready",
