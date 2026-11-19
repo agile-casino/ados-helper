@@ -4,9 +4,8 @@ name: PR Preview
 # UI changes at a URL without installing anything. Approval happens on the PR itself.
 #
 # Requires:
-#   secrets.BLOB_CONNECTION_STRING  (already used by release.yml)
-#   vars.PREVIEW_BASE_URL           public base URL of the `apps` container,
-#                                   e.g. https://<account>.blob.core.windows.net/apps
+#   secrets.BLOB_CONNECTION_STRING  (already used by release.yml). The public base
+#                                   URL of the `apps` container is derived from it.
 
 on:
   pull_request:
@@ -45,14 +44,25 @@ jobs:
           corepack enable
           pnpm install
 
-      - name: Check Preview Base URL
+      - name: Resolve Preview Base URL
+        # Derived from the same connection string used for the upload, so no
+        # separate repository variable is needed. Never prints the secret.
         env:
-          PREVIEW_BASE_URL: ${{ vars.PREVIEW_BASE_URL }}
+          CONN: ${{ secrets.BLOB_CONNECTION_STRING }}
         run: |
-          if [[ ! "$PREVIEW_BASE_URL" =~ ^https:// ]]; then
-            echo "::error::Repository variable PREVIEW_BASE_URL must be an https:// URL (got '${PREVIEW_BASE_URL}'). Set it under Settings > Secrets and variables > Actions > Variables, e.g. https://<account>.blob.core.windows.net/apps"
-            exit 1
+          field() { printf '%s' "$CONN" | tr ';' '\n' | sed -n "s/^$1=//p"; }
+          base=$(field BlobEndpoint | sed 's#/*$##')
+          if [ -z "$base" ]; then
+            account=$(field AccountName)
+            if [ -z "$account" ]; then
+              echo "::error::BLOB_CONNECTION_STRING has no AccountName or BlobEndpoint"
+              exit 1
+            fi
+            suffix=$(field EndpointSuffix)
+            base="https://${account}.blob.${suffix:-core.windows.net}"
           fi
+          echo "PREVIEW_BASE_URL=${base}/apps" >> "$GITHUB_ENV"
+          echo "Preview base URL: ${base}/apps"
 
       - name: Build Preview
         run: pnpm run build:preview
@@ -69,8 +79,6 @@ jobs:
 
       - name: Comment Preview Link on PR
         uses: actions/github-script@v7
-        env:
-          PREVIEW_BASE_URL: ${{ vars.PREVIEW_BASE_URL }}
         with:
           script: |
             const marker = "<!-- pr-preview -->";
