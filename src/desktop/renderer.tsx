@@ -13,6 +13,7 @@ import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
 import { SettingsTab } from "../shared/components/SettingsTab";
 import { SprintStatsTab } from "../shared/components/SprintStatsTab";
+import { TrendsTab } from "../shared/components/TrendsTab";
 import { PlatformProvider } from "../shared/context/PlatformContext";
 import { SettingsProvider } from "../shared/context/SettingsContext";
 import { theme } from "../shared/styles/theme";
@@ -502,6 +503,7 @@ const DesktopAppContent = () => {
                     <Tabs.Tab value="current-team">Current Team</Tabs.Tab>
                     <Tabs.Tab value="multi-team">Multi-Team</Tabs.Tab>
                     <Tabs.Tab value="sprint-stats">Sprint Stats</Tabs.Tab>
+                    <Tabs.Tab value="trends">Trends</Tabs.Tab>
                     <Tabs.Tab value="settings" ml="auto">
                       Settings
                     </Tabs.Tab>
@@ -517,6 +519,10 @@ const DesktopAppContent = () => {
 
                   <Tabs.Panel value="sprint-stats" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
                     <SprintStatsTab origin={origin} collection={collection} project={selectedProject} team={selectedTeam} sprint={selectedSprint} iterationPath={selectedSprintObj.path} />
+                  </Tabs.Panel>
+
+                  <Tabs.Panel value="trends" pt="xs" style={{ flex: 1, overflow: "hidden" }}>
+                    <TrendsTab origin={origin} collection={collection} project={selectedProject} team={selectedTeam} sprint={selectedSprint} iterationPath={selectedSprintObj.path} />
                   </Tabs.Panel>
 
                   <Tabs.Panel value="settings" pt="xs" style={{ flex: 1, overflow: "hidden" }}>

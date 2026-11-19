@@ -3,4 +3,7 @@ export const iterationQueryKey = (origin: string, collection: string, project: s
 export const sprintStatsQueryKey = (origin: string, collection: string, project: string, team: string, sprint: string, iterationPath: string, configKey: string) =>
   ["sprint-stats", origin, collection, project, team, sprint, iterationPath, configKey] as const;
 
+export const sayDoTrendQueryKey = (origin: string, collection: string, project: string, team: string, sprint: string, iterationPath: string, configKey: string) =>
+  ["say-do-trend", origin, collection, project, team, sprint, iterationPath, configKey] as const;
+
 export const workItemStatesQueryKey = (origin: string, collection: string, project: string) => ["work-item-states", origin, collection, project] as const;

@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Added a Trends tab to the report views. It explains the Say-Do Ratio and shows a line chart of the ratio for the selected sprint and the four sprints before it. Values use the same snapshot dates and formula as the Sprint Stats tab.
+
 ### Fixed
 
 - Userscript: the UI now renders inside a shadow root, so Azure DevOps' global styles no longer override ours (fixes the dialog close button appearing top-left and unreadable button text). Mantine portals (menus, tooltips, selects) are routed into the shadow root.

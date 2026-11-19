@@ -4,6 +4,7 @@ import { ApiClient } from "../api/ApiClient";
 import { sprintStatsQueryKey } from "../api/queryKeys";
 import { usePlatform } from "../context/PlatformContext";
 import { useSettings } from "../context/SettingsContext";
+import { calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, normalizeIterationPath } from "../domain/sayDo";
 import type { WorkItem } from "../domain/WorkItem";
 import { categorizeState, type WorkItemStateConfig } from "../domain/WorkItemState";
 
@@ -16,15 +17,6 @@ interface SprintStatsTabProps {
   iterationPath: string;
   fetchFn?: typeof globalThis.fetch;
 }
-
-const normalizeIterationPath = (path: string, project: string) => {
-  let p = path.replace(/\//g, "\\");
-  const prefix = `${project}\\`.toLowerCase().replace(/\//g, "\\");
-  if (p.toLowerCase().startsWith(prefix)) {
-    p = p.slice(prefix.length);
-  }
-  return p;
-};
 
 const calculateCompletedPoints = (items: WorkItem[]) => {
   const active = items.filter(w => !w.isRemoved);
@@ -94,18 +86,9 @@ const fetchSprintStats = async (origin: string, fetchFn: typeof globalThis.fetch
   const start = new Date(iterDates.startDate);
   const finish = new Date(iterDates.finishDate);
 
-  // 2. Calculate snapshot dates
-  // Committed Date = startDate + 1 day (end of Day 2)
-  const commitDate = new Date(start.getTime() + 1 * 24 * 60 * 60 * 1000);
-  commitDate.setUTCHours(23, 59, 59, 999);
-
-  // Snapshot End Date = finishDate - 1 day (end of day before last)
-  const endSnapDate = new Date(finish.getTime() - 1 * 24 * 60 * 60 * 1000);
-  endSnapDate.setUTCHours(23, 59, 59, 999);
-
-  // If sprint is in progress, use current date/time as the final snapshot date
-  const now = new Date();
-  const actualEndDate = now < endSnapDate ? now : endSnapDate;
+  // 2. Calculate snapshot dates (shared with the Trends tab)
+  const commitDate = getCommitSnapshotDate(start);
+  const actualEndDate = getFinalSnapshotDate(finish);
 
   // 3. Fetch snapshots and iterations list in parallel
   const [initialResult, finalResult, allIterations] = await Promise.all([
@@ -131,8 +114,7 @@ const fetchSprintStats = async (origin: string, fetchFn: typeof globalThis.fetch
     previousSprints.map(async s => {
       const sFinishDate = s.attributes?.finishDate;
       const sFinish = sFinishDate ? new Date(sFinishDate) : new Date();
-      const sEndSnapDate = new Date(sFinish.getTime() - 1 * 24 * 60 * 60 * 1000);
-      sEndSnapDate.setUTCHours(23, 59, 59, 999);
+      const sEndSnapDate = getFinalSnapshotDate(sFinish);
 
       const normPath = normalizeIterationPath(s.path, project);
       const sItems = await apiClient.getSprintSnapshot(collection, project, team, s.name, normPath, sEndSnapDate);
@@ -285,11 +267,8 @@ export const SprintStatsTab = (props: SprintStatsTabProps) => {
   const completedPoints = completedItems.reduce((sum, w) => sum + (w.effort || 0), 0);
   const completedCount = completedItems.length;
 
-  // 5. Say-Do (Predictability) Calculation
-  const completedCommittedItems = completedItems.filter(c => initialActive.some(i => i.id === c.id));
-  const completedCommittedPoints = completedCommittedItems.reduce((sum, w) => sum + (w.effort || 0), 0);
-  const completedCommittedCount = completedCommittedItems.length;
-  const sayDoPct = committedPoints > 0 ? Math.round((completedCommittedPoints / committedPoints) * 100) : null;
+  // 5. Say-Do (Predictability) Calculation (shared with the Trends tab)
+  const { completedCommittedPoints, completedCommittedCount, percent: sayDoPct } = calculateSayDo(initialItems, finalItems);
 
   // 6. Churn Calculation
   const churnPct = committedPoints > 0 ? Math.round(((addedPoints + removedPoints) / committedPoints) * 100) : 0;
