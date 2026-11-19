@@ -8,6 +8,7 @@
     "build:dev": "vite build --mode development",
     "build:watch": "vite build --watch --mode development",
     "build:extension": "vite build --config vite.extension.config.mts",
+    "build:preview": "vite build --config vite.preview.config.mts",
     "dev:extension": "vite --config vite.extension.config.mts",
     "check": "pnpm typecheck && pnpm lint && pnpm build && pnpm test",
     "dev": "vite",

@@ -354,4 +354,5 @@ dist/
 dist-desktop/
 dist-extension/
 dist-packaged/
+dist-preview/
 .antigravitycli/

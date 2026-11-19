@@ -19,6 +19,9 @@ const banner = `
 `.trim();
 
 export default defineConfig(({ mode }) => ({
+  define: {
+    __SANDBOX_PREVIEW__: "false"
+  },
   plugins: [
     // analyzer({ analyzerMode: "static" }),
     bannerPlugin({ content: banner, verify: false })

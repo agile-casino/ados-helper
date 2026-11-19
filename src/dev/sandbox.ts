@@ -1,5 +1,9 @@
 import type { KNOWN_PBI_STATES } from "../shared/domain/WorkItemState";
 
+// Injected by Vite. `true` only in the static PR preview build (vite.preview.config.mts),
+// where the real-API connection is disabled so reviewers only ever see mock data.
+declare const __SANDBOX_PREVIEW__: boolean;
+
 interface MockWorkItem {
   id: number;
   type: "Product Backlog Item" | "Bug" | "Task";
@@ -357,7 +361,7 @@ class SandboxState {
   }
 
   public get useRealApi(): boolean {
-    return this.pat.length > 0;
+    return !__SANDBOX_PREVIEW__ && this.pat.length > 0;
   }
 
   public loadState() {
@@ -1210,7 +1214,9 @@ window.addEventListener("DOMContentLoaded", () => {
       Using mock API responses.
     </div>
   `;
-  sidebar.appendChild(realApiSection);
+  if (!__SANDBOX_PREVIEW__) {
+    sidebar.appendChild(realApiSection);
+  }
 
   // Add styles for toggle switch and inputs
   const styleEl = document.createElement("style");
