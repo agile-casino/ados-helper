@@ -288,25 +288,35 @@ export const TrendsTab = (props: TrendsTabProps) => {
 
   const data = query.data ?? [];
   const showCharts = body === undefined;
+  // The range comes from the sprints actually charted, so it stays correct when a sprint is skipped.
+  const firstSprint = data[0]?.name;
+  const lastSprint = data[data.length - 1]?.name;
+  const sprintRange = firstSprint === undefined || lastSprint === undefined ? "" : firstSprint === lastSprint ? firstSprint : `${firstSprint} – ${lastSprint}`;
 
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "16px" }}>
       <Stack gap="md">
         <SayDoExplanationCard />
 
+        {showCharts && (
+          <Group justify="space-between" align="baseline" wrap="wrap">
+            <Title order={4}>Sprints: {sprintRange}</Title>
+            <Text size="sm" c="dimmed">
+              The selected sprint and the four sprints before it. Values match the Sprint Stats tab.
+            </Text>
+          </Group>
+        )}
+
         <Card withBorder p="md" w="100%">
           <Title order={4} mb="sm">
-            Say-Do Ratio: last {TREND_SPRINT_COUNT} sprints
+            Say-Do Ratio
           </Title>
-          <Text size="sm" c="dimmed" mb="md">
-            The selected sprint and the four sprints before it. Values match the Sprint Stats tab.
-          </Text>
           {showCharts ? <SayDoChart data={data} /> : body}
         </Card>
 
         <Card withBorder p="md" w="100%">
           <Title order={4} mb="sm">
-            Points Completed: last {TREND_SPRINT_COUNT} sprints
+            Points Completed
           </Title>
           <Text size="sm" c="dimmed" mb="md">
             Story points of every work item Done by the end of each sprint, including items added or pulled in after the sprint started. This is delivered throughput, not a measure of commitment, so it does not compare against the start-of-sprint

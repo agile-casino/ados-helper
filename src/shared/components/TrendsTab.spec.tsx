@@ -35,11 +35,12 @@ describe("TrendsTab", () => {
     const fetchMock = vi.fn().mockRejectedValue(new Error("network down"));
     renderInProviders(<TrendsTab {...tabProps} fetchFn={fetchMock} />);
 
-    expect(screen.getByText("Say-Do Ratio")).toBeTruthy();
+    expect(screen.getAllByText("Say-Do Ratio")).toHaveLength(2);
     expect(screen.getByText("Formula: (Completed committed points ÷ Committed points at start) × 100")).toBeTruthy();
     expect(await screen.findAllByText("Error Loading Trends")).toHaveLength(2);
-    expect(screen.getByText("Say-Do Ratio: last 5 sprints")).toBeTruthy();
-    expect(screen.getByText("Points Completed: last 5 sprints")).toBeTruthy();
+    expect(screen.getByText("Points Completed")).toBeTruthy();
+    // No sprint range is shown when there is no data to chart.
+    expect(screen.queryByText(/^Sprints:/)).toBeNull();
   });
 
   test("reports when no sprint has dates", async () => {
