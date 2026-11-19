@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { sayDoTrendQueryKey } from "../api/queryKeys";
 import { useSettings } from "../context/SettingsContext";
-import { calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, selectTrendSprints } from "../domain/sayDo";
+import { calculateCompletedPoints, calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, selectTrendSprints } from "../domain/sayDo";
 import type { WorkItemStateConfig } from "../domain/WorkItemState";
 
 const TREND_SPRINT_COUNT = 5;
@@ -19,32 +19,34 @@ interface TrendsTabProps {
   fetchFn?: typeof globalThis.fetch;
 }
 
-interface SayDoTrendPoint {
+interface SprintTrendPoint {
   name: string;
-  percent: number | null;
-  completedCommittedPoints: number;
+  sayDoPercent: number | null;
   committedPoints: number;
+  completedCommittedPoints: number;
+  completedPoints: number;
 }
 
-const fetchSayDoTrend = async (origin: string, fetchFn: typeof globalThis.fetch | undefined, collection: string, project: string, team: string, sprint: string, iterationPath: string, stateConfig: WorkItemStateConfig): Promise<SayDoTrendPoint[]> => {
+const fetchTrend = async (origin: string, fetchFn: typeof globalThis.fetch | undefined, collection: string, project: string, team: string, sprint: string, iterationPath: string, stateConfig: WorkItemStateConfig): Promise<SprintTrendPoint[]> => {
   const apiClient = new ApiClient(origin, fetchFn, stateConfig);
   const iterations = await apiClient.getIterations(collection, project, team);
   const sprints = selectTrendSprints(iterations, { name: sprint, path: iterationPath }, project, TREND_SPRINT_COUNT);
   const now = new Date();
 
-  // Each sprint uses the same snapshot dates and Say-Do formula as the Sprint Stats tab.
+  // Each sprint uses the same snapshot dates, Say-Do formula and completed-points rule as the Sprint Stats tab.
   return Promise.all(
     sprints.map(async s => {
       const [initialItems, finalItems] = await Promise.all([
         apiClient.getSprintSnapshot(collection, project, team, s.name, s.path, getCommitSnapshotDate(s.startDate)),
         apiClient.getSprintSnapshot(collection, project, team, s.name, s.path, getFinalSnapshotDate(s.finishDate, now))
       ]);
-      const result = calculateSayDo(initialItems, finalItems);
+      const sayDo = calculateSayDo(initialItems, finalItems);
       return {
         name: s.name,
-        percent: result.percent,
-        completedCommittedPoints: result.completedCommittedPoints,
-        committedPoints: result.committedPoints
+        sayDoPercent: sayDo.percent,
+        committedPoints: sayDo.committedPoints,
+        completedCommittedPoints: sayDo.completedCommittedPoints,
+        completedPoints: calculateCompletedPoints(finalItems)
       };
     })
   );
@@ -108,46 +110,59 @@ function SayDoExplanationCard() {
 const CHART_WIDTH = 720;
 const CHART_HEIGHT = 320;
 const MARGIN = { top: 28, right: 24, bottom: 56, left: 48 };
-const Y_TICKS = [0, 25, 50, 75, 100];
-const THRESHOLDS = [
-  { value: 70, label: "70%" },
-  { value: 90, label: "90%" }
-];
 
-function SayDoTrendChart({ points }: { points: SayDoTrendPoint[] }) {
+interface TrendChartPoint {
+  name: string;
+  value: number | null;
+  color: string;
+  tooltip: string;
+}
+
+interface TrendLineChartProps {
+  points: TrendChartPoint[];
+  yMax: number;
+  yTicks: number[];
+  formatTick: (value: number) => string;
+  formatValue: (value: number) => string;
+  lineColor: string;
+  thresholds?: { value: number; label: string }[];
+  ariaLabel: string;
+}
+
+function TrendLineChart({ points, yMax, yTicks, formatTick, formatValue, lineColor, thresholds = [], ariaLabel }: TrendLineChartProps) {
   const plotWidth = CHART_WIDTH - MARGIN.left - MARGIN.right;
   const plotHeight = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
   const bottom = MARGIN.top + plotHeight;
 
   const xFor = (index: number) => MARGIN.left + (plotWidth * (index + 0.5)) / points.length;
-  const yFor = (pct: number) => MARGIN.top + plotHeight * (1 - Math.min(Math.max(pct, 0), 100) / 100);
+  const yFor = (value: number) => MARGIN.top + plotHeight * (1 - Math.min(Math.max(value, 0), yMax) / yMax);
 
-  // Break the line at sprints with no commitment so a gap is not drawn as a value.
+  // Break the line at sprints with no value so a gap is not drawn as a value.
   let path = "";
   let penDown = false;
   points.forEach((p, i) => {
-    if (p.percent === null) {
+    if (p.value === null) {
       penDown = false;
       return;
     }
-    path += `${penDown ? "L" : "M"} ${xFor(i)} ${yFor(p.percent)} `;
+    path += `${penDown ? "L" : "M"} ${xFor(i)} ${yFor(p.value)} `;
     penDown = true;
   });
 
-  const summary = points.map(p => `${p.name}: ${p.percent === null ? "no commitment" : `${p.percent}%`}`).join(", ");
+  const summary = points.map(p => `${p.name}: ${p.value === null ? "no commitment" : formatValue(p.value)}`).join(", ");
 
   return (
-    <svg viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} width="100%" role="img" aria-label={`Say-Do Ratio trend. ${summary}`} style={{ maxWidth: CHART_WIDTH, display: "block", margin: "0 auto" }}>
-      {Y_TICKS.map(tick => (
+    <svg viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} width="100%" role="img" aria-label={`${ariaLabel}. ${summary}`} style={{ maxWidth: CHART_WIDTH, display: "block", margin: "0 auto" }}>
+      {yTicks.map(tick => (
         <g key={tick}>
           <line x1={MARGIN.left} x2={CHART_WIDTH - MARGIN.right} y1={yFor(tick)} y2={yFor(tick)} style={{ stroke: "var(--mantine-color-default-border)" }} />
           <text x={MARGIN.left - 8} y={yFor(tick)} dy="0.32em" textAnchor="end" style={{ fill: "var(--mantine-color-dimmed)", fontSize: 12 }}>
-            {tick}%
+            {formatTick(tick)}
           </text>
         </g>
       ))}
 
-      {THRESHOLDS.map(t => (
+      {thresholds.map(t => (
         <g key={t.value}>
           <line x1={MARGIN.left} x2={CHART_WIDTH - MARGIN.right} y1={yFor(t.value)} y2={yFor(t.value)} strokeDasharray="4 4" style={{ stroke: "var(--mantine-color-dimmed)", opacity: 0.6 }} />
           <text x={CHART_WIDTH - MARGIN.right} y={yFor(t.value) - 6} textAnchor="end" style={{ fill: "var(--mantine-color-dimmed)", fontSize: 11 }}>
@@ -156,7 +171,7 @@ function SayDoTrendChart({ points }: { points: SayDoTrendPoint[] }) {
         </g>
       ))}
 
-      {path !== "" && <path d={path.trim()} fill="none" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" style={{ stroke: "var(--mantine-color-blue-6)" }} />}
+      {path !== "" && <path d={path.trim()} fill="none" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" style={{ stroke: lineColor }} />}
 
       {points.map((p, i) => {
         const x = xFor(i);
@@ -165,17 +180,17 @@ function SayDoTrendChart({ points }: { points: SayDoTrendPoint[] }) {
             <text x={x} y={bottom + 22} textAnchor="middle" style={{ fill: "var(--mantine-color-text)", fontSize: 13 }}>
               {p.name}
             </text>
-            {p.percent === null ? (
+            {p.value === null ? (
               <text x={x} y={bottom - 10} textAnchor="middle" style={{ fill: "var(--mantine-color-dimmed)", fontSize: 12 }}>
                 N/A
               </text>
             ) : (
               <>
-                <circle cx={x} cy={yFor(p.percent)} r={6} style={{ fill: getSayDoColor(p.percent), stroke: "var(--mantine-color-body)", strokeWidth: 2 }}>
-                  <title>{`${p.name}: ${p.percent}% (${p.completedCommittedPoints} of ${p.committedPoints} committed pts)`}</title>
+                <circle cx={x} cy={yFor(p.value)} r={6} style={{ fill: p.color, stroke: "var(--mantine-color-body)", strokeWidth: 2 }}>
+                  <title>{p.tooltip}</title>
                 </circle>
-                <text x={x} y={yFor(p.percent) - 12} textAnchor="middle" style={{ fill: "var(--mantine-color-text)", fontSize: 13, fontWeight: 700 }}>
-                  {p.percent}%
+                <text x={x} y={yFor(p.value) - 12} textAnchor="middle" style={{ fill: "var(--mantine-color-text)", fontSize: 13, fontWeight: 700 }}>
+                  {formatValue(p.value)}
                 </text>
               </>
             )}
@@ -183,6 +198,56 @@ function SayDoTrendChart({ points }: { points: SayDoTrendPoint[] }) {
         );
       })}
     </svg>
+  );
+}
+
+const SAY_DO_THRESHOLDS = [
+  { value: 70, label: "70%" },
+  { value: 90, label: "90%" }
+];
+const SAY_DO_TICKS = [0, 25, 50, 75, 100];
+
+function SayDoChart({ data }: { data: SprintTrendPoint[] }) {
+  return (
+    <TrendLineChart
+      points={data.map(p => ({
+        name: p.name,
+        value: p.sayDoPercent,
+        color: p.sayDoPercent === null ? "var(--mantine-color-gray-5)" : getSayDoColor(p.sayDoPercent),
+        tooltip: `${p.name}: ${p.sayDoPercent}% (${p.completedCommittedPoints} of ${p.committedPoints} committed pts)`
+      }))}
+      yMax={100}
+      yTicks={SAY_DO_TICKS}
+      formatTick={v => `${v}%`}
+      formatValue={v => `${v}%`}
+      lineColor="var(--mantine-color-blue-6)"
+      thresholds={SAY_DO_THRESHOLDS}
+      ariaLabel="Say-Do Ratio trend"
+    />
+  );
+}
+
+function CompletedPointsChart({ data }: { data: SprintTrendPoint[] }) {
+  // Scale the axis to the largest sprint, with headroom, and never below 5 points.
+  const largest = Math.max(0, ...data.map(p => p.completedPoints));
+  const yMax = Math.max(5, Math.ceil(largest * 1.15));
+  const yTicks = [...new Set([0, 0.25, 0.5, 0.75, 1].map(f => Math.round(yMax * f)))];
+
+  return (
+    <TrendLineChart
+      points={data.map(p => ({
+        name: p.name,
+        value: p.completedPoints,
+        color: "var(--mantine-color-blue-6)",
+        tooltip: `${p.name}: ${p.completedPoints} pts completed`
+      }))}
+      yMax={yMax}
+      yTicks={yTicks}
+      formatTick={v => `${v}`}
+      formatValue={v => `${v} pts`}
+      lineColor="var(--mantine-color-blue-6)"
+      ariaLabel="Points completed trend"
+    />
   );
 }
 
@@ -194,39 +259,41 @@ export const TrendsTab = (props: TrendsTabProps) => {
   const query = useQuery({
     queryKey: sayDoTrendQueryKey(props.origin, props.collection, props.project, props.team, props.sprint, props.iterationPath, configKey),
     enabled,
-    queryFn: () => fetchSayDoTrend(props.origin, props.fetchFn, props.collection, props.project, props.team, props.sprint, props.iterationPath, stateConfig)
+    queryFn: () => fetchTrend(props.origin, props.fetchFn, props.collection, props.project, props.team, props.sprint, props.iterationPath, stateConfig)
   });
 
-  let chart: ReactNode;
+  let body: ReactNode;
   if (query.isPending && enabled) {
-    chart = (
+    body = (
       <Group justify="center" align="center" style={{ minHeight: "240px" }}>
         <Loader size="lg" />
         <Text size="md" c="dimmed">
-          Loading Say-Do trend...
+          Loading sprint trends...
         </Text>
       </Group>
     );
   } else if (query.error) {
-    chart = (
+    body = (
       <Alert color="red" title="Error Loading Trends">
-        {query.error instanceof Error ? query.error.message : "An unknown error occurred while fetching the Say-Do trend."}
+        {query.error instanceof Error ? query.error.message : "An unknown error occurred while fetching sprint trends."}
       </Alert>
     );
   } else if (!query.data || query.data.length === 0) {
-    chart = (
+    body = (
       <Alert color="yellow" title="No Sprints With Dates">
         Iteration start and end dates are needed to build the trend. Please set iteration dates in ADOS.
       </Alert>
     );
-  } else {
-    chart = <SayDoTrendChart points={query.data} />;
   }
+
+  const data = query.data ?? [];
+  const showCharts = body === undefined;
 
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "16px" }}>
       <Stack gap="md">
         <SayDoExplanationCard />
+
         <Card withBorder p="md" w="100%">
           <Title order={4} mb="sm">
             Say-Do Ratio: last {TREND_SPRINT_COUNT} sprints
@@ -234,7 +301,18 @@ export const TrendsTab = (props: TrendsTabProps) => {
           <Text size="sm" c="dimmed" mb="md">
             The selected sprint and the four sprints before it. Values match the Sprint Stats tab.
           </Text>
-          {chart}
+          {showCharts ? <SayDoChart data={data} /> : body}
+        </Card>
+
+        <Card withBorder p="md" w="100%">
+          <Title order={4} mb="sm">
+            Points Completed: last {TREND_SPRINT_COUNT} sprints
+          </Title>
+          <Text size="sm" c="dimmed" mb="md">
+            Story points of every work item Done by the end of each sprint, including items added or pulled in after the sprint started. This is delivered throughput, not a measure of commitment, so it does not compare against the start-of-sprint
+            plan.
+          </Text>
+          {showCharts ? <CompletedPointsChart data={data} /> : body}
         </Card>
       </Stack>
     </div>

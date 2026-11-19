@@ -4,7 +4,7 @@ import { ApiClient } from "../api/ApiClient";
 import { sprintStatsQueryKey } from "../api/queryKeys";
 import { usePlatform } from "../context/PlatformContext";
 import { useSettings } from "../context/SettingsContext";
-import { calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, normalizeIterationPath } from "../domain/sayDo";
+import { calculateCompletedPoints, calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, normalizeIterationPath } from "../domain/sayDo";
 import type { WorkItem } from "../domain/WorkItem";
 import { categorizeState, type WorkItemStateConfig } from "../domain/WorkItemState";
 
@@ -17,12 +17,6 @@ interface SprintStatsTabProps {
   iterationPath: string;
   fetchFn?: typeof globalThis.fetch;
 }
-
-const calculateCompletedPoints = (items: WorkItem[]) => {
-  const active = items.filter(w => !w.isRemoved);
-  const completed = active.filter(w => w.isDone);
-  return completed.reduce((sum, w) => sum + (w.effort || 0), 0);
-};
 
 const calculateStdev = (values: number[], mean: number): number => {
   if (values.length <= 1) return 0;

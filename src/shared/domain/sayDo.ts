@@ -53,6 +53,14 @@ export function calculateSayDo(initialItems: WorkItem[], finalItems: WorkItem[])
   };
 }
 
+/**
+ * Points completed in a sprint: every non-removed item that is Done at the final snapshot,
+ * whether it was committed at the start or added / pulled in later.
+ */
+export function calculateCompletedPoints(items: WorkItem[]): number {
+  return items.filter(w => !w.isRemoved && w.isDone).reduce((sum, w) => sum + (w.effort || 0), 0);
+}
+
 export interface TrendSprint {
   name: string;
   /** Iteration path with the project prefix removed, as the snapshot API expects. */

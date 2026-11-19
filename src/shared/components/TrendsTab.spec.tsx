@@ -37,8 +37,9 @@ describe("TrendsTab", () => {
 
     expect(screen.getByText("Say-Do Ratio")).toBeTruthy();
     expect(screen.getByText("Formula: (Completed committed points ÷ Committed points at start) × 100")).toBeTruthy();
-    expect(await screen.findByText("Error Loading Trends")).toBeTruthy();
+    expect(await screen.findAllByText("Error Loading Trends")).toHaveLength(2);
     expect(screen.getByText("Say-Do Ratio: last 5 sprints")).toBeTruthy();
+    expect(screen.getByText("Points Completed: last 5 sprints")).toBeTruthy();
   });
 
   test("reports when no sprint has dates", async () => {
@@ -48,6 +49,6 @@ describe("TrendsTab", () => {
     });
     renderInProviders(<TrendsTab {...tabProps} fetchFn={fetchMock} />);
 
-    expect(await screen.findByText("No Sprints With Dates")).toBeTruthy();
+    expect(await screen.findAllByText("No Sprints With Dates")).toHaveLength(2);
   });
 });

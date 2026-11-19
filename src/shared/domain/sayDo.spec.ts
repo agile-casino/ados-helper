@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AzureDevOpsIteration } from "../api/schemas";
 import type { WorkItemDto } from "../api/WorkItemDto";
-import { calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, normalizeIterationPath, selectTrendSprints } from "./sayDo";
+import { calculateCompletedPoints, calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, normalizeIterationPath, selectTrendSprints } from "./sayDo";
 import { WorkItem } from "./WorkItem";
 
 const item = (id: number, effort: number, state: string): WorkItem => {
@@ -82,6 +82,13 @@ describe("calculateSayDo", () => {
     const initial = [item(1, 2, "New")];
     const final = [item(1, 2, "Done"), item(7, 4, "Done")];
     expect(calculateSayDo(initial, final).percent).toBe(100);
+  });
+});
+
+describe("calculateCompletedPoints", () => {
+  it("counts all Done, non-removed items including ones added mid-sprint", () => {
+    const items = [item(1, 5, "Done"), item(2, 3, "Active"), item(9, 8, "Done"), item(4, 2, "Removed")];
+    expect(calculateCompletedPoints(items)).toBe(13);
   });
 });
 
