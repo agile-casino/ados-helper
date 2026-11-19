@@ -25,13 +25,6 @@
 
     <!-- Eruda Mobile DevTools -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>
-      // Skipped when Eruda is not loaded (the PR preview build strips it).
-      if (window.eruda) {
-        eruda.init();
-        // Keep the floating DevTools button hidden unless the URL has ?devtools.
-        if (!location.search.includes("devtools")) eruda.get("entryBtn").hide();
-      }
-    </script>
+    <script>eruda.init();</script>
   </body>
 </html>
