@@ -1316,8 +1316,15 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   let isCollapsed = false;
-  toggleBtn.addEventListener("click", () => {
-    if (isCollapsed) {
+  const setCollapsed = (collapsed: boolean) => {
+    if (collapsed) {
+      sidebar.style.overflowY = "hidden";
+      sidebar.style.width = "0px";
+      sidebar.style.padding = "0px";
+      sidebar.style.borderLeft = "none";
+      toggleBtn.innerHTML = "🛠️ Show Console";
+      toggleBtn.style.color = "#ff79c6";
+    } else {
       sidebar.style.width = "380px";
       sidebar.style.padding = "20px";
       sidebar.style.borderLeft = "1px solid #333";
@@ -1326,16 +1333,12 @@ window.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => {
         sidebar.style.overflowY = "auto";
       }, 300);
-    } else {
-      sidebar.style.overflowY = "hidden";
-      sidebar.style.width = "0px";
-      sidebar.style.padding = "0px";
-      sidebar.style.borderLeft = "none";
-      toggleBtn.innerHTML = "🛠️ Show Console";
-      toggleBtn.style.color = "#ff79c6";
     }
-    isCollapsed = !isCollapsed;
-  });
+    isCollapsed = collapsed;
+  };
+  toggleBtn.addEventListener("click", () => setCollapsed(!isCollapsed));
+  // The Developer Console starts hidden; the button opens it.
+  setCollapsed(true);
 
   mainArea.appendChild(toggleBtn);
 
