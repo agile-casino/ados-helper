@@ -7,7 +7,7 @@ import { useSettings } from "../context/SettingsContext";
 import { calculateCompletedPoints, calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, selectTrendSprints } from "../domain/sayDo";
 import type { WorkItemStateConfig } from "../domain/WorkItemState";
 
-const TREND_SPRINT_COUNT = 5;
+const TREND_SPRINT_COUNT = 6;
 
 interface TrendsTabProps {
   origin: string;
@@ -297,7 +297,7 @@ export const TrendsTab = (props: TrendsTabProps) => {
           <Group justify="space-between" align="baseline" wrap="wrap">
             <Title order={4}>Sprints: {sprintRange}</Title>
             <Text size="sm" c="dimmed">
-              The selected sprint and the four sprints before it. Values match the Sprint Stats tab.
+              The selected sprint and the five sprints before it. Values match the Sprint Stats tab.
             </Text>
           </Group>
         )}
