@@ -1,7 +1,7 @@
 import { createTheme, MantineProvider, Portal } from "@mantine/core";
 import { useColorScheme } from "@mantine/hooks";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { queryClient } from "../shared/api/queryClient";
 import { PlatformProvider } from "../shared/context/PlatformContext";
 import { theme } from "../shared/styles/theme";
@@ -32,6 +32,13 @@ export const App = ({ host, portalTarget }: AppProps) => {
       colorScheme = "dark";
     }
   }
+
+  // Mantine's colour-scheme rules (e.g. tooltip backgrounds) are written as `[data-mantine-color-scheme] .class`.
+  // Selectors inside a shadow root cannot match ancestors outside it, so the attribute set on the host is not
+  // enough. Mirror it onto the portal root, which lives inside the shadow tree and contains every popup.
+  useLayoutEffect(() => {
+    portalTarget.setAttribute("data-mantine-color-scheme", colorScheme);
+  }, [portalTarget, colorScheme]);
 
   const onUrlChange = useCallback(() => {
     setUrl(window.location.href);
