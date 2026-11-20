@@ -193,9 +193,9 @@ function WorkItemTableBody({ origin, collection, project, workItems, sprintStart
   const platform = usePlatform();
   const isDark = colorScheme === "auto" ? systemColorScheme === "dark" : colorScheme === "dark";
 
-  const bgYellow = isDark ? "rgba(230, 200, 50, 0.18)" : "#eeece1";
-  const bgOrange = isDark ? "rgba(255, 150, 0, 0.28)" : "#FFCC66";
-  const bgPink = isDark ? "rgba(240, 100, 100, 0.22)" : "#f2dcdb";
+  const bgYellow = isDark ? "rgba(255, 235, 59, 0.35)" : "#fff176";
+  const bgOrange = isDark ? "rgba(255, 152, 0, 0.45)" : "#ffa726";
+  const bgPink = isDark ? "rgba(244, 67, 54, 0.35)" : "#f4a1a1";
 
   return (
     <Table.Tbody>
