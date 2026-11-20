@@ -1,3 +1,4 @@
+import { queryClient } from "../shared/api/queryClient";
 import type { KNOWN_PBI_STATES } from "../shared/domain/WorkItemState";
 
 interface MockWorkItem {
@@ -378,6 +379,9 @@ class SandboxState {
   }
 
   public saveState() {
+    // Every edit to the mock data goes through here. Drop cached API results so the
+    // app shows the change straight away instead of waiting for the cache to expire.
+    queryClient.invalidateQueries();
     localStorage.setItem(
       "sprint-report-generator-sandbox-state",
       JSON.stringify({

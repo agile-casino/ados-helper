@@ -1,4 +1,5 @@
-import { Dialog, Tabs, Title } from "@mantine/core";
+import { ActionIcon, Dialog, Group, Tabs, Title, Tooltip } from "@mantine/core";
+import { queryClient } from "../shared/api/queryClient";
 import { CurrentTeamTab } from "../shared/components/CurrentTeamTab";
 import { MultiTeamTab } from "../shared/components/MultiTeamTab";
 import { SettingsTab } from "../shared/components/SettingsTab";
@@ -21,9 +22,16 @@ export const ReportDialog = (props: ReportDialogProps) => {
   if (props.open) {
     return (
       <Dialog opened={true} w={1000} h={650} withCloseButton={true} onClose={props.onCloseClicked}>
-        <Title order={4} fw={400} style={{ marginBottom: "1rem" }}>
-          <span>{props.sprint} Reports</span>
-        </Title>
+        <Group gap="xs" align="center" mb="md" wrap="nowrap">
+          <Title order={4} fw={400} style={{ flexGrow: 1 }}>
+            <span>{props.sprint} Reports</span>
+          </Title>
+          <Tooltip label="Refresh data for current sprint">
+            <ActionIcon variant="subtle" onClick={() => queryClient.invalidateQueries()} aria-label="Refresh">
+              &#x21bb;
+            </ActionIcon>
+          </Tooltip>
+        </Group>
         <SettingsProvider key={`${props.collection}-${props.project}`} collection={props.collection} project={props.project}>
           <Tabs defaultValue="current-team">
             <Tabs.List>
