@@ -1,12 +1,7 @@
 name: Tauri Windows Build
 
+# Disabled automatic runs while the UI changes are in progress. Run manually from the Actions tab.
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
