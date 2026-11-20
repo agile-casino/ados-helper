@@ -101,10 +101,10 @@ const SHEET_COLUMNS = [
   { wpx: 82 * 0.85714, hidden: true },
   { wpx: 120 * 0.85714, hidden: true },
   { wpx: 120 * 0.85714, hidden: true },
-  { wpx: 24 },
-  { wpx: 24 },
-  { wpx: 24 },
-  { wpx: 260 }
+  // Blank spacer and swatch use Excel's default width (about 64px); the label is four times that.
+  { wpx: 64 },
+  { wpx: 64 },
+  { wpx: 256 }
 ];
 
 function addSectionHeader(rows: CellObject[][], merges: Range[], title: string) {
