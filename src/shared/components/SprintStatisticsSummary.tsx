@@ -25,9 +25,7 @@ function SayDoBadge({ sayDo }: { sayDo: SayDoSummary }) {
 }
 
 export function SprintStatisticsSummary({ collection, sayDo }: { collection: WorkItemCollection; sayDo?: SayDoSummary | undefined }) {
-  const committedItems = collection.committedWorkItems();
   const pulledInItems = collection.pulledInWorkItems();
-  const completedCommitted = committedItems.filter(w => w.isDone);
   const percentage = collection.commitmentPercentage;
 
   const getColor = (pct: number) => {
@@ -52,19 +50,22 @@ export function SprintStatisticsSummary({ collection, sayDo }: { collection: Wor
         <Text fw={700}>Sprint Statistics</Text>
       </div>
       <div>
-        <Text size="sm" c="dimmed">
-          Completed Items
-        </Text>
-        <Text size="lg" fw={600}>
-          {completedCommitted.length} / {committedItems.length}
-        </Text>
-      </div>
-      <div>
-        <Text size="sm" c="dimmed">
-          Completed Points
-        </Text>
-        <Text size="lg" fw={600}>
-          {collection.completedCommittedEffort} / {collection.committedEffort}
+        <Tooltip
+          label="Completed: points of work items Done by the end of the sprint, as a share of all points in the sprint. Includes items added or pulled in later. Removed items are excluded."
+          multiline
+          w={280}
+          withArrow
+          events={{ hover: true, focus: true, touch: true }}
+        >
+          <Text size="sm" c="dimmed" style={{ cursor: "help", width: "fit-content" }}>
+            Completed
+          </Text>
+        </Tooltip>
+        <Badge size="xl" color="blue" style={{ fontSize: "1.25rem" }}>
+          {collection.completedPercentage === null ? "N/A" : `${collection.completedPercentage}%`}
+        </Badge>
+        <Text size="xs" c="dimmed">
+          {collection.completedEffort} of {collection.activeEffort} pts
         </Text>
       </div>
       <div>
