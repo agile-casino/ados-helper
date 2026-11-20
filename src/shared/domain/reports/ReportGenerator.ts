@@ -1,6 +1,6 @@
 import { type CellObject, type CellStyle, utils, write } from "xlsx-js-style";
 import { formatName } from "../../utils/formatName";
-import { getRowHighlight, ROW_HIGHLIGHT_STYLES } from "../rowHighlight";
+import { getRowHighlight, ROW_HIGHLIGHT_ORDER, ROW_HIGHLIGHT_STYLES, type RowHighlight } from "../rowHighlight";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 import { type BorderStyle, Cell, type FontStyle, type TextAlignStyle } from "./Cell";
@@ -52,6 +52,29 @@ interface ReportContext {
   origin: string;
   collection: string;
   project: string;
+}
+
+/** Colours used in the sheet, in key order. Only highlights present in the sheet are listed. */
+function collectHighlights(teams: { workItems: WorkItem[]; sprintStartDate?: Date | undefined }[]): RowHighlight[] {
+  const present = new Set<RowHighlight>();
+  for (const team of teams) {
+    for (const workItem of team.workItems) {
+      const highlight = getRowHighlight(workItem, team.sprintStartDate);
+      if (highlight) present.add(highlight);
+    }
+  }
+  return ROW_HIGHLIGHT_ORDER.filter(h => present.has(h));
+}
+
+/** Key at the top of the sheet: a coloured swatch in column A and the meaning in column C. */
+function addKey(rows: CellObject[][], merges: Range[], highlights: RowHighlight[]) {
+  if (highlights.length === 0) return;
+  merges.push(new Range().from(rows.length, 0).to(rows.length, 6));
+  rows.push([new Cell("Key").font(headerFont)]);
+  for (const h of highlights) {
+    rows.push([new Cell("").backgroundColor(ROW_HIGHLIGHT_STYLES[h].color), new Cell(""), new Cell(ROW_HIGHLIGHT_STYLES[h].label)]);
+  }
+  rows.push([new Cell("")]);
 }
 
 function addSectionHeader(rows: CellObject[][], merges: Range[], title: string) {
@@ -130,6 +153,7 @@ export function generateReport(saveFile: (data: Uint8Array, filename: string, mi
   const merges: Range[] = [];
   const context: ReportContext = { origin, collection, project };
 
+  addKey(rows, merges, collectHighlights([{ workItems, sprintStartDate }]));
   addTeamWorkItems(rows, merges, workItems, context, sprintStartDate);
 
   const worksheet = utils.aoa_to_sheet(rows);
@@ -150,6 +174,8 @@ export function generateMultiTeamReport(saveFile: (data: Uint8Array, filename: s
   const rows: CellObject[][] = [];
   const merges: Range[] = [];
   const context: ReportContext = { origin, collection, project };
+
+  addKey(rows, merges, collectHighlights(teamWorkItems));
 
   teamWorkItems.forEach((teamData, index) => {
     // Add team header with commitment percentage

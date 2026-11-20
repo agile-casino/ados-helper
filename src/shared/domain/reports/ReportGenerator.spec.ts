@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { read, utils } from "xlsx-js-style";
 import type { WorkItemDto } from "../../api/WorkItemDto";
+import { ROW_HIGHLIGHT_STYLES } from "../rowHighlight";
 import { WorkItem } from "../WorkItem";
 import { generateMultiTeamReport, generateReport, type TeamWorkItems } from "./ReportGenerator";
 
@@ -46,6 +47,42 @@ function createWorkItem(
   };
   return new WorkItem(dto);
 }
+
+describe("ReportGenerator colour key", () => {
+  const readRows = (saveFileMock: ReturnType<typeof vi.fn>) => {
+    const data = saveFileMock.mock.calls[0]?.[0] as Uint8Array;
+    const workbook = read(data, { type: "array" });
+    const sheet = workbook.Sheets["Sprint 1"];
+    if (!sheet) throw new Error("Expected a 'Sprint 1' worksheet");
+    return utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true }).map(row => String(row[2] ?? row[0] ?? ""));
+  };
+
+  it("lists only the highlights present in the sheet", async () => {
+    const saveFileMock = vi.fn().mockResolvedValue(undefined);
+    const workItems = [
+      createWorkItem({ id: 1, state: "Done", tags: "Sprint 1+" }),
+      // Activated well before the sprint started, so it is carried over
+      createWorkItem({ id: 2, state: "Done", activatedDate: "2026-06-20T00:00:00Z" })
+    ];
+
+    await generateReport(saveFileMock, "https://dev.azure.com", "mycoll", "myproj", "MyTeam", "Sprint 1", workItems, new Date("2026-07-01"));
+
+    const rows = readRows(saveFileMock);
+    expect(rows).toContain("Key");
+    expect(rows).toContain(ROW_HIGHLIGHT_STYLES.pulledIn.label);
+    expect(rows).toContain(ROW_HIGHLIGHT_STYLES.carriedOver.label);
+    expect(rows).not.toContain(ROW_HIGHLIGHT_STYLES.hotfix.label);
+  });
+
+  it("is omitted when no rows are highlighted", async () => {
+    const saveFileMock = vi.fn().mockResolvedValue(undefined);
+    const workItems = [createWorkItem({ id: 1, state: "Done", tags: "" })];
+
+    await generateReport(saveFileMock, "https://dev.azure.com", "mycoll", "myproj", "MyTeam", "Sprint 1", workItems, new Date("2026-07-01"));
+
+    expect(readRows(saveFileMock)).not.toContain("Key");
+  });
+});
 
 describe("ReportGenerator", () => {
   it("should generate a single-team report and call saveFile", async () => {
