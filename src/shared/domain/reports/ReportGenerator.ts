@@ -66,12 +66,12 @@ function collectHighlights(teams: { workItems: WorkItem[]; sprintStartDate?: Dat
   return ROW_HIGHLIGHT_ORDER.filter(h => present.has(h));
 }
 
-/** Column for the key: to the right of the work item columns, which are 0-6 (4-6 are hidden). */
-const KEY_COLUMN = 7;
+/** Column for the key swatch. Columns 0-3 hold the table, 4-6 are hidden, and column 7 is a blank spacer. */
+const KEY_COLUMN = 8;
 
 /**
  * Writes the key beside the top of the sheet, in columns to the right of the work items, so it
- * does not add rows above the tables. Column H holds the swatch and column I the label.
+ * does not add rows above the tables. Column I holds the swatch and column J the label.
  */
 function addKeyBesideTables(rows: CellObject[][], highlights: RowHighlight[]) {
   if (highlights.length === 0) return;
@@ -92,7 +92,7 @@ function addKeyBesideTables(rows: CellObject[][], highlights: RowHighlight[]) {
   });
 }
 
-/** Column widths: the work item columns, then the key columns (swatch and label). */
+/** Column widths: the work item columns, a blank spacer, then the key columns (swatch and label). */
 const SHEET_COLUMNS = [
   { wpx: 96 * 0.85714 },
   { wpx: 75 * 0.85714 },
@@ -101,6 +101,8 @@ const SHEET_COLUMNS = [
   { wpx: 82 * 0.85714, hidden: true },
   { wpx: 120 * 0.85714, hidden: true },
   { wpx: 120 * 0.85714, hidden: true },
+  { wpx: 24 },
+  { wpx: 24 },
   { wpx: 24 },
   { wpx: 260 }
 ];
