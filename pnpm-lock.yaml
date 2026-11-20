@@ -198,7 +198,7 @@ importers:
         version: 5.0.0
       docx:
         specifier: ^9.8.1
-        version: 9.8.1
+        version: 9.16.0
       happy-dom:
         specifier: ^21.0.0
         version: 21.0.4
@@ -1502,9 +1502,9 @@ packages:
   detect-node-es@1.1.0:
     resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
 
-  docx@9.8.1:
-    resolution: {integrity: sha512-bv4yDxgiV9aRyh327HG+V36wG0f23wk32SDhXGQpUhnykVtIPaR1K4ISi8E+DYJ7OcRQRkR8Y70QYlSS08V1cA==}
-    engines: {node: '>=10'}
+  docx@9.16.0:
+    resolution: {integrity: sha512-fvAuqxV0705bEQ9OGPLt6onJqufGJTMS+b7PtRxNktea+iPWYgc1zO+OQBMW9ZmRLj9THTnOeiAoxTDz2ub0Fw==}
+    engines: {node: '>=16'}
 
   dom-accessibility-api@0.5.16:
     resolution: {integrity: sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==}
@@ -1782,9 +1782,6 @@ packages:
   has-tostringtag@1.0.2:
     resolution: {integrity: sha512-NqADB8VjPFLM2V0VvHUewwwsw0ZWBaIdgo+ieHtK3hasLz4qeCRjYcqfB6AQrBggRKppKF8L52/VqdVsO47Dlw==}
     engines: {node: '>= 0.4'}
-
-  hash.js@1.1.7:
-    resolution: {integrity: sha512-taOaskGt4z4SOANNseOviYDvjEJinIkRgmp7LbKP2YTTmVxWBl87s/uzK9r+44BclBSp2X7K1hqeNfz9JbBeXA==}
 
   hasown@2.0.4:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
@@ -3178,16 +3175,9 @@ packages:
     engines: {node: '>=0.8'}
     hasBin: true
 
-  xml-js@1.6.11:
-    resolution: {integrity: sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==}
-    hasBin: true
-
   xml2js@0.5.0:
     resolution: {integrity: sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA==}
     engines: {node: '>=4.0.0'}
-
-  xml@1.0.1:
-    resolution: {integrity: sha512-huCv9IH9Tcf95zuYCsQraZtWnJvBtLVE0QHMOs8bWyZAFZNDcYjsPq1nEx8jKA9y+Beo9v+7OBPRisQTjinQMw==}
 
   xmlbuilder@11.0.1:
     resolution: {integrity: sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==}
@@ -4228,14 +4218,11 @@ snapshots:
 
   detect-node-es@1.1.0: {}
 
-  docx@9.8.1:
+  docx@9.16.0:
     dependencies:
       '@types/node': 26.6.4
-      hash.js: 1.1.7
-      jszip: 3.10.2
+      fflate: 0.8.3
       nanoid: 6.0.1
-      xml: 1.0.1
-      xml-js: 1.6.11
 
   dom-accessibility-api@0.5.16: {}
 
@@ -4599,11 +4586,6 @@ snapshots:
   has-tostringtag@1.0.2:
     dependencies:
       has-symbols: 1.1.0
-
-  hash.js@1.1.7:
-    dependencies:
-      inherits: 2.0.4
-      minimalistic-assert: 1.0.1
 
   hasown@2.0.4:
     dependencies:
@@ -6111,16 +6093,10 @@ snapshots:
       wmf: 1.0.2
       word: 0.3.0
 
-  xml-js@1.6.11:
-    dependencies:
-      sax: 1.6.1
-
   xml2js@0.5.0:
     dependencies:
       sax: 1.6.1
       xmlbuilder: 11.0.1
-
-  xml@1.0.1: {}
 
   xmlbuilder@11.0.1: {}
 
