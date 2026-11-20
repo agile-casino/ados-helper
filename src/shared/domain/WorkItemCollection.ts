@@ -69,6 +69,16 @@ export class WorkItemCollection {
       .reduce((sum, w) => sum + (w.effort || 0), 0);
   }
 
+  /** Number of work items in the sprint that are not removed. */
+  public get activeCount(): number {
+    return this.workItems.filter(w => !w.isRemoved).length;
+  }
+
+  /** Number of work items that are Done, including items added later. */
+  public get completedCount(): number {
+    return this.workItems.filter(w => w.isDone && !w.isRemoved).length;
+  }
+
   /** Points of every work item in the sprint that is not removed, including items added later. */
   public get activeEffort(): number {
     return this.workItems.filter(w => !w.isRemoved).reduce((sum, w) => sum + (w.effort || 0), 0);

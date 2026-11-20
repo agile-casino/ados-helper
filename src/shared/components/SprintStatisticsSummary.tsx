@@ -1,4 +1,5 @@
 import { Badge, Loader, Paper, Text, Tooltip } from "@mantine/core";
+import type { ReactNode } from "react";
 import type { SayDoSummary } from "../api/useSprintSayDo";
 import type { WorkItemCollection } from "../domain/WorkItemCollection";
 
@@ -17,10 +18,20 @@ function SayDoBadge({ sayDo }: { sayDo: SayDoSummary }) {
   if (sayDo.loading) {
     return <Loader size="sm" />;
   }
-  return (
+  const badge = (
     <Badge size="xl" color={getSayDoColor(sayDo.percent)} style={{ fontSize: "1.25rem" }}>
       {sayDo.percent === null ? "N/A" : `${sayDo.percent}%`}
     </Badge>
+  );
+  return sayDo.detail ? <BubbleTooltip label={sayDo.detail}>{badge}</BubbleTooltip> : badge;
+}
+
+/** Tooltip for a bubble, shown on hover, focus and touch. */
+function BubbleTooltip({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Tooltip label={label} withArrow events={{ hover: true, focus: true, touch: true }}>
+      <span style={{ display: "inline-block" }}>{children}</span>
+    </Tooltip>
   );
 }
 
@@ -61,12 +72,11 @@ export function SprintStatisticsSummary({ collection, sayDo }: { collection: Wor
             Completed
           </Text>
         </Tooltip>
-        <Badge size="xl" color="blue" style={{ fontSize: "1.25rem" }}>
-          {collection.completedPercentage === null ? "N/A" : `${collection.completedPercentage}%`}
-        </Badge>
-        <Text size="xs" c="dimmed">
-          {collection.completedEffort} of {collection.activeEffort} pts
-        </Text>
+        <BubbleTooltip label={`${collection.completedCount} of ${collection.activeCount} PBIs, ${collection.completedEffort} of ${collection.activeEffort} points`}>
+          <Badge size="xl" color="blue" style={{ fontSize: "1.25rem" }}>
+            {collection.completedPercentage === null ? "N/A" : `${collection.completedPercentage}%`}
+          </Badge>
+        </BubbleTooltip>
       </div>
       <div>
         {sayDo ? (

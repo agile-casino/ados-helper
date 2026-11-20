@@ -8,6 +8,8 @@ import { fetchSprintSayDo } from "./sprintSayDo";
 export interface SayDoSummary {
   percent: number | null;
   loading: boolean;
+  /** For the tooltip, e.g. "2 of 4 PBIs, 8 of 16 points". Absent until the snapshots are loaded. */
+  detail?: string | undefined;
 }
 
 export interface UseSprintSayDoParams {
@@ -48,7 +50,8 @@ export function useSprintSayDo(params: UseSprintSayDoParams): SayDoSummary {
     return { percent: null, loading: false };
   }
   if (query.data) {
-    return { percent: query.data.percent, loading: false };
+    const { percent, completedCommittedCount, committedCount, completedCommittedPoints, committedPoints } = query.data;
+    return { percent, loading: false, detail: `${completedCommittedCount} of ${committedCount} PBIs, ${completedCommittedPoints} of ${committedPoints} points` };
   }
   return { percent: null, loading: true };
 }
