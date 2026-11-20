@@ -236,7 +236,7 @@ describe("PdfGenerator", () => {
           activatedDate: "2026-06-16T00:00:00Z"
         })
       ),
-      // Activated 3 days before sprint start (> 2 days before) -> should be pink (#f2dcdb)
+      // Activated 3 days before sprint start (> 2 days before) -> should be pink (#f4a1a1)
       new WorkItem(
         createWorkItemDto({
           id: 102,
@@ -271,17 +271,17 @@ describe("PdfGenerator", () => {
     expect(pbi101?.meta.bgColor).toBeNull();
 
     // PBI 102 is early activated (> 2 days before start) -> pink background color
-    expect(pbi102?.meta.bgColor).toBe("#f2dcdb");
+    expect(pbi102?.meta.bgColor).toBe("#f4a1a1");
   });
 
   test("applies tag-based color coding for sprint suffixes and carry overs", () => {
-    // Sprint suffix + -> #eeece1
+    // Sprint suffix + -> #fff176
     const w1 = new WorkItem(createWorkItemDto({ id: 1, state: "Done", title: "PBI 1", tags: "Sprint 1+", iterationPath: "Project\\Sprint 1" }));
 
-    // Sprint suffix ! -> #FFCC66
+    // Sprint suffix ! -> #ffa726
     const w2 = new WorkItem(createWorkItemDto({ id: 2, state: "Done", title: "PBI 2", tags: "Sprint 1!", iterationPath: "Project\\Sprint 1" }));
 
-    // Previous sprint (carry over) -> #f2dcdb
+    // Previous sprint (carry over) -> #f4a1a1
     const w3 = new WorkItem(createWorkItemDto({ id: 3, state: "Done", title: "PBI 3", tags: "Sprint 1", iterationPath: "Project\\Sprint 2" }));
 
     generatePdfReport(mockSaveFile, "http://origin", "collection", "project", "team", "sprint", [w1, w2, w3]);
@@ -294,9 +294,9 @@ describe("PdfGenerator", () => {
     });
     const body = completedCall?.[1]?.body as { id: string; meta: { bgColor: string | null } }[];
 
-    expect(body.find(b => b.id === "1")?.meta.bgColor).toBe("#eeece1");
-    expect(body.find(b => b.id === "2")?.meta.bgColor).toBe("#FFCC66");
-    expect(body.find(b => b.id === "3")?.meta.bgColor).toBe("#f2dcdb");
+    expect(body.find(b => b.id === "1")?.meta.bgColor).toBe("#fff176");
+    expect(body.find(b => b.id === "2")?.meta.bgColor).toBe("#ffa726");
+    expect(body.find(b => b.id === "3")?.meta.bgColor).toBe("#f4a1a1");
   });
 
   test("renders Study Time section", () => {

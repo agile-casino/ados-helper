@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toPlainText } from "../../utils/toPlainText";
+import { getRowHighlight, ROW_HIGHLIGHT_STYLES } from "../rowHighlight";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 import { AC_BULLET_LINE, DEFAULT_BANNER_COLOR, DIVIDER_COLOR, darkenHex, formatSectionTitle, REPORT_SECTIONS, type ReportSectionTheme, SLATE_400, SLATE_500, SLATE_700, SLATE_800, SLATE_900 } from "./reportTheme";
@@ -43,27 +44,9 @@ function getRowStyles(workItem: WorkItem, sprintStartDate?: Date) {
   let bgColor: string | null = null;
   let isBold = false;
 
-  // Tag-based color coding for yellow and orange
-  if (workItem.sprint?.sprintNumber && workItem.sprintTag?.sprintNumber) {
-    if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "+") {
-      bgColor = "#eeece1";
-    } else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "!") {
-      bgColor = "#FFCC66";
-    } else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber - 1 && workItem.sprintTag.sprintSuffix !== "+") {
-      bgColor = "#f2dcdb";
-    }
-  }
-
-  // Date-based color coding (only if no tag-based color applied)
-  if (!bgColor && sprintStartDate) {
-    // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
-    if (workItem.isPulledInLate(sprintStartDate)) {
-      bgColor = "#eeece1";
-    }
-    // Pink for PBIs activated > 2 days before sprint start
-    else if (workItem.isActivatedEarly(sprintStartDate)) {
-      bgColor = "#f2dcdb";
-    }
+  const highlight = getRowHighlight(workItem, sprintStartDate);
+  if (highlight) {
+    bgColor = ROW_HIGHLIGHT_STYLES[highlight].color;
   }
 
   if (workItem.allTasksDone) {

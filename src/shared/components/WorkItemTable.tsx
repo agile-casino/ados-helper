@@ -1,7 +1,8 @@
-import { Badge, Loader, Paper, Table, Text, Tooltip, useMantineColorScheme } from "@mantine/core";
+import { Badge, Group, Loader, Paper, Table, Text, Tooltip, useMantineColorScheme } from "@mantine/core";
 import { useColorScheme } from "@mantine/hooks";
 import sumBy from "lodash/sumBy";
 import { usePlatform } from "../context/PlatformContext";
+import { getRowHighlight, ROW_HIGHLIGHT_ORDER, ROW_HIGHLIGHT_STYLES, type RowHighlight } from "../domain/rowHighlight";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
 import { formatName } from "../utils/formatName";
@@ -39,6 +40,37 @@ function SayDoBadge({ sayDo }: { sayDo: SayDoSummary }) {
     <Badge size="xl" color={getSayDoColor(sayDo.percent)} style={{ fontSize: "1.25rem" }}>
       {sayDo.percent === null ? "N/A" : `${sayDo.percent}%`}
     </Badge>
+  );
+}
+
+function useIsDarkMode() {
+  const { colorScheme } = useMantineColorScheme();
+  const systemColorScheme = useColorScheme();
+  return colorScheme === "auto" ? systemColorScheme === "dark" : colorScheme === "dark";
+}
+
+function HighlightLegend({ highlights }: { highlights: RowHighlight[] }) {
+  const isDark = useIsDarkMode();
+  const shown = ROW_HIGHLIGHT_ORDER.filter(h => highlights.includes(h));
+  if (shown.length === 0) {
+    return null;
+  }
+
+  return (
+    <Group gap="lg" mb="md" aria-label="Row colour key">
+      <Text size="sm" fw={600} c="dimmed">
+        Key
+      </Text>
+      {shown.map(h => (
+        <Group key={h} gap="xs" wrap="nowrap">
+          <span
+            aria-hidden="true"
+            style={{ display: "inline-block", width: 16, height: 16, borderRadius: 3, border: "1px solid var(--mantine-color-default-border)", background: isDark ? ROW_HIGHLIGHT_STYLES[h].darkColor : ROW_HIGHLIGHT_STYLES[h].color }}
+          />
+          <Text size="sm">{ROW_HIGHLIGHT_STYLES[h].label}</Text>
+        </Group>
+      ))}
+    </Group>
   );
 }
 
@@ -125,11 +157,14 @@ export function WorkItemTable({ origin, collection, project, workItems, sprintSt
   }
 
   const workItemCollection = new WorkItemCollection(workItems, sprintStartDate, sprintEndDate);
+  // Only the highlights present in this table are shown in the key.
+  const highlights = [...new Set(workItems.map(x => getRowHighlight(x, sprintStartDate)))].filter((h): h is RowHighlight => h !== null);
   const showWiseColumn = workItems.some(x => x.wiseNumber !== undefined);
 
   return (
     <div className={styles.workItemTable}>
       <StatisticsSummary collection={workItemCollection} sayDo={sayDo} />
+      <HighlightLegend highlights={highlights} />
       <Table>
         {workItemCollection.done.length > 0 && (
           <>
@@ -188,42 +223,17 @@ function WorkItemTableHeader({ title, showWiseColumn }: { title: string; showWis
 }
 
 function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate, showWiseColumn }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date | undefined; showWiseColumn: boolean }) {
-  const { colorScheme } = useMantineColorScheme();
-  const systemColorScheme = useColorScheme();
   const platform = usePlatform();
-  const isDark = colorScheme === "auto" ? systemColorScheme === "dark" : colorScheme === "dark";
-
-  const bgYellow = isDark ? "rgba(255, 235, 59, 0.35)" : "#fff176";
-  const bgOrange = isDark ? "rgba(255, 152, 0, 0.45)" : "#ffa726";
-  const bgPink = isDark ? "rgba(244, 67, 54, 0.35)" : "#f4a1a1";
+  const isDark = useIsDarkMode();
 
   return (
     <Table.Tbody>
       {workItems.length ? (
         workItems.map(x => {
           const style: React.CSSProperties = {};
-
-          // Tag-based color coding for yellow and orange
-          if (x.sprint?.sprintNumber && x.sprintTag?.sprintNumber) {
-            if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "+") {
-              style.backgroundColor = bgYellow;
-            } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "!") {
-              style.backgroundColor = bgOrange;
-            } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber - 1 && x.sprintTag.sprintSuffix !== "+") {
-              style.backgroundColor = bgPink;
-            }
-          }
-
-          // Date-based color coding (only if no tag-based color applied)
-          if (!style.backgroundColor && sprintStartDate) {
-            // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
-            if (x.isPulledInLate(sprintStartDate)) {
-              style.backgroundColor = bgYellow;
-            }
-            // Pink for PBIs activated > 2 days before sprint start
-            else if (x.isActivatedEarly(sprintStartDate)) {
-              style.backgroundColor = bgPink;
-            }
+          const highlight = getRowHighlight(x, sprintStartDate);
+          if (highlight) {
+            style.backgroundColor = isDark ? ROW_HIGHLIGHT_STYLES[highlight].darkColor : ROW_HIGHLIGHT_STYLES[highlight].color;
           }
 
           if (x.allTasksDone) {

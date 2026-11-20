@@ -1,5 +1,6 @@
 import { type CellObject, type CellStyle, utils, write } from "xlsx-js-style";
 import { formatName } from "../../utils/formatName";
+import { getRowHighlight, ROW_HIGHLIGHT_STYLES } from "../rowHighlight";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 import { type BorderStyle, Cell, type FontStyle, type TextAlignStyle } from "./Cell";
@@ -27,27 +28,10 @@ const teamHeaderFont: FontStyle = {
 function getExtraStyles(workItem: WorkItem, sprintStartDate?: Date): CellStyle {
   const result: CellStyle = {};
 
-  // Tag-based color coding for yellow and orange
-  if (workItem.sprint?.sprintNumber && workItem.sprintTag?.sprintNumber) {
-    if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "+") {
-      result.fill = { fgColor: { rgb: "eeece1" } };
-    } else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "!") {
-      result.fill = { fgColor: { rgb: "FFCC66" } };
-    } else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber - 1 && workItem.sprintTag.sprintSuffix !== "+") {
-      result.fill = { fgColor: { rgb: "f2dcdb" } };
-    }
-  }
-
-  // Date-based color coding (only if no tag-based color applied)
-  if (!result.fill && sprintStartDate) {
-    // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
-    if (workItem.isPulledInLate(sprintStartDate)) {
-      result.fill = { fgColor: { rgb: "eeece1" } };
-    }
-    // Pink for PBIs activated > 2 days before sprint start
-    else if (workItem.isActivatedEarly(sprintStartDate)) {
-      result.fill = { fgColor: { rgb: "f2dcdb" } };
-    }
+  const highlight = getRowHighlight(workItem, sprintStartDate);
+  if (highlight) {
+    // Excel takes the colour without the leading #
+    result.fill = { fgColor: { rgb: ROW_HIGHLIGHT_STYLES[highlight].color.slice(1) } };
   }
 
   if (workItem.allTasksDone) {
