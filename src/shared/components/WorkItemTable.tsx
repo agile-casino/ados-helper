@@ -1,18 +1,14 @@
-import { Badge, Group, Loader, Paper, Table, Text, Tooltip, useMantineColorScheme } from "@mantine/core";
+import { Group, Table, Text, useMantineColorScheme } from "@mantine/core";
 import { useColorScheme } from "@mantine/hooks";
 import sumBy from "lodash/sumBy";
+import type { SayDoSummary } from "../api/useSprintSayDo";
 import { usePlatform } from "../context/PlatformContext";
 import { getRowHighlight, ROW_HIGHLIGHT_ORDER, ROW_HIGHLIGHT_STYLES, type RowHighlight } from "../domain/rowHighlight";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
 import { formatName } from "../utils/formatName";
+import { SprintStatisticsSummary } from "./SprintStatisticsSummary";
 import styles from "./WorkItemTable.module.css";
-
-/** Say-Do Ratio shown in place of Achievement. `loading` is true while the snapshots are fetched. */
-export interface SayDoSummary {
-  percent: number | null;
-  loading: boolean;
-}
 
 interface WorkItemTableProps {
   origin: string;
@@ -23,24 +19,6 @@ interface WorkItemTableProps {
   sprintEndDate?: Date | undefined;
   /** When given, the summary shows the Say-Do Ratio instead of Achievement. */
   sayDo?: SayDoSummary | undefined;
-}
-
-const getSayDoColor = (pct: number | null) => {
-  if (pct === null) return "gray";
-  if (pct >= 90) return "green";
-  if (pct >= 70) return "yellow";
-  return "red";
-};
-
-function SayDoBadge({ sayDo }: { sayDo: SayDoSummary }) {
-  if (sayDo.loading) {
-    return <Loader size="sm" />;
-  }
-  return (
-    <Badge size="xl" color={getSayDoColor(sayDo.percent)} style={{ fontSize: "1.25rem" }}>
-      {sayDo.percent === null ? "N/A" : `${sayDo.percent}%`}
-    </Badge>
-  );
 }
 
 function useIsDarkMode() {
@@ -74,83 +52,6 @@ function HighlightLegend({ highlights }: { highlights: RowHighlight[] }) {
   );
 }
 
-function StatisticsSummary({ collection, sayDo }: { collection: WorkItemCollection; sayDo?: SayDoSummary | undefined }) {
-  const committedItems = collection.committedWorkItems();
-  const pulledInItems = collection.pulledInWorkItems();
-  const completedCommitted = committedItems.filter(w => w.isDone);
-  const percentage = collection.commitmentPercentage;
-
-  const getColor = (pct: number) => {
-    if (pct >= 90) return "green";
-    if (pct >= 70) return "yellow";
-    return "red";
-  };
-
-  return (
-    <Paper
-      withBorder
-      p="md"
-      mb="md"
-      style={{
-        display: "flex",
-        gap: "2rem",
-        alignItems: "center",
-        flexWrap: "wrap"
-      }}
-    >
-      <div>
-        <Text fw={700}>Sprint Statistics</Text>
-      </div>
-      <div>
-        <Text size="sm" c="dimmed">
-          Completed Items
-        </Text>
-        <Text size="lg" fw={600}>
-          {completedCommitted.length} / {committedItems.length}
-        </Text>
-      </div>
-      <div>
-        <Text size="sm" c="dimmed">
-          Completed Points
-        </Text>
-        <Text size="lg" fw={600}>
-          {collection.completedCommittedEffort} / {collection.committedEffort}
-        </Text>
-      </div>
-      <div>
-        {sayDo ? (
-          <Tooltip label="Say-Do Ratio: completed committed points divided by committed points at the start of the sprint. Same calculation as the Sprint Stats tab." multiline w={280} withArrow events={{ hover: true, focus: true, touch: true }}>
-            <Text size="sm" c="dimmed" style={{ cursor: "help", width: "fit-content" }}>
-              Say-Do Ratio
-            </Text>
-          </Tooltip>
-        ) : (
-          <Text size="sm" c="dimmed">
-            Achievement
-          </Text>
-        )}
-        {sayDo ? (
-          <SayDoBadge sayDo={sayDo} />
-        ) : (
-          <Badge size="xl" color={getColor(percentage)} style={{ fontSize: "1.25rem" }}>
-            {percentage}%
-          </Badge>
-        )}
-      </div>
-      {pulledInItems.length > 0 && (
-        <div>
-          <Text size="sm" c="dimmed">
-            Pulled In Later
-          </Text>
-          <Text size="md">
-            {pulledInItems.length} items ({collection.pulledInEffort} pts)
-          </Text>
-        </div>
-      )}
-    </Paper>
-  );
-}
-
 export function WorkItemTable({ origin, collection, project, workItems, sprintStartDate, sprintEndDate, sayDo }: WorkItemTableProps) {
   if (!workItems) {
     return null;
@@ -163,7 +64,7 @@ export function WorkItemTable({ origin, collection, project, workItems, sprintSt
 
   return (
     <div className={styles.workItemTable}>
-      <StatisticsSummary collection={workItemCollection} sayDo={sayDo} />
+      <SprintStatisticsSummary collection={workItemCollection} sayDo={sayDo} />
       <HighlightLegend highlights={highlights} />
       <Table>
         {workItemCollection.done.length > 0 && (

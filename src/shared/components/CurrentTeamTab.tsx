@@ -1,8 +1,8 @@
 import { Group, Loader, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { ApiClient } from "../api/ApiClient";
-import { iterationQueryKey, sayDoQueryKey } from "../api/queryKeys";
-import { fetchSprintSayDo } from "../api/sprintSayDo";
+import { iterationQueryKey } from "../api/queryKeys";
+import { useSprintSayDo } from "../api/useSprintSayDo";
 import { usePlatform } from "../context/PlatformContext";
 import { useSettings } from "../context/SettingsContext";
 import { generateAcceptanceCriteriaDocxReport } from "../domain/reports/DocxGenerator";
@@ -10,7 +10,7 @@ import { generateAcceptanceCriteriaReport, generatePdfReport } from "../domain/r
 import { generateReport } from "../domain/reports/ReportGenerator";
 import { AcceptanceCriteriaReportSplitButton } from "./AcceptanceCriteriaReportSplitButton";
 import { SprintReportSplitButton } from "./SprintReportSplitButton";
-import { type SayDoSummary, WorkItemTable } from "./WorkItemTable";
+import { WorkItemTable } from "./WorkItemTable";
 
 interface CurrentTeamTabProps {
   origin: string;
@@ -38,23 +38,16 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
   const sprintEndDate = query.data?.sprintEndDate;
 
   // Say-Do needs the sprint-start snapshot, so it is fetched separately from the live work items.
-  const sayDoQuery = useQuery({
-    queryKey: sayDoQueryKey(props.origin, props.collection, props.project, props.team, props.sprint, props.iterationPath, configKey),
-    enabled: enabled && sprintStartDate !== undefined && sprintEndDate !== undefined,
-    queryFn: () => {
-      if (sprintStartDate === undefined || sprintEndDate === undefined) {
-        throw new Error("Sprint dates are not set");
-      }
-      return fetchSprintSayDo(new ApiClient(props.origin, props.fetchFn, stateConfig), {
-        collection: props.collection,
-        project: props.project,
-        team: props.team,
-        sprint: props.sprint,
-        iterationPath: props.iterationPath,
-        startDate: sprintStartDate,
-        finishDate: sprintEndDate
-      });
-    }
+  const sayDo = useSprintSayDo({
+    origin: props.origin,
+    fetchFn: props.fetchFn,
+    collection: props.collection,
+    project: props.project,
+    team: props.team,
+    sprint: props.sprint,
+    iterationPath: props.iterationPath,
+    startDate: sprintStartDate,
+    finishDate: sprintEndDate
   });
 
   if (query.isPending && enabled) {
@@ -70,9 +63,7 @@ export const CurrentTeamTab = (props: CurrentTeamTabProps) => {
 
   const workItems = query.data?.workItems ?? [];
 
-  // Without sprint dates the Say-Do Ratio cannot be calculated, so it shows N/A.
-  const sayDo: SayDoSummary =
-    sprintStartDate === undefined || sprintEndDate === undefined || sayDoQuery.isError ? { percent: null, loading: false } : sayDoQuery.data ? { percent: sayDoQuery.data.percent, loading: false } : { percent: null, loading: true };
+  // The Say-Do Ratio (see useSprintSayDo) is N/A until the sprint dates are known.
 
   return (
     <div style={{ height: "100%", overflowY: "scroll" }}>
