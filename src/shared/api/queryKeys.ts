@@ -6,4 +6,6 @@ export const sprintStatsQueryKey = (origin: string, collection: string, project:
 export const sayDoTrendQueryKey = (origin: string, collection: string, project: string, team: string, sprint: string, iterationPath: string, configKey: string) =>
   ["say-do-trend", origin, collection, project, team, sprint, iterationPath, configKey] as const;
 
+export const sayDoQueryKey = (origin: string, collection: string, project: string, team: string, sprint: string, iterationPath: string, configKey: string) => ["say-do", origin, collection, project, team, sprint, iterationPath, configKey] as const;
+
 export const workItemStatesQueryKey = (origin: string, collection: string, project: string) => ["work-item-states", origin, collection, project] as const;

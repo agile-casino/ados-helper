@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { sayDoTrendQueryKey } from "../api/queryKeys";
+import { fetchSprintSayDo } from "../api/sprintSayDo";
 import { useSettings } from "../context/SettingsContext";
-import { calculateCompletedPoints, calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, selectTrendSprints } from "../domain/sayDo";
+import { selectTrendSprints } from "../domain/sayDo";
 import type { WorkItemStateConfig } from "../domain/WorkItemState";
 
 const TREND_SPRINT_COUNT = 6;
@@ -33,20 +34,16 @@ const fetchTrend = async (origin: string, fetchFn: typeof globalThis.fetch | und
   const sprints = selectTrendSprints(iterations, { name: sprint, path: iterationPath }, project, TREND_SPRINT_COUNT);
   const now = new Date();
 
-  // Each sprint uses the same snapshot dates, Say-Do formula and completed-points rule as the Sprint Stats tab.
+  // Same Say-Do and completed-points calculation as the Sprint Stats tab.
   return Promise.all(
     sprints.map(async s => {
-      const [initialItems, finalItems] = await Promise.all([
-        apiClient.getSprintSnapshot(collection, project, team, s.name, s.path, getCommitSnapshotDate(s.startDate)),
-        apiClient.getSprintSnapshot(collection, project, team, s.name, s.path, getFinalSnapshotDate(s.finishDate, now))
-      ]);
-      const sayDo = calculateSayDo(initialItems, finalItems);
+      const result = await fetchSprintSayDo(apiClient, { collection, project, team, sprint: s.name, iterationPath: s.path, startDate: s.startDate, finishDate: s.finishDate }, now);
       return {
         name: s.name,
-        sayDoPercent: sayDo.percent,
-        committedPoints: sayDo.committedPoints,
-        completedCommittedPoints: sayDo.completedCommittedPoints,
-        completedPoints: calculateCompletedPoints(finalItems)
+        sayDoPercent: result.percent,
+        committedPoints: result.committedPoints,
+        completedCommittedPoints: result.completedCommittedPoints,
+        completedPoints: result.completedPoints
       };
     })
   );
