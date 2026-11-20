@@ -66,16 +66,44 @@ function collectHighlights(teams: { workItems: WorkItem[]; sprintStartDate?: Dat
   return ROW_HIGHLIGHT_ORDER.filter(h => present.has(h));
 }
 
-/** Key at the top of the sheet: a coloured swatch in column A and the meaning in column C. */
-function addKey(rows: CellObject[][], merges: Range[], highlights: RowHighlight[]) {
+/** Column for the key: to the right of the work item columns, which are 0-6 (4-6 are hidden). */
+const KEY_COLUMN = 7;
+
+/**
+ * Writes the key beside the top of the sheet, in columns to the right of the work items, so it
+ * does not add rows above the tables. Column H holds the swatch and column I the label.
+ */
+function addKeyBesideTables(rows: CellObject[][], highlights: RowHighlight[]) {
   if (highlights.length === 0) return;
-  merges.push(new Range().from(rows.length, 0).to(rows.length, 6));
-  rows.push([new Cell("Key").font(headerFont)]);
-  for (const h of highlights) {
-    rows.push([new Cell("").backgroundColor(ROW_HIGHLIGHT_STYLES[h].color), new Cell(""), new Cell(ROW_HIGHLIGHT_STYLES[h].label)]);
-  }
-  rows.push([new Cell("")]);
+
+  const place = (rowIndex: number, column: number, cell: CellObject) => {
+    while (rows.length <= rowIndex) rows.push([]);
+    const row = rows[rowIndex] ?? [];
+    while (row.length < column) row.push(new Cell(""));
+    row[column] = cell;
+    rows[rowIndex] = row;
+  };
+
+  // Row 0 holds the title; each highlight then takes the next row.
+  place(0, KEY_COLUMN, new Cell("Key").font(headerFont));
+  highlights.forEach((h, i) => {
+    place(i + 1, KEY_COLUMN, new Cell("").backgroundColor(ROW_HIGHLIGHT_STYLES[h].color));
+    place(i + 1, KEY_COLUMN + 1, new Cell(ROW_HIGHLIGHT_STYLES[h].label));
+  });
 }
+
+/** Column widths: the work item columns, then the key columns (swatch and label). */
+const SHEET_COLUMNS = [
+  { wpx: 96 * 0.85714 },
+  { wpx: 75 * 0.85714 },
+  { wpx: 705 * 0.85714 },
+  { wpx: 50 * 0.85714 },
+  { wpx: 82 * 0.85714, hidden: true },
+  { wpx: 120 * 0.85714, hidden: true },
+  { wpx: 120 * 0.85714, hidden: true },
+  { wpx: 24 },
+  { wpx: 260 }
+];
 
 function addSectionHeader(rows: CellObject[][], merges: Range[], title: string) {
   merges.push(new Range().from(rows.length, 0).to(rows.length, 6));
@@ -153,12 +181,12 @@ export function generateReport(saveFile: (data: Uint8Array, filename: string, mi
   const merges: Range[] = [];
   const context: ReportContext = { origin, collection, project };
 
-  addKey(rows, merges, collectHighlights([{ workItems, sprintStartDate }]));
   addTeamWorkItems(rows, merges, workItems, context, sprintStartDate);
+  addKeyBesideTables(rows, collectHighlights([{ workItems, sprintStartDate }]));
 
   const worksheet = utils.aoa_to_sheet(rows);
 
-  worksheet["!cols"] = [{ wpx: 96 * 0.85714 }, { wpx: 75 * 0.85714 }, { wpx: 705 * 0.85714 }, { wpx: 50 * 0.85714 }, { wpx: 82 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }];
+  worksheet["!cols"] = SHEET_COLUMNS;
 
   worksheet["!merges"] = merges;
 
@@ -174,8 +202,6 @@ export function generateMultiTeamReport(saveFile: (data: Uint8Array, filename: s
   const rows: CellObject[][] = [];
   const merges: Range[] = [];
   const context: ReportContext = { origin, collection, project };
-
-  addKey(rows, merges, collectHighlights(teamWorkItems));
 
   teamWorkItems.forEach((teamData, index) => {
     // Add team header with commitment percentage
@@ -202,9 +228,11 @@ export function generateMultiTeamReport(saveFile: (data: Uint8Array, filename: s
     }
   });
 
+  addKeyBesideTables(rows, collectHighlights(teamWorkItems));
+
   const worksheet = utils.aoa_to_sheet(rows);
 
-  worksheet["!cols"] = [{ wpx: 96 * 0.85714 }, { wpx: 75 * 0.85714 }, { wpx: 705 * 0.85714 }, { wpx: 50 * 0.85714 }, { wpx: 82 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }];
+  worksheet["!cols"] = SHEET_COLUMNS;
 
   worksheet["!merges"] = merges;
 

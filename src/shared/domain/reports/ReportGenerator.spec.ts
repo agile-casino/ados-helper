@@ -54,7 +54,11 @@ describe("ReportGenerator colour key", () => {
     const workbook = read(data, { type: "array" });
     const sheet = workbook.Sheets["Sprint 1"];
     if (!sheet) throw new Error("Expected a 'Sprint 1' worksheet");
-    return utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true }).map(row => String(row[2] ?? row[0] ?? ""));
+    // Every non-empty cell in the sheet, so the key is found wherever it is placed.
+    return utils
+      .sheet_to_json<unknown[]>(sheet, { header: 1, raw: true })
+      .flat()
+      .map(cell => String(cell ?? ""));
   };
 
   it("lists only the highlights present in the sheet", async () => {
