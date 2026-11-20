@@ -1,3 +1,4 @@
+import { queryClient } from "../shared/api/queryClient";
 import type { KNOWN_PBI_STATES } from "../shared/domain/WorkItemState";
 
 // Injected by Vite. `true` only in the static PR preview build (vite.preview.config.mts),
@@ -281,12 +282,15 @@ const SCENARIOS = {
         {
           id: 506,
           type: "Product Backlog Item",
-          title: "[Minus] Item removed from sprint (Sprint 13-)",
-          state: "Removed",
+          title: "[Minus] Item removed from sprint mid-sprint",
+          state: "Committed",
           assignedTo: "Bob Miller",
-          tags: "Sprint 13-",
+          tags: "Sprint 13",
           effort: 3,
           activatedDate: "2026-06-01T09:00:00Z",
+          // In the sprint at the start snapshot, then moved to the backlog mid-sprint.
+          sprintRemovedDate: "2026-06-04T14:00:00Z",
+          currentSprint: "Backlog",
           children: []
         }
       ]
@@ -382,6 +386,9 @@ class SandboxState {
   }
 
   public saveState() {
+    // Every edit to the mock data goes through here. Drop cached API results so the
+    // app shows the change straight away instead of waiting for the cache to expire.
+    queryClient.invalidateQueries();
     localStorage.setItem(
       "sprint-report-generator-sandbox-state",
       JSON.stringify({
@@ -1322,8 +1329,15 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   let isCollapsed = false;
-  toggleBtn.addEventListener("click", () => {
-    if (isCollapsed) {
+  const setCollapsed = (collapsed: boolean) => {
+    if (collapsed) {
+      sidebar.style.overflowY = "hidden";
+      sidebar.style.width = "0px";
+      sidebar.style.padding = "0px";
+      sidebar.style.borderLeft = "none";
+      toggleBtn.innerHTML = "🛠️ Show Console";
+      toggleBtn.style.color = "#ff79c6";
+    } else {
       sidebar.style.width = "380px";
       sidebar.style.padding = "20px";
       sidebar.style.borderLeft = "1px solid #333";
@@ -1332,16 +1346,12 @@ window.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => {
         sidebar.style.overflowY = "auto";
       }, 300);
-    } else {
-      sidebar.style.overflowY = "hidden";
-      sidebar.style.width = "0px";
-      sidebar.style.padding = "0px";
-      sidebar.style.borderLeft = "none";
-      toggleBtn.innerHTML = "🛠️ Show Console";
-      toggleBtn.style.color = "#ff79c6";
     }
-    isCollapsed = !isCollapsed;
-  });
+    isCollapsed = collapsed;
+  };
+  toggleBtn.addEventListener("click", () => setCollapsed(!isCollapsed));
+  // The Developer Console starts hidden; the button opens it.
+  setCollapsed(true);
 
   mainArea.appendChild(toggleBtn);
 

@@ -1,13 +1,14 @@
-import { Alert, Badge, Card, Group, List, Loader, Stack, Text, Title } from "@mantine/core";
+import { Accordion, Alert, Badge, Card, Group, List, Loader, Stack, Text, Title } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { ApiClient } from "../api/ApiClient";
 import { sayDoTrendQueryKey } from "../api/queryKeys";
+import { fetchSprintSayDo } from "../api/sprintSayDo";
 import { useSettings } from "../context/SettingsContext";
-import { calculateCompletedPoints, calculateSayDo, getCommitSnapshotDate, getFinalSnapshotDate, selectTrendSprints } from "../domain/sayDo";
+import { selectTrendSprints } from "../domain/sayDo";
 import type { WorkItemStateConfig } from "../domain/WorkItemState";
 
-const TREND_SPRINT_COUNT = 5;
+const TREND_SPRINT_COUNT = 6;
 
 interface TrendsTabProps {
   origin: string;
@@ -33,20 +34,16 @@ const fetchTrend = async (origin: string, fetchFn: typeof globalThis.fetch | und
   const sprints = selectTrendSprints(iterations, { name: sprint, path: iterationPath }, project, TREND_SPRINT_COUNT);
   const now = new Date();
 
-  // Each sprint uses the same snapshot dates, Say-Do formula and completed-points rule as the Sprint Stats tab.
+  // Same Say-Do and completed-points calculation as the Sprint Stats tab.
   return Promise.all(
     sprints.map(async s => {
-      const [initialItems, finalItems] = await Promise.all([
-        apiClient.getSprintSnapshot(collection, project, team, s.name, s.path, getCommitSnapshotDate(s.startDate)),
-        apiClient.getSprintSnapshot(collection, project, team, s.name, s.path, getFinalSnapshotDate(s.finishDate, now))
-      ]);
-      const sayDo = calculateSayDo(initialItems, finalItems);
+      const result = await fetchSprintSayDo(apiClient, { collection, project, team, sprint: s.name, iterationPath: s.path, startDate: s.startDate, finishDate: s.finishDate }, now);
       return {
         name: s.name,
-        sayDoPercent: sayDo.percent,
-        committedPoints: sayDo.committedPoints,
-        completedCommittedPoints: sayDo.completedCommittedPoints,
-        completedPoints: calculateCompletedPoints(finalItems)
+        sayDoPercent: result.percent,
+        committedPoints: result.committedPoints,
+        completedCommittedPoints: result.completedCommittedPoints,
+        completedPoints: result.completedPoints
       };
     })
   );
@@ -59,51 +56,48 @@ const getSayDoColor = (pct: number) => {
   return "var(--mantine-color-red-6)";
 };
 
-function SayDoExplanationCard() {
+function SayDoExplanation() {
   return (
-    <Card withBorder p="md" w="100%">
-      <Stack gap="sm">
-        <Title order={4}>Say-Do Ratio</Title>
-        <Text size="sm">The Say-Do Ratio shows how reliably the team finishes the work it commits to. It compares what the team planned at the start of the sprint with what it actually completed by the end.</Text>
-        <Text size="sm" fw={600}>
-          Formula: (Completed committed points ÷ Committed points at start) × 100
-        </Text>
-        <List size="sm" spacing="xs">
-          <List.Item>
-            <Text component="span" size="sm" fw={600}>
-              Committed points
-            </Text>{" "}
-            are the points of active work items in the sprint at the start snapshot (end of Day 2). Items removed from the sprint later still count here, which lowers the ratio.
-          </List.Item>
-          <List.Item>
-            <Text component="span" size="sm" fw={600}>
-              Completed committed points
-            </Text>{" "}
-            are the committed points that are Done by the end of the sprint. Work added after the start snapshot is not counted.
-          </List.Item>
-          <List.Item>
-            <Text component="span" size="sm" fw={600}>
-              Sprint in progress
-            </Text>{" "}
-            is measured up to today.
-          </List.Item>
-        </List>
-        <Group gap="xs">
-          <Badge color="green" variant="light">
-            90% and above: High Reliability
-          </Badge>
-          <Badge color="yellow" variant="light">
-            70% to 89%: Moderate Reliability
-          </Badge>
-          <Badge color="red" variant="light">
-            Below 70%: Low Reliability
-          </Badge>
-        </Group>
-        <Text size="sm" c="dimmed">
-          A steady, high ratio helps planning, because the team's commitments can be trusted. Read the ratio as a trend across the team's sprints, not as a measure of individual performance.
-        </Text>
-      </Stack>
-    </Card>
+    <Stack gap="sm">
+      <Text size="sm">The Say-Do Ratio shows how reliably the team finishes the work it commits to. It compares what the team planned at the start of the sprint with what it actually completed by the end.</Text>
+      <Text size="sm" fw={600}>
+        Formula: (Completed committed points ÷ Committed points at start) × 100
+      </Text>
+      <List size="sm" spacing="xs">
+        <List.Item>
+          <Text component="span" size="sm" fw={600}>
+            Committed points
+          </Text>{" "}
+          are the points of active work items in the sprint at the start snapshot (end of Day 2). Items removed from the sprint later still count here, which lowers the ratio.
+        </List.Item>
+        <List.Item>
+          <Text component="span" size="sm" fw={600}>
+            Completed committed points
+          </Text>{" "}
+          are the committed points that are Done by the end of the sprint. Work added after the start snapshot is not counted.
+        </List.Item>
+        <List.Item>
+          <Text component="span" size="sm" fw={600}>
+            Sprint in progress
+          </Text>{" "}
+          is measured up to today.
+        </List.Item>
+      </List>
+      <Group gap="xs">
+        <Badge color="green" variant="light">
+          90% and above: High Reliability
+        </Badge>
+        <Badge color="yellow" variant="light">
+          70% to 89%: Moderate Reliability
+        </Badge>
+        <Badge color="red" variant="light">
+          Below 70%: Low Reliability
+        </Badge>
+      </Group>
+      <Text size="sm" c="dimmed">
+        A steady, high ratio helps planning, because the team's commitments can be trusted. Read the ratio as a trend across the team's sprints, not as a measure of individual performance.
+      </Text>
+    </Stack>
   );
 }
 
@@ -288,25 +282,41 @@ export const TrendsTab = (props: TrendsTabProps) => {
 
   const data = query.data ?? [];
   const showCharts = body === undefined;
+  // The range comes from the sprints actually charted, so it stays correct when a sprint is skipped.
+  const firstSprint = data[0]?.name;
+  const lastSprint = data[data.length - 1]?.name;
+  const sprintRange = firstSprint === undefined || lastSprint === undefined ? "" : firstSprint === lastSprint ? firstSprint : `${firstSprint} – ${lastSprint}`;
 
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "16px" }}>
       <Stack gap="md">
-        <SayDoExplanationCard />
+        {showCharts && (
+          <Group justify="space-between" align="baseline" wrap="wrap">
+            <Title order={4}>Sprints: {sprintRange}</Title>
+            <Text size="sm" c="dimmed">
+              The selected sprint and the five sprints before it. Values match the Sprint Stats tab.
+            </Text>
+          </Group>
+        )}
 
         <Card withBorder p="md" w="100%">
           <Title order={4} mb="sm">
-            Say-Do Ratio: last {TREND_SPRINT_COUNT} sprints
+            Say-Do Ratio
           </Title>
-          <Text size="sm" c="dimmed" mb="md">
-            The selected sprint and the four sprints before it. Values match the Sprint Stats tab.
-          </Text>
+          <Accordion variant="contained" mb="md">
+            <Accordion.Item value="how-calculated">
+              <Accordion.Control>How is the Say-Do Ratio calculated?</Accordion.Control>
+              <Accordion.Panel>
+                <SayDoExplanation />
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
           {showCharts ? <SayDoChart data={data} /> : body}
         </Card>
 
         <Card withBorder p="md" w="100%">
           <Title order={4} mb="sm">
-            Points Completed: last {TREND_SPRINT_COUNT} sprints
+            Points Completed
           </Title>
           <Text size="sm" c="dimmed" mb="md">
             Story points of every work item Done by the end of each sprint, including items added or pulled in after the sprint started. This is delivered throughput, not a measure of commitment, so it does not compare against the start-of-sprint

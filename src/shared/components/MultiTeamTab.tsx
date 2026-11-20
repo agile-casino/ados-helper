@@ -1,6 +1,7 @@
 import { Button, Checkbox, ColorInput, Group, Stack, Text, TextInput, Title } from "@mantine/core";
 import { Fragment, useEffect, useState } from "react";
 import { ApiClient } from "../api/ApiClient";
+import { useSprintSayDo } from "../api/useSprintSayDo";
 import { usePlatform } from "../context/PlatformContext";
 import { useSettings } from "../context/SettingsContext";
 import { generateMultiTeamAcceptanceCriteriaDocxReport } from "../domain/reports/DocxGenerator";
@@ -41,6 +42,30 @@ interface TeamData {
   sprintEndDate?: Date | undefined;
   loading: boolean;
   error: string | null;
+}
+
+/** One team's work item table with its own Say-Do Ratio, calculated from that team's sprint dates. */
+function TeamWorkItemTable({
+  data,
+  origin,
+  collection,
+  project,
+  sprint,
+  iterationPath,
+  fetchFn
+}: { data: TeamData } & Pick<MultiTeamTabProps, "origin" | "collection" | "project" | "sprint" | "iterationPath"> & { fetchFn?: typeof globalThis.fetch | undefined }) {
+  const sayDo = useSprintSayDo({
+    origin,
+    fetchFn,
+    collection,
+    project,
+    team: data.team,
+    sprint,
+    iterationPath,
+    startDate: data.sprintStartDate,
+    finishDate: data.sprintEndDate
+  });
+  return <WorkItemTable origin={origin} collection={collection} project={project} workItems={data.workItems} sprintStartDate={data.sprintStartDate} sprintEndDate={data.sprintEndDate} sayDo={sayDo} />;
 }
 
 export const MultiTeamTab = (props: MultiTeamTabProps) => {
@@ -308,7 +333,7 @@ export const MultiTeamTab = (props: MultiTeamTabProps) => {
                   No work items found
                 </Text>
               ) : (
-                <WorkItemTable origin={props.origin} collection={props.collection} project={props.project} workItems={data.workItems} sprintStartDate={data.sprintStartDate} sprintEndDate={data.sprintEndDate} />
+                <TeamWorkItemTable data={data} origin={props.origin} collection={props.collection} project={props.project} sprint={props.sprint} iterationPath={props.iterationPath} fetchFn={props.fetchFn} />
               )}
             </div>
           );

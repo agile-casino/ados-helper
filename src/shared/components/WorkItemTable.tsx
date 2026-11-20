@@ -1,10 +1,13 @@
-import { Badge, Paper, Table, Text, useMantineColorScheme } from "@mantine/core";
+import { Group, Table, Text, useMantineColorScheme } from "@mantine/core";
 import { useColorScheme } from "@mantine/hooks";
 import sumBy from "lodash/sumBy";
+import type { SayDoSummary } from "../api/useSprintSayDo";
 import { usePlatform } from "../context/PlatformContext";
+import { getRowHighlight, ROW_HIGHLIGHT_ORDER, ROW_HIGHLIGHT_STYLES, type RowHighlight } from "../domain/rowHighlight";
 import type { WorkItem } from "../domain/WorkItem";
 import { WorkItemCollection } from "../domain/WorkItemCollection";
 import { formatName } from "../utils/formatName";
+import { SprintStatisticsSummary } from "./SprintStatisticsSummary";
 import styles from "./WorkItemTable.module.css";
 
 interface WorkItemTableProps {
@@ -14,84 +17,55 @@ interface WorkItemTableProps {
   workItems?: WorkItem[];
   sprintStartDate?: Date | undefined;
   sprintEndDate?: Date | undefined;
+  /** When given, the summary shows the Say-Do Ratio instead of Achievement. */
+  sayDo?: SayDoSummary | undefined;
 }
 
-function StatisticsSummary({ collection }: { collection: WorkItemCollection }) {
-  const committedItems = collection.committedWorkItems();
-  const pulledInItems = collection.pulledInWorkItems();
-  const completedCommitted = committedItems.filter(w => w.isDone);
-  const percentage = collection.commitmentPercentage;
+function useIsDarkMode() {
+  const { colorScheme } = useMantineColorScheme();
+  const systemColorScheme = useColorScheme();
+  return colorScheme === "auto" ? systemColorScheme === "dark" : colorScheme === "dark";
+}
 
-  const getColor = (pct: number) => {
-    if (pct >= 90) return "green";
-    if (pct >= 70) return "yellow";
-    return "red";
-  };
+function HighlightLegend({ highlights }: { highlights: RowHighlight[] }) {
+  const isDark = useIsDarkMode();
+  const shown = ROW_HIGHLIGHT_ORDER.filter(h => highlights.includes(h));
+  if (shown.length === 0) {
+    return null;
+  }
 
   return (
-    <Paper
-      withBorder
-      p="md"
-      mb="md"
-      style={{
-        display: "flex",
-        gap: "2rem",
-        alignItems: "center",
-        flexWrap: "wrap"
-      }}
-    >
-      <div>
-        <Text fw={700}>Sprint Statistics</Text>
-      </div>
-      <div>
-        <Text size="sm" c="dimmed">
-          Completed Items
-        </Text>
-        <Text size="lg" fw={600}>
-          {completedCommitted.length} / {committedItems.length}
-        </Text>
-      </div>
-      <div>
-        <Text size="sm" c="dimmed">
-          Completed Points
-        </Text>
-        <Text size="lg" fw={600}>
-          {collection.completedCommittedEffort} / {collection.committedEffort}
-        </Text>
-      </div>
-      <div>
-        <Text size="sm" c="dimmed">
-          Achievement
-        </Text>
-        <Badge size="xl" color={getColor(percentage)} style={{ fontSize: "1.25rem" }}>
-          {percentage}%
-        </Badge>
-      </div>
-      {pulledInItems.length > 0 && (
-        <div>
-          <Text size="sm" c="dimmed">
-            Pulled In Later
-          </Text>
-          <Text size="md">
-            {pulledInItems.length} items ({collection.pulledInEffort} pts)
-          </Text>
-        </div>
-      )}
-    </Paper>
+    <Group gap="lg" mb="md" aria-label="Row colour key">
+      <Text size="sm" fw={600} c="dimmed">
+        Key
+      </Text>
+      {shown.map(h => (
+        <Group key={h} gap="xs" wrap="nowrap">
+          <span
+            aria-hidden="true"
+            style={{ display: "inline-block", width: 16, height: 16, borderRadius: 3, border: "1px solid var(--mantine-color-default-border)", background: isDark ? ROW_HIGHLIGHT_STYLES[h].darkColor : ROW_HIGHLIGHT_STYLES[h].color }}
+          />
+          <Text size="sm">{ROW_HIGHLIGHT_STYLES[h].label}</Text>
+        </Group>
+      ))}
+    </Group>
   );
 }
 
-export function WorkItemTable({ origin, collection, project, workItems, sprintStartDate, sprintEndDate }: WorkItemTableProps) {
+export function WorkItemTable({ origin, collection, project, workItems, sprintStartDate, sprintEndDate, sayDo }: WorkItemTableProps) {
   if (!workItems) {
     return null;
   }
 
   const workItemCollection = new WorkItemCollection(workItems, sprintStartDate, sprintEndDate);
+  // Only the highlights present in this table are shown in the key.
+  const highlights = [...new Set(workItems.map(x => getRowHighlight(x, sprintStartDate)))].filter((h): h is RowHighlight => h !== null);
   const showWiseColumn = workItems.some(x => x.wiseNumber !== undefined);
 
   return (
     <div className={styles.workItemTable}>
-      <StatisticsSummary collection={workItemCollection} />
+      <SprintStatisticsSummary collection={workItemCollection} sayDo={sayDo} />
+      <HighlightLegend highlights={highlights} />
       <Table>
         {workItemCollection.done.length > 0 && (
           <>
@@ -150,42 +124,17 @@ function WorkItemTableHeader({ title, showWiseColumn }: { title: string; showWis
 }
 
 function WorkItemTableBody({ origin, collection, project, workItems, sprintStartDate, showWiseColumn }: { origin: string; collection: string; project: string; workItems: WorkItem[]; sprintStartDate?: Date | undefined; showWiseColumn: boolean }) {
-  const { colorScheme } = useMantineColorScheme();
-  const systemColorScheme = useColorScheme();
   const platform = usePlatform();
-  const isDark = colorScheme === "auto" ? systemColorScheme === "dark" : colorScheme === "dark";
-
-  const bgYellow = isDark ? "rgba(230, 200, 50, 0.18)" : "#eeece1";
-  const bgOrange = isDark ? "rgba(255, 150, 0, 0.28)" : "#FFCC66";
-  const bgPink = isDark ? "rgba(240, 100, 100, 0.22)" : "#f2dcdb";
+  const isDark = useIsDarkMode();
 
   return (
     <Table.Tbody>
       {workItems.length ? (
         workItems.map(x => {
           const style: React.CSSProperties = {};
-
-          // Tag-based color coding for yellow and orange
-          if (x.sprint?.sprintNumber && x.sprintTag?.sprintNumber) {
-            if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "+") {
-              style.backgroundColor = bgYellow;
-            } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber && x.sprintTag.sprintSuffix === "!") {
-              style.backgroundColor = bgOrange;
-            } else if (x.sprintTag.sprintNumber === x.sprint.sprintNumber - 1 && x.sprintTag.sprintSuffix !== "+") {
-              style.backgroundColor = bgPink;
-            }
-          }
-
-          // Date-based color coding (only if no tag-based color applied)
-          if (!style.backgroundColor && sprintStartDate) {
-            // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
-            if (x.isPulledInLate(sprintStartDate)) {
-              style.backgroundColor = bgYellow;
-            }
-            // Pink for PBIs activated > 2 days before sprint start
-            else if (x.isActivatedEarly(sprintStartDate)) {
-              style.backgroundColor = bgPink;
-            }
+          const highlight = getRowHighlight(x, sprintStartDate);
+          if (highlight) {
+            style.backgroundColor = isDark ? ROW_HIGHLIGHT_STYLES[highlight].darkColor : ROW_HIGHLIGHT_STYLES[highlight].color;
           }
 
           if (x.allTasksDone) {

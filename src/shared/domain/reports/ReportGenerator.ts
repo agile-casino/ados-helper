@@ -1,5 +1,6 @@
 import { type CellObject, type CellStyle, utils, write } from "xlsx-js-style";
 import { formatName } from "../../utils/formatName";
+import { getRowHighlight, ROW_HIGHLIGHT_ORDER, ROW_HIGHLIGHT_STYLES, type RowHighlight } from "../rowHighlight";
 import type { WorkItem } from "../WorkItem";
 import { WorkItemCollection } from "../WorkItemCollection";
 import { type BorderStyle, Cell, type FontStyle, type TextAlignStyle } from "./Cell";
@@ -27,27 +28,10 @@ const teamHeaderFont: FontStyle = {
 function getExtraStyles(workItem: WorkItem, sprintStartDate?: Date): CellStyle {
   const result: CellStyle = {};
 
-  // Tag-based color coding for yellow and orange
-  if (workItem.sprint?.sprintNumber && workItem.sprintTag?.sprintNumber) {
-    if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "+") {
-      result.fill = { fgColor: { rgb: "eeece1" } };
-    } else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber && workItem.sprintTag.sprintSuffix === "!") {
-      result.fill = { fgColor: { rgb: "FFCC66" } };
-    } else if (workItem.sprintTag.sprintNumber === workItem.sprint.sprintNumber - 1 && workItem.sprintTag.sprintSuffix !== "+") {
-      result.fill = { fgColor: { rgb: "f2dcdb" } };
-    }
-  }
-
-  // Date-based color coding (only if no tag-based color applied)
-  if (!result.fill && sprintStartDate) {
-    // Yellow for PBIs pulled in late (activated > 2 days after sprint start)
-    if (workItem.isPulledInLate(sprintStartDate)) {
-      result.fill = { fgColor: { rgb: "eeece1" } };
-    }
-    // Pink for PBIs activated > 2 days before sprint start
-    else if (workItem.isActivatedEarly(sprintStartDate)) {
-      result.fill = { fgColor: { rgb: "f2dcdb" } };
-    }
+  const highlight = getRowHighlight(workItem, sprintStartDate);
+  if (highlight) {
+    // Excel takes the colour without the leading #
+    result.fill = { fgColor: { rgb: ROW_HIGHLIGHT_STYLES[highlight].color.slice(1) } };
   }
 
   if (workItem.allTasksDone) {
@@ -69,6 +53,59 @@ interface ReportContext {
   collection: string;
   project: string;
 }
+
+/** Colours used in the sheet, in key order. Only highlights present in the sheet are listed. */
+function collectHighlights(teams: { workItems: WorkItem[]; sprintStartDate?: Date | undefined }[]): RowHighlight[] {
+  const present = new Set<RowHighlight>();
+  for (const team of teams) {
+    for (const workItem of team.workItems) {
+      const highlight = getRowHighlight(workItem, team.sprintStartDate);
+      if (highlight) present.add(highlight);
+    }
+  }
+  return ROW_HIGHLIGHT_ORDER.filter(h => present.has(h));
+}
+
+/** Column for the key swatch. Columns 0-3 hold the table, 4-6 are hidden, and column 7 is a blank spacer. */
+const KEY_COLUMN = 8;
+
+/**
+ * Writes the key beside the top of the sheet, in columns to the right of the work items, so it
+ * does not add rows above the tables. Column I holds the swatch and column J the label.
+ */
+function addKeyBesideTables(rows: CellObject[][], highlights: RowHighlight[]) {
+  if (highlights.length === 0) return;
+
+  const place = (rowIndex: number, column: number, cell: CellObject) => {
+    while (rows.length <= rowIndex) rows.push([]);
+    const row = rows[rowIndex] ?? [];
+    while (row.length < column) row.push(new Cell(""));
+    row[column] = cell;
+    rows[rowIndex] = row;
+  };
+
+  // Row 0 holds the title; each highlight then takes the next row.
+  place(0, KEY_COLUMN, new Cell("Key").font(headerFont));
+  highlights.forEach((h, i) => {
+    place(i + 1, KEY_COLUMN, new Cell("").backgroundColor(ROW_HIGHLIGHT_STYLES[h].color));
+    place(i + 1, KEY_COLUMN + 1, new Cell(ROW_HIGHLIGHT_STYLES[h].label));
+  });
+}
+
+/** Column widths: the work item columns, a blank spacer, then the key columns (swatch and label). */
+const SHEET_COLUMNS = [
+  { wpx: 96 * 0.85714 },
+  { wpx: 75 * 0.85714 },
+  { wpx: 705 * 0.85714 },
+  { wpx: 50 * 0.85714 },
+  { wpx: 82 * 0.85714, hidden: true },
+  { wpx: 120 * 0.85714, hidden: true },
+  { wpx: 120 * 0.85714, hidden: true },
+  // Blank spacer and swatch use Excel's default width (about 64px); the label is four times that.
+  { wpx: 64 },
+  { wpx: 64 },
+  { wpx: 256 }
+];
 
 function addSectionHeader(rows: CellObject[][], merges: Range[], title: string) {
   merges.push(new Range().from(rows.length, 0).to(rows.length, 6));
@@ -147,10 +184,11 @@ export function generateReport(saveFile: (data: Uint8Array, filename: string, mi
   const context: ReportContext = { origin, collection, project };
 
   addTeamWorkItems(rows, merges, workItems, context, sprintStartDate);
+  addKeyBesideTables(rows, collectHighlights([{ workItems, sprintStartDate }]));
 
   const worksheet = utils.aoa_to_sheet(rows);
 
-  worksheet["!cols"] = [{ wpx: 96 * 0.85714 }, { wpx: 75 * 0.85714 }, { wpx: 705 * 0.85714 }, { wpx: 50 * 0.85714 }, { wpx: 82 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }];
+  worksheet["!cols"] = SHEET_COLUMNS;
 
   worksheet["!merges"] = merges;
 
@@ -192,9 +230,11 @@ export function generateMultiTeamReport(saveFile: (data: Uint8Array, filename: s
     }
   });
 
+  addKeyBesideTables(rows, collectHighlights(teamWorkItems));
+
   const worksheet = utils.aoa_to_sheet(rows);
 
-  worksheet["!cols"] = [{ wpx: 96 * 0.85714 }, { wpx: 75 * 0.85714 }, { wpx: 705 * 0.85714 }, { wpx: 50 * 0.85714 }, { wpx: 82 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }, { wpx: 120 * 0.85714, hidden: true }];
+  worksheet["!cols"] = SHEET_COLUMNS;
 
   worksheet["!merges"] = merges;
 

@@ -69,6 +69,27 @@ export class WorkItemCollection {
       .reduce((sum, w) => sum + (w.effort || 0), 0);
   }
 
+  /** Number of work items in the sprint that are not removed. */
+  public get activeCount(): number {
+    return this.workItems.filter(w => !w.isRemoved).length;
+  }
+
+  /** Number of work items that are Done, including items added later. */
+  public get completedCount(): number {
+    return this.workItems.filter(w => w.isDone && !w.isRemoved).length;
+  }
+
+  /** Points of every work item in the sprint that is not removed, including items added later. */
+  public get activeEffort(): number {
+    return this.workItems.filter(w => !w.isRemoved).reduce((sum, w) => sum + (w.effort || 0), 0);
+  }
+
+  /** Share of the sprint's points that are Done, or null when the sprint has no points. */
+  public get completedPercentage(): number | null {
+    if (this.activeEffort === 0) return null;
+    return Math.round((this.completedEffort / this.activeEffort) * 100);
+  }
+
   public get completedEffort(): number {
     // All completed items, regardless of when they were added
     return this.workItems.filter(w => w.isDone && !w.isRemoved).reduce((sum, w) => sum + (w.effort || 0), 0);

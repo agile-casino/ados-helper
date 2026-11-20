@@ -25,6 +25,7 @@ export function getFinalSnapshotDate(sprintFinish: Date, now: Date = new Date())
 
 export interface SayDoResult {
   committedPoints: number;
+  committedCount: number;
   completedCommittedPoints: number;
   completedCommittedCount: number;
   /** Rounded percentage, or null when nothing was committed. */
@@ -47,6 +48,7 @@ export function calculateSayDo(initialItems: WorkItem[], finalItems: WorkItem[])
 
   return {
     committedPoints,
+    committedCount: initialActive.length,
     completedCommittedPoints,
     completedCommittedCount: completedCommitted.length,
     percent: committedPoints > 0 ? Math.round((completedCommittedPoints / committedPoints) * 100) : null
