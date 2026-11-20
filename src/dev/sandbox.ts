@@ -278,12 +278,15 @@ const SCENARIOS = {
         {
           id: 506,
           type: "Product Backlog Item",
-          title: "[Minus] Item removed from sprint (Sprint 13-)",
-          state: "Removed",
+          title: "[Minus] Item removed from sprint mid-sprint",
+          state: "Committed",
           assignedTo: "Bob Miller",
-          tags: "Sprint 13-",
+          tags: "Sprint 13",
           effort: 3,
           activatedDate: "2026-06-01T09:00:00Z",
+          // In the sprint at the start snapshot, then moved to the backlog mid-sprint.
+          sprintRemovedDate: "2026-06-04T14:00:00Z",
+          currentSprint: "Backlog",
           children: []
         }
       ]
