@@ -1,4 +1,4 @@
-import { Badge, Group, Loader, Paper, Stack, Table, Text, Tooltip, useMantineColorScheme } from "@mantine/core";
+import { Badge, Group, Loader, Paper, Table, Text, Tooltip, useMantineColorScheme } from "@mantine/core";
 import { useColorScheme } from "@mantine/hooks";
 import sumBy from "lodash/sumBy";
 import { usePlatform } from "../context/PlatformContext";
@@ -56,31 +56,21 @@ function HighlightLegend({ highlights }: { highlights: RowHighlight[] }) {
     return null;
   }
 
-  // Vertical key shown beside the table, so it does not use extra height above the rows.
   return (
-    <Stack gap="xs" w={220} style={{ flexShrink: 0 }} aria-label="Row colour key">
+    <Group gap="lg" mb="md" aria-label="Row colour key">
       <Text size="sm" fw={600} c="dimmed">
         Key
       </Text>
       {shown.map(h => (
-        <Group key={h} gap="xs" wrap="nowrap" align="flex-start">
+        <Group key={h} gap="xs" wrap="nowrap">
           <span
             aria-hidden="true"
-            style={{
-              display: "inline-block",
-              flexShrink: 0,
-              width: 16,
-              height: 16,
-              marginTop: 2,
-              borderRadius: 3,
-              border: "1px solid var(--mantine-color-default-border)",
-              background: isDark ? ROW_HIGHLIGHT_STYLES[h].darkColor : ROW_HIGHLIGHT_STYLES[h].color
-            }}
+            style={{ display: "inline-block", width: 16, height: 16, borderRadius: 3, border: "1px solid var(--mantine-color-default-border)", background: isDark ? ROW_HIGHLIGHT_STYLES[h].darkColor : ROW_HIGHLIGHT_STYLES[h].color }}
           />
           <Text size="sm">{ROW_HIGHLIGHT_STYLES[h].label}</Text>
         </Group>
       ))}
-    </Stack>
+    </Group>
   );
 }
 
@@ -174,43 +164,39 @@ export function WorkItemTable({ origin, collection, project, workItems, sprintSt
   return (
     <div className={styles.workItemTable}>
       <StatisticsSummary collection={workItemCollection} sayDo={sayDo} />
-      <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Table>
-            {workItemCollection.done.length > 0 && (
-              <>
-                <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
-                <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-              </>
-            )}
-            {workItemCollection.inProgress.length > 0 && (
-              <>
-                <WorkItemTableHeader title={`In Progress - ${sumBy(workItemCollection.inProgress, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
-                <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-              </>
-            )}
-            {workItemCollection.notStarted.length > 0 && (
-              <>
-                <WorkItemTableHeader title={`Not Started - ${sumBy(workItemCollection.notStarted, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
-                <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-              </>
-            )}
-            {workItemCollection.removed.length > 0 && (
-              <>
-                <WorkItemTableHeader title={`Removed - ${sumBy(workItemCollection.removed, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
-                <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-              </>
-            )}
-            {workItemCollection.studyTime.length > 0 && (
-              <>
-                <WorkItemTableHeader title={"Study Time"} showWiseColumn={showWiseColumn} />
-                <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
-              </>
-            )}
-          </Table>
-        </div>
-        <HighlightLegend highlights={highlights} />
-      </div>
+      <HighlightLegend highlights={highlights} />
+      <Table>
+        {workItemCollection.done.length > 0 && (
+          <>
+            <WorkItemTableHeader title={`Done - ${sumBy(workItemCollection.done, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.done} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+        {workItemCollection.inProgress.length > 0 && (
+          <>
+            <WorkItemTableHeader title={`In Progress - ${sumBy(workItemCollection.inProgress, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.inProgress} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+        {workItemCollection.notStarted.length > 0 && (
+          <>
+            <WorkItemTableHeader title={`Not Started - ${sumBy(workItemCollection.notStarted, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.notStarted} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+        {workItemCollection.removed.length > 0 && (
+          <>
+            <WorkItemTableHeader title={`Removed - ${sumBy(workItemCollection.removed, x => x.effort)} points`} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.removed} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+        {workItemCollection.studyTime.length > 0 && (
+          <>
+            <WorkItemTableHeader title={"Study Time"} showWiseColumn={showWiseColumn} />
+            <WorkItemTableBody origin={origin} workItems={workItemCollection.studyTime} collection={collection} project={project} sprintStartDate={sprintStartDate} showWiseColumn={showWiseColumn} />
+          </>
+        )}
+      </Table>
     </div>
   );
 }
