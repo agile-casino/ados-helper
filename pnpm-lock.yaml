@@ -247,7 +247,7 @@ importers:
         version: 30.0.0
       '@types/lodash':
         specifier: ^4.17.25
-        version: 4.17.27
+        version: 4.17.28
       '@types/node':
         specifier: ^24.19.1
         version: 24.19.2
@@ -1067,8 +1067,8 @@ packages:
   '@types/jest@30.0.0':
     resolution: {integrity: sha512-XTYugzhuwqWjws0CVz8QpM36+T+Dz5mTEBKhNs/esGLnCIlGdRy+Dq78NRjd7ls7r8BC8ZRMOrKlkO1hU0JOwA==}
 
-  '@types/lodash@4.17.27':
-    resolution: {integrity: sha512-VenMRv/eKNrspX9v3H4dbmjsrnCOYdYBG3kxXKk3dG6X+urBGcj2Prww3xw1U5K4FV/mE4h5GbWd0szEKf+9ew==}
+  '@types/lodash@4.17.28':
+    resolution: {integrity: sha512-2iP9dTMtHQOGZq086o7CyIVz5h3hCS7xqG1dZg3hfbxqcB5/ZaFD+vOp9ebR8YlbCQr84OQjBiv/qgITjHSrYA==}
 
   '@types/node@24.19.2':
     resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
@@ -3784,7 +3784,7 @@ snapshots:
       expect: 30.5.2
       pretty-format: 30.5.1
 
-  '@types/lodash@4.17.27': {}
+  '@types/lodash@4.17.28': {}
 
   '@types/node@24.19.2':
     dependencies:
